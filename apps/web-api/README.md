@@ -29,7 +29,7 @@ go run .
 Build the app by running:
 
 ```shell
-mkdir bin
+mkdir -p bin
 go build -o bin/rclone-svc .
 ```
 
