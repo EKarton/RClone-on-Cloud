@@ -3,6 +3,7 @@ module github.com/ekarton/RClone-Cloud/apps/web-api
 go 1.25.0
 
 require (
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/rclone/rclone v1.73.1
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go/modules/mongodb v0.40.0
@@ -117,7 +118,6 @@ require (
 	github.com/gofrs/flock v0.13.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
-	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
