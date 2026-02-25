@@ -36,5 +36,5 @@ go build -o bin/rclone-svc .
 Run tests by running:
 
 ```shell
-go test .*test.go
+go test ./... -v
 ```

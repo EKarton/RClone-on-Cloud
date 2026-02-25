@@ -227,6 +227,11 @@ func (s *MongoStorage) DeleteSection(section string) {
 func (s *MongoStorage) GetKeyList(section string) []string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+
+	if s.data[section] == nil {
+		return nil
+	}
+
 	out := make([]string, 0, len(s.data[section]))
 	for k := range s.data[section] {
 		out = append(out, k)
