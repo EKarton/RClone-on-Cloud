@@ -37,6 +37,9 @@ func main() {
 
 	// 2. Connect to MongoDB
 	mongoURI := os.Getenv("MONGODB_URI") // e.g. "mongodb://localhost:27017"
+	if mongoURI == "" {
+		log.Fatal("MONGODB_URI is not set")
+	}
 	client, err := mongo.Connect(options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		log.Fatalf("mongo connect: %v", err)

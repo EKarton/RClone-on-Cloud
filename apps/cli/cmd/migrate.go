@@ -27,7 +27,7 @@ func Migrate(configPath string) {
 	// 2. Connect to MongoDB
 	mongoURI := os.Getenv("MONGODB_URI")
 	if mongoURI == "" {
-		mongoURI = "mongodb://localhost:27017"
+		log.Fatal("MONGODB_URI is not set")
 	}
 	keyHex := os.Getenv("RCLONE_ENCRYPTION_KEY")
 	if len(keyHex) != 64 {
