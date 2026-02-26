@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
-	"github.com/ekarton/RClone-Cloud/apps/web-api/config/mongodb"
+	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
 )
 
 // testKey is a fixed 32-byte AES-256 key for tests only.
