@@ -83,18 +83,18 @@ func NewHandler(ctx context.Context, cfg Config) (*Handler, error) {
 	}
 	config.SetData(store)
 
-	// JWT public key
-	publicKey, err := loadRSAPublicKey(cfg.JWTPublicKeyPath)
-	if err != nil {
-		return nil, fmt.Errorf("load public key: %w", err)
-	}
-
 	// Internal RC server
 	rc.Opt.Enabled = true
 	rc.Opt.NoAuth = true
 	rc.Opt.HTTP.ListenAddr = []string{rcAddr}
 	if _, err := rcserver.Start(ctx, &rc.Opt); err != nil {
 		return nil, fmt.Errorf("start rc server: %w", err)
+	}
+
+	// JWT public key
+	publicKey, err := loadRSAPublicKey(cfg.JWTPublicKeyPath)
+	if err != nil {
+		return nil, fmt.Errorf("load public key: %w", err)
 	}
 
 	return &Handler{publicKey: publicKey, client: client}, nil
