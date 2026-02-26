@@ -210,4 +210,71 @@ func TestNewProxyHandlerFailures(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "public key file is not valid PEM")
 	})
+
+	t.Run("Invalid Key Type", func(t *testing.T) {
+		// Create a PEM block but not an RSA public key
+		badFile := filepath.Join(t.TempDir(), "wrong_type.pem")
+		pemBlock := &pem.Block{
+			Type:  "PUBLIC KEY",
+			Bytes: []byte("definitely not an rsa key"),
+		}
+		f, _ := os.Create(badFile)
+		pem.Encode(f, pemBlock)
+		f.Close()
+
+		_, err := NewProxyHandler(badFile, "localhost:8080")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "parse public key")
+	})
+}
+
+func TestExtractBearerEdgeCases(t *testing.T) {
+	tests := []struct {
+		name   string
+		header string
+		tok    string
+		ok     bool
+	}{
+		{"Empty Header", "", "", false},
+		{"Not Bearer", "Basic dXNlcjpwYXNz", "", false},
+		{"Bearer Missing Token", "Bearer ", "", false},
+		{"Bearer Missing Token Spaced", "Bearer    ", "", false},
+		{"Valid", "Bearer abc.def.ghi", "abc.def.ghi", true},
+		{"Valid Extra Spaces", "Bearer     abc.def.ghi", "abc.def.ghi", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest("GET", "/", nil)
+			if tt.header != "" {
+				req.Header.Set("Authorization", tt.header)
+			}
+			tok, ok := extractBearer(req)
+			assert.Equal(t, tt.ok, ok)
+			assert.Equal(t, tt.tok, tok)
+		})
+	}
+}
+
+func TestUnexpectedSigningAlg(t *testing.T) {
+	// Generate an HMAC key which is not RSA
+	hmacSecret := []byte("my_secret_key")
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"sub": "123"})
+	signed, _ := token.SignedString(hmacSecret)
+
+	privateKey, _ := rsa.GenerateKey(rand.Reader, 2048)
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("Authorization", "Bearer "+signed)
+
+	rec := httptest.NewRecorder()
+	handler := bearerMiddleware(&privateKey.PublicKey, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	handler.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
+	body, _ := io.ReadAll(rec.Body)
+	assert.Contains(t, string(body), "invalid token")
 }
