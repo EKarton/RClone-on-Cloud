@@ -1,0 +1,7 @@
+.git
+.env
+bin
+coverage.out
+*.go.test
+**/node_modules
+.DS_Store
