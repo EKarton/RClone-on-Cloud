@@ -17,11 +17,8 @@ import (
 // testKey is a fixed string key for tests only.
 var testKey = "test-secret-key"
 
-var testCollection *mongo.Collection
-
-// Setup spins up a real MongoDB container and returns a MongoStorage + cleanup func.
-// Each test gets a fresh isolated database so tests never interfere with each other.
-func setup(t *testing.T) (*mongodb.MongoStorage, func()) {
+// Setup spins up a real MongoDB container and returns a MongoStorage, the Collection, and a cleanup func.
+func setup(t *testing.T) (*mongodb.MongoStorage, *mongo.Collection, func()) {
 	t.Helper()
 	ctx := context.Background()
 
@@ -36,20 +33,20 @@ func setup(t *testing.T) (*mongodb.MongoStorage, func()) {
 	require.NoError(t, err)
 
 	// Use t.Name() as the DB name so each test is fully isolated
-	testCollection = client.Database(t.Name()).Collection("configs")
+	collection := client.Database(t.Name()).Collection("configs")
 
-	store, err := mongodb.New(testCollection, testKey)
+	store, err := mongodb.New(collection, testKey)
 	require.NoError(t, err)
 
 	cleanup := func() {
 		_ = client.Disconnect(ctx)
 		_ = container.Terminate(ctx)
 	}
-	return store, cleanup
+	return store, collection, cleanup
 }
 
 func TestLoad_EmptyDB(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	err := store.Load()
@@ -58,7 +55,7 @@ func TestLoad_EmptyDB(t *testing.T) {
 }
 
 func TestSaveAndLoad_RoundTrip(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	store.SetValue("mys3", "type", "s3")
@@ -79,7 +76,7 @@ func TestSaveAndLoad_RoundTrip(t *testing.T) {
 }
 
 func TestFlattenedSchemaStructure(t *testing.T) {
-	store, cleanup := setup(t)
+	store, collection, cleanup := setup(t)
 	defer cleanup()
 
 	// 1. Verify basic storage and encryption
@@ -92,7 +89,7 @@ func TestFlattenedSchemaStructure(t *testing.T) {
 	// Inspect the raw BSON document in MongoDB
 	ctx := context.Background()
 	var doc bson.M
-	err := testCollection.FindOne(ctx, bson.M{"_id": "mys3"}).Decode(&doc)
+	err := collection.FindOne(ctx, bson.M{"_id": "mys3"}).Decode(&doc)
 	require.NoError(t, err)
 
 	// Verify ID
@@ -122,7 +119,8 @@ func TestFlattenedSchemaStructure(t *testing.T) {
 	store.DeleteKey("mys3", "region")
 	require.NoError(t, store.Save())
 
-	err = testCollection.FindOne(ctx, bson.M{"_id": "mys3"}).Decode(&doc)
+	doc = bson.M{} // RESET MAP to avoid merging from previous Decode
+	err = collection.FindOne(ctx, bson.M{"_id": "mys3"}).Decode(&doc)
 	require.NoError(t, err)
 	assert.Contains(t, doc, "type")
 	assert.NotContains(t, doc, "region", "deleted field should be removed from MongoDB document")
@@ -131,13 +129,13 @@ func TestFlattenedSchemaStructure(t *testing.T) {
 	store.DeleteSection("mys3")
 	require.NoError(t, store.Save())
 
-	count, err := testCollection.CountDocuments(ctx, bson.M{"_id": "mys3"})
+	count, err := collection.CountDocuments(ctx, bson.M{"_id": "mys3"})
 	require.NoError(t, err)
 	assert.Equal(t, int64(0), count, "empty section should result in document being deleted from MongoDB")
 }
 
 func TestSetValue_CreatesSection(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	store.SetValue("remote1", "type", "s3")
@@ -148,7 +146,7 @@ func TestSetValue_CreatesSection(t *testing.T) {
 }
 
 func TestGetValue_MissingSection(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	v, found := store.GetValue("nonexistent", "type")
@@ -157,7 +155,7 @@ func TestGetValue_MissingSection(t *testing.T) {
 }
 
 func TestGetValue_MissingKey(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	store.SetValue("remote1", "type", "s3")
@@ -168,7 +166,7 @@ func TestGetValue_MissingKey(t *testing.T) {
 }
 
 func TestSetValue_Overwrites(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	store.SetValue("remote1", "type", "s3")
@@ -180,7 +178,7 @@ func TestSetValue_Overwrites(t *testing.T) {
 }
 
 func TestHasSection(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	assert.False(t, store.HasSection("remote1"))
@@ -189,7 +187,7 @@ func TestHasSection(t *testing.T) {
 }
 
 func TestGetSectionList(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	store.SetValue("alpha", "type", "s3")
@@ -200,7 +198,7 @@ func TestGetSectionList(t *testing.T) {
 }
 
 func TestDeleteSection(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	store.SetValue("remote1", "type", "s3")
@@ -211,7 +209,7 @@ func TestDeleteSection(t *testing.T) {
 }
 
 func TestDeleteSection_Nonexistent(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	// Should not panic
@@ -219,7 +217,7 @@ func TestDeleteSection_Nonexistent(t *testing.T) {
 }
 
 func TestGetKeyList(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	store.SetValue("remote1", "type", "s3")
@@ -231,7 +229,7 @@ func TestGetKeyList(t *testing.T) {
 }
 
 func TestGetKeyList_MissingSection(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	keys := store.GetKeyList("nonexistent")
@@ -239,7 +237,7 @@ func TestGetKeyList_MissingSection(t *testing.T) {
 }
 
 func TestDeleteKey(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	store.SetValue("remote1", "type", "s3")
@@ -255,7 +253,7 @@ func TestDeleteKey(t *testing.T) {
 }
 
 func TestDeleteKey_LastKey_RemovesSection(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	store.SetValue("remote1", "type", "s3")
@@ -266,7 +264,7 @@ func TestDeleteKey_LastKey_RemovesSection(t *testing.T) {
 }
 
 func TestDeleteKey_Nonexistent(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	deleted := store.DeleteKey("nosection", "nokey")
@@ -274,7 +272,7 @@ func TestDeleteKey_Nonexistent(t *testing.T) {
 }
 
 func TestEncryption_DataIsEncryptedInMongoDB(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	store.SetValue("secure", "token", "supersecrettoken")
@@ -289,7 +287,7 @@ func TestEncryption_DataIsEncryptedInMongoDB(t *testing.T) {
 }
 
 func TestSerialize(t *testing.T) {
-	store, cleanup := setup(t)
+	store, _, cleanup := setup(t)
 	defer cleanup()
 
 	store.SetValue("mys3", "type", "s3")

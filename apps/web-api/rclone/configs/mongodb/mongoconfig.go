@@ -161,7 +161,7 @@ func (s *MongoStorage) Save() error {
 
 	// Upsert current in-memory sections as flattened documents
 	for section, kv := range s.data {
-		doc := bson.M{"_id": section}
+		doc := bson.M{} // Do NOT include _id in the replacement document
 		for k, v := range kv {
 			ciphertext, err := s.encrypt([]byte(v))
 			if err != nil {
@@ -176,6 +176,7 @@ func (s *MongoStorage) Save() error {
 		if err != nil {
 			return fmt.Errorf("save: upsert %q: %w", section, err)
 		}
+
 		delete(existingIDs, section) // mark as accounted for
 	}
 
