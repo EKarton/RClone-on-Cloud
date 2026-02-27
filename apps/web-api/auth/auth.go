@@ -203,7 +203,7 @@ func (h *Handler) handleCallback(w http.ResponseWriter, r *http.Request) {
 	// SECURITY: Ensure the user is explicitly authorized to access the API by their Google ID (sub).
 	if !h.allowedGoogleIDs[userID] {
 		log.Printf("unauthorized login attempt from user ID: %s (email: %s)", userID, email)
-		writeError(w, "unauthorized access", http.StatusForbidden)
+		writeError(w, fmt.Sprintf("unauthorized access for user id: %s", userID), http.StatusForbidden)
 		return
 	}
 

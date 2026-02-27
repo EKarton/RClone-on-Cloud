@@ -5,7 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"encoding/json"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"sort"
@@ -18,31 +18,28 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-type configDoc struct {
-	ID            string `bson:"_id"`
-	EncryptedData []byte `bson:"encrypted_data"`
-}
-
 // MongoStorage implements rclone's config.Storage backed by MongoDB.
 // All config values are encrypted at rest with AES-256-GCM.
 type MongoStorage struct {
 	mu         sync.RWMutex
 	data       map[string]map[string]string // in-memory cache
 	collection *mongo.Collection
-	key        []byte // must be exactly 32 bytes (AES-256)
+	key        []byte // derived from SHA-256 hash of the input key string
 }
 
 var _ config.Storage = (*MongoStorage)(nil)
 
-// New creates a MongoStorage. encKey must be exactly 32 bytes.
-func New(collection *mongo.Collection, encKey []byte) (*MongoStorage, error) {
-	if len(encKey) != 32 {
-		return nil, fmt.Errorf("encryption key must be 32 bytes for AES-256, got %d", len(encKey))
+// New creates a MongoStorage. encKeyStr will be hashed with SHA-256 to derive a 32-byte key.
+func New(collection *mongo.Collection, encKeyStr string) (*MongoStorage, error) {
+	trimmedKey := strings.TrimSpace(encKeyStr)
+	if trimmedKey == "" {
+		return nil, fmt.Errorf("encryption key cannot be empty or only whitespace")
 	}
+	hash := sha256.Sum256([]byte(trimmedKey))
 	return &MongoStorage{
 		data:       make(map[string]map[string]string),
 		collection: collection,
-		key:        encKey,
+		key:        hash[:],
 	}, nil
 }
 
@@ -83,7 +80,7 @@ func (s *MongoStorage) decrypt(data []byte) ([]byte, error) {
 
 // --- config.Storage implementation ---
 
-// Load reads all documents from MongoDB, decrypts them, and populates
+// Load reads all documents from MongoDB, decrypts each field, and populates
 // the in-memory cache. Called once at startup.
 func (s *MongoStorage) Load() error {
 	s.mu.Lock()
@@ -98,19 +95,38 @@ func (s *MongoStorage) Load() error {
 
 	data := make(map[string]map[string]string)
 	for cursor.Next(ctx) {
-		var doc configDoc
+		var doc bson.M
 		if err := cursor.Decode(&doc); err != nil {
 			return fmt.Errorf("load: decode: %w", err)
 		}
-		plaintext, err := s.decrypt(doc.EncryptedData)
-		if err != nil {
-			return fmt.Errorf("load: decrypt %q: %w", doc.ID, err)
+
+		id, ok := doc["_id"].(string)
+		if !ok {
+			continue
 		}
-		var kv map[string]string
-		if err := json.Unmarshal(plaintext, &kv); err != nil {
-			return fmt.Errorf("load: unmarshal %q: %w", doc.ID, err)
+
+		section := make(map[string]string)
+		for k, v := range doc {
+			if k == "_id" {
+				continue
+			}
+			encrypted, ok := v.([]byte)
+			// Handle cases where MongoDB might return primitive.Binary
+			if !ok {
+				if b, ok := v.(bson.Binary); ok {
+					encrypted = b.Data
+				} else {
+					continue
+				}
+			}
+
+			plaintext, err := s.decrypt(encrypted)
+			if err != nil {
+				return fmt.Errorf("load: decrypt %q.%q: %w", id, k, err)
+			}
+			section[k] = string(plaintext)
 		}
-		data[doc.ID] = kv
+		data[id] = section
 	}
 	if err := cursor.Err(); err != nil {
 		return fmt.Errorf("load: cursor: %w", err)
@@ -119,8 +135,8 @@ func (s *MongoStorage) Load() error {
 	return nil
 }
 
-// Save encrypts each in-memory section and upserts it to MongoDB.
-// Sections deleted from memory are also deleted from MongoDB.
+// Save encrypts each key-value pair and upserts flattened documents to MongoDB.
+// Documents deleted from memory are also deleted from MongoDB.
 func (s *MongoStorage) Save() error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -143,22 +159,20 @@ func (s *MongoStorage) Save() error {
 	}
 	cursor.Close(ctx)
 
-	// Upsert current in-memory sections
+	// Upsert current in-memory sections as flattened documents
 	for section, kv := range s.data {
-		plaintext, err := json.Marshal(kv)
-		if err != nil {
-			return fmt.Errorf("save: marshal %q: %w", section, err)
+		doc := bson.M{"_id": section}
+		for k, v := range kv {
+			ciphertext, err := s.encrypt([]byte(v))
+			if err != nil {
+				return fmt.Errorf("save: encrypt %q.%q: %w", section, k, err)
+			}
+			doc[k] = ciphertext
 		}
-		ciphertext, err := s.encrypt(plaintext)
-		if err != nil {
-			return fmt.Errorf("save: encrypt %q: %w", section, err)
-		}
+
 		filter := bson.D{{Key: "_id", Value: section}}
-		update := bson.D{{Key: "$set", Value: bson.D{
-			{Key: "encrypted_data", Value: ciphertext},
-		}}}
-		_, err = s.collection.UpdateOne(ctx, filter, update,
-			options.UpdateOne().SetUpsert(true))
+		_, err = s.collection.ReplaceOne(ctx, filter, doc,
+			options.Replace().SetUpsert(true))
 		if err != nil {
 			return fmt.Errorf("save: upsert %q: %w", section, err)
 		}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/hex"
 	"fmt"
 	"log"
 	"os"
@@ -10,7 +9,7 @@ import (
 
 // Env holds all environment-driven configuration for the application.
 type Env struct {
-	EncryptionKey      []byte // 32-byte AES-256 key (decoded from hex)
+	EncryptionKey      string
 	MongoURI           string
 	JWTPublicKeyPath   string
 	JWTPrivateKeyPath  string
@@ -24,12 +23,6 @@ type Env struct {
 // LoadEnv reads and validates all required environment variables,
 // returning a populated Env or fataling on any missing/invalid value.
 func LoadEnv() Env {
-	encKeyHex := requireEnv("RCLONE_CONFIG_ENCRYPTION_KEY")
-	encKey, err := hex.DecodeString(encKeyHex)
-	if err != nil || len(encKey) != 32 {
-		log.Fatal("RCLONE_CONFIG_ENCRYPTION_KEY must be a 64-char hex string (32 bytes)")
-	}
-
 	allowedGoogleIDsStr := requireEnv("AUTH_ALLOWED_GOOGLE_IDS")
 	var allowedGoogleIDs []string
 	for _, id := range strings.Split(allowedGoogleIDsStr, ",") {
@@ -43,7 +36,7 @@ func LoadEnv() Env {
 	}
 
 	return Env{
-		EncryptionKey:      encKey,
+		EncryptionKey:      requireEnv("RCLONE_CONFIG_ENCRYPTION_KEY"),
 		MongoURI:           requireEnv("RCLONE_CONFIG_MONGODB_URI"),
 		JWTPublicKeyPath:   requireEnv("AUTH_JWT_PUBLIC_KEY_PATH"),
 		JWTPrivateKeyPath:  requireEnv("AUTH_JWT_PRIVATE_KEY_PATH"),

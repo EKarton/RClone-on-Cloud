@@ -7,14 +7,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tcmongo "github.com/testcontainers/testcontainers-go/modules/mongodb"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
 )
 
-// testKey is a fixed 32-byte AES-256 key for tests only.
-var testKey = []byte("00000000000000000000000000000000")
+// testKey is a fixed string key for tests only.
+var testKey = "test-secret-key"
+
+var testCollection *mongo.Collection
 
 // Setup spins up a real MongoDB container and returns a MongoStorage + cleanup func.
 // Each test gets a fresh isolated database so tests never interfere with each other.
@@ -33,9 +36,9 @@ func setup(t *testing.T) (*mongodb.MongoStorage, func()) {
 	require.NoError(t, err)
 
 	// Use t.Name() as the DB name so each test is fully isolated
-	collection := client.Database(t.Name()).Collection("configs")
+	testCollection = client.Database(t.Name()).Collection("configs")
 
-	store, err := mongodb.New(collection, testKey)
+	store, err := mongodb.New(testCollection, testKey)
 	require.NoError(t, err)
 
 	cleanup := func() {
@@ -73,6 +76,64 @@ func TestSaveAndLoad_RoundTrip(t *testing.T) {
 	v, found := store.GetValue("mys3", "region")
 	assert.True(t, found)
 	assert.Equal(t, "us-west-2", v)
+}
+
+func TestFlattenedSchemaStructure(t *testing.T) {
+	store, cleanup := setup(t)
+	defer cleanup()
+
+	// 1. Verify basic storage and encryption
+	plaintextType := "s3"
+	plaintextRegion := "us-west-2"
+	store.SetValue("mys3", "type", plaintextType)
+	store.SetValue("mys3", "region", plaintextRegion)
+	require.NoError(t, store.Save())
+
+	// Inspect the raw BSON document in MongoDB
+	ctx := context.Background()
+	var doc bson.M
+	err := testCollection.FindOne(ctx, bson.M{"_id": "mys3"}).Decode(&doc)
+	require.NoError(t, err)
+
+	// Verify ID
+	assert.Equal(t, "mys3", doc["_id"])
+
+	// Verify flattened structure: "type" and "region" should be top-level fields (excluding _id)
+	assert.Contains(t, doc, "type")
+	assert.Contains(t, doc, "region")
+
+	// Verify values are binary and encrypted (not plaintext)
+	for _, key := range []string{"type", "region"} {
+		var encrypted []byte
+		if b, ok := doc[key].(bson.Binary); ok {
+			encrypted = b.Data
+		} else if b, ok := doc[key].([]byte); ok {
+			encrypted = b
+		} else {
+			t.Fatalf("field %s should be binary data", key)
+		}
+
+		assert.NotEqual(t, plaintextType, string(encrypted))
+		assert.NotEqual(t, plaintextRegion, string(encrypted))
+		assert.True(t, len(encrypted) > len(plaintextType), "ciphertext should be longer than plaintext due to nonce/tag")
+	}
+
+	// 2. Verify field-level deletion propagates to MongoDB
+	store.DeleteKey("mys3", "region")
+	require.NoError(t, store.Save())
+
+	err = testCollection.FindOne(ctx, bson.M{"_id": "mys3"}).Decode(&doc)
+	require.NoError(t, err)
+	assert.Contains(t, doc, "type")
+	assert.NotContains(t, doc, "region", "deleted field should be removed from MongoDB document")
+
+	// 3. Verify empty section results in document deletion
+	store.DeleteSection("mys3")
+	require.NoError(t, store.Save())
+
+	count, err := testCollection.CountDocuments(ctx, bson.M{"_id": "mys3"})
+	require.NoError(t, err)
+	assert.Equal(t, int64(0), count, "empty section should result in document being deleted from MongoDB")
 }
 
 func TestSetValue_CreatesSection(t *testing.T) {
@@ -241,8 +302,8 @@ func TestSerialize(t *testing.T) {
 	assert.Contains(t, out, "region = us-west-2")
 }
 
-func TestNew_InvalidKeyLength(t *testing.T) {
-	_, err := mongodb.New(nil, []byte("tooshort"))
+func TestNew_EmptyKey(t *testing.T) {
+	_, err := mongodb.New(nil, "")
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "32 bytes")
+	assert.Contains(t, err.Error(), "cannot be empty")
 }

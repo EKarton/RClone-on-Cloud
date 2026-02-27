@@ -17,7 +17,7 @@ Prerequisites:
 1. First, build a `.env` file with these required environment variables:
 
 ```
-RCLONE_CONFIG_ENCRYPTION_KEY=<Your encryption key>
+RCLONE_CONFIG_ENCRYPTION_KEY=<Any string used as a secret>
 RCLONE_CONFIG_MONGODB_URI=<Your MongoDB URI>
 AUTH_ALLOWED_GOOGLE_IDS=<Your Google IDs>
 AUTH_JWT_PUBLIC_KEY_PATH=<Your JWT public key path>
