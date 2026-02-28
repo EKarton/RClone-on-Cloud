@@ -17,10 +17,6 @@ import (
 	"github.com/rclone/rclone/fs/config/configfile"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	_ "github.com/rclone/rclone/backend/alias"
-	_ "github.com/rclone/rclone/backend/local"
-	_ "github.com/rclone/rclone/fs/operations"
 )
 
 func TestStartRCServer(t *testing.T) {

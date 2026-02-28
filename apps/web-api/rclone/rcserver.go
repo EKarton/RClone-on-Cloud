@@ -7,6 +7,10 @@ import (
 	"github.com/rclone/rclone/fs/config"
 	"github.com/rclone/rclone/fs/rc"
 	"github.com/rclone/rclone/fs/rc/rcserver"
+
+	// Side-effect imports to register RC methods and backends
+	_ "github.com/rclone/rclone/backend/all"
+	_ "github.com/rclone/rclone/fs/operations"
 )
 
 // StartRCServer loads the provided rclone config storage
