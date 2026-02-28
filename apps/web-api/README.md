@@ -44,7 +44,7 @@ go run .
 
 ```shell
 mkdir -p bin
-go build -o bin/rclone-svc .
+go build -o bin/rclone-cloud-web-api .
 ```
 
 5. Run tests by running:
@@ -66,7 +66,7 @@ You can run the API as a lightweight Docker container.
 ### 1. Build the image
 
 ```shell
-docker build -t rclone-cloud-api .
+docker build -t rclone-cloud-web-api .
 ```
 
 ### 2. Run the container
@@ -74,5 +74,5 @@ docker build -t rclone-cloud-api .
 Ensure you have a `.env` file populated with the required environment variables.
 
 ```shell
-docker run --env-file .env -p 8080:8080 rclone-cloud-api
+docker run --env-file .env -p 8080:8080 rclone-cloud-web-api
 ```
