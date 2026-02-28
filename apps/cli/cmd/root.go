@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/ekarton/RClone-Cloud/apps/cli/cmd/dump"
-	"github.com/ekarton/RClone-Cloud/apps/cli/cmd/generate_token"
 	"github.com/ekarton/RClone-Cloud/apps/cli/cmd/migrate"
 	"github.com/spf13/cobra"
 )
@@ -19,7 +18,6 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(migrate.MigrateCmd)
 	rootCmd.AddCommand(dump.DumpCmd)
-	rootCmd.AddCommand(generate_token.GenerateTokenCmd)
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
