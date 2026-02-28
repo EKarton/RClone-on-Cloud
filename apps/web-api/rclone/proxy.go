@@ -2,9 +2,6 @@ package rclone
 
 import (
 	"context"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,39 +9,28 @@ import (
 	"net/url"
 	"strings"
 
+	sharedjwt "github.com/ekarton/RClone-Cloud/apps/web-api/shared/jwt"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// --- JWT types ---
-
-type contextKey string
-
-const contextKeyClaims contextKey = "claims"
-
-// Claims are the JWT claims carried through the request context.
-type Claims struct {
-	UserID string `json:"sub"`
-	Email  string `json:"email"`
-	jwt.RegisteredClaims
-}
-
 // GetClaims extracts claims from a request that passed through the bearer middleware.
-func GetClaims(r *http.Request) *Claims {
-	claims, _ := r.Context().Value(contextKeyClaims).(*Claims)
-	return claims
+// This is now a wrapper around sharedjwt.GetClaims for backward compatibility if needed,
+// but we should eventually update callers to use sharedjwt.GetClaims directly.
+func GetClaims(r *http.Request) *sharedjwt.Claims {
+	return sharedjwt.GetClaims(r)
 }
 
 // --- Handler ---
 
 // ProxyHandler owns the JWT-protected reverse proxy.
 type ProxyHandler struct {
-	publicKey *rsa.PublicKey
+	publicKey any
 	rcAddr    string
 }
 
 // NewProxyHandler prepares the JWT-protected proxy.
 func NewProxyHandler(pubKeyPEM string, rcAddr string) (*ProxyHandler, error) {
-	publicKey, err := loadRSAPublicKey(pubKeyPEM)
+	publicKey, err := sharedjwt.LoadPublicKey(pubKeyPEM)
 	if err != nil {
 		return nil, fmt.Errorf("load public key: %w", err)
 	}
@@ -59,31 +45,9 @@ func (h *ProxyHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/v1/rclone/", bearerMiddleware(h.publicKey, http.StripPrefix("/api/v1/rclone", proxy)))
 }
 
-// --- Helpers ---
-
-func loadRSAPublicKey(pemContent string) (*rsa.PublicKey, error) {
-	if pemContent == "" {
-		return nil, fmt.Errorf("JWT_PUBLIC_KEY is not set")
-	}
-
-	block, _ := pem.Decode([]byte(pemContent))
-	if block == nil {
-		return nil, fmt.Errorf("public key is not valid PEM")
-	}
-	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		return nil, fmt.Errorf("parse public key: %w", err)
-	}
-	rsaPub, ok := pub.(*rsa.PublicKey)
-	if !ok {
-		return nil, fmt.Errorf("key is not an RSA public key")
-	}
-	return rsaPub, nil
-}
-
 // --- Middleware ---
 
-func bearerMiddleware(publicKey *rsa.PublicKey, next http.Handler) http.Handler {
+func bearerMiddleware(publicKey any, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		raw, ok := extractBearer(r)
 		if !ok {
@@ -91,15 +55,8 @@ func bearerMiddleware(publicKey *rsa.PublicKey, next http.Handler) http.Handler 
 			return
 		}
 
-		claims := &Claims{}
-		token, err := jwt.ParseWithClaims(raw, claims, func(t *jwt.Token) (any, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-			}
-			return publicKey, nil
-		})
-
-		if err != nil || !token.Valid {
+		claims, err := sharedjwt.VerifyToken(raw, publicKey)
+		if err != nil {
 			if errors.Is(err, jwt.ErrTokenExpired) {
 				jsonError(w, "token expired", http.StatusUnauthorized)
 				return
@@ -108,7 +65,7 @@ func bearerMiddleware(publicKey *rsa.PublicKey, next http.Handler) http.Handler 
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), contextKeyClaims, claims)
+		ctx := context.WithValue(r.Context(), sharedjwt.ContextKeyClaims, claims)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

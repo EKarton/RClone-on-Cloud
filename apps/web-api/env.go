@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 // Env holds all environment-driven configuration for the application.
@@ -23,6 +25,11 @@ type Env struct {
 // LoadEnv reads and validates all required environment variables,
 // returning a populated Env or fataling on any missing/invalid value.
 func LoadEnv() Env {
+	_ = godotenv.Load()
+
+	pub := requireEnv("AUTH_JWT_PUBLIC_KEY")
+	priv := requireEnv("AUTH_JWT_PRIVATE_KEY")
+
 	allowedGoogleIDsStr := requireEnv("AUTH_ALLOWED_GOOGLE_IDS")
 	var allowedGoogleIDs []string
 	for _, id := range strings.Split(allowedGoogleIDsStr, ",") {
@@ -38,8 +45,8 @@ func LoadEnv() Env {
 	return Env{
 		EncryptionKey:      requireEnv("RCLONE_CONFIG_ENCRYPTION_KEY"),
 		MongoURI:           requireEnv("RCLONE_CONFIG_MONGODB_URI"),
-		JWTPublicKeyPEM:    requireEnv("AUTH_JWT_PUBLIC_KEY"),
-		JWTPrivateKeyPEM:   requireEnv("AUTH_JWT_PRIVATE_KEY"),
+		JWTPublicKeyPEM:    pub,
+		JWTPrivateKeyPEM:   priv,
 		GoogleClientID:     requireEnv("AUTH_GOOGLE_CLIENT_ID"),
 		GoogleClientSecret: requireEnv("AUTH_GOOGLE_CLIENT_SECRET"),
 		GoogleRedirectURL:  getEnv("AUTH_GOOGLE_REDIRECT_URL", "http://localhost:8080/auth/v1/google/callback"),

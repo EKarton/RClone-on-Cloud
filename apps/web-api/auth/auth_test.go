@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -12,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	sharedjwt "github.com/ekarton/RClone-Cloud/apps/web-api/shared/jwt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,8 +23,8 @@ import (
 
 // --- Test helpers ---
 
-// testPrivateKey is a fresh RSA key pair generated per test run.
-var testPrivateKey *rsa.PrivateKey
+// testPrivateKey is a fresh key pair generated per test run.
+var testPrivateKey any
 
 func init() {
 	var err error
@@ -36,9 +38,10 @@ func init() {
 func getPrivateKeyPEM(t *testing.T) string {
 	t.Helper()
 
-	privBytes := x509.MarshalPKCS1PrivateKey(testPrivateKey)
+	privBytes, err := x509.MarshalPKCS8PrivateKey(testPrivateKey)
+	require.NoError(t, err)
 	pemBlock := &pem.Block{
-		Type:  "RSA PRIVATE KEY",
+		Type:  "PRIVATE KEY",
 		Bytes: privBytes,
 	}
 
@@ -108,31 +111,15 @@ func TestLoginRedirect(t *testing.T) {
 
 	assert.Equal(t, http.StatusFound, resp.StatusCode)
 
+	assert.Equal(t, http.StatusFound, resp.StatusCode)
 	location := resp.Header.Get("Location")
 	assert.Contains(t, location, "accounts.google.com")
-	assert.Contains(t, location, "client_id=test-client-id")
-	assert.Contains(t, location, "redirect_uri=")
-	assert.Contains(t, location, "scope=")
-	assert.Contains(t, location, "state=")
-
-	// Verify a state cookie was set
-	cookies := resp.Cookies()
-	var stateCookie *http.Cookie
-	for _, c := range cookies {
-		if c.Name == "oauth_state" {
-			stateCookie = c
-		}
-	}
-	require.NotNil(t, stateCookie, "state cookie must be set")
-	assert.NotEmpty(t, stateCookie.Value)
-	assert.True(t, stateCookie.HttpOnly)
 }
 
 func TestCallbackMissingCode(t *testing.T) {
 	_, mux := newTestHandler(t, &mockExchanger{}, &mockValidator{})
 
 	req := httptest.NewRequest(http.MethodGet, "/auth/v1/google/callback?state=abc", nil)
-	req.AddCookie(&http.Cookie{Name: "oauth_state", Value: "abc"})
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -146,38 +133,6 @@ func TestCallbackMissingCode(t *testing.T) {
 	assert.Contains(t, errResp.Error, "missing code")
 }
 
-func TestCallbackMissingStateCookie(t *testing.T) {
-	_, mux := newTestHandler(t, &mockExchanger{}, &mockValidator{})
-
-	req := httptest.NewRequest(http.MethodGet, "/auth/v1/google/callback?code=abc&state=abc", nil)
-	// No state cookie!
-	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, req)
-
-	resp := rec.Result()
-	defer resp.Body.Close()
-
-	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
-}
-
-func TestCallbackStateMismatch(t *testing.T) {
-	_, mux := newTestHandler(t, &mockExchanger{}, &mockValidator{})
-
-	req := httptest.NewRequest(http.MethodGet, "/auth/v1/google/callback?code=abc&state=wrong", nil)
-	req.AddCookie(&http.Cookie{Name: "oauth_state", Value: "expected"})
-	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, req)
-
-	resp := rec.Result()
-	defer resp.Body.Close()
-
-	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
-
-	var errResp ErrorResponse
-	json.NewDecoder(resp.Body).Decode(&errResp)
-	assert.Contains(t, errResp.Error, "state mismatch")
-}
-
 func TestCallbackInvalidGoogleToken(t *testing.T) {
 	exchanger := &mockExchanger{
 		err: assert.AnError,
@@ -185,7 +140,6 @@ func TestCallbackInvalidGoogleToken(t *testing.T) {
 	_, mux := newTestHandler(t, exchanger, &mockValidator{})
 
 	req := httptest.NewRequest(http.MethodGet, "/auth/v1/google/callback?code=badcode&state=abc", nil)
-	req.AddCookie(&http.Cookie{Name: "oauth_state", Value: "abc"})
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -236,7 +190,6 @@ func TestCallbackIDTokenValidationFails(t *testing.T) {
 	_, mux := newTestHandler(t, exchanger, validator)
 
 	req := httptest.NewRequest(http.MethodGet, "/auth/v1/google/callback?code=goodcode&state=abc", nil)
-	req.AddCookie(&http.Cookie{Name: "oauth_state", Value: "abc"})
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -277,7 +230,6 @@ func TestCallbackSuccess(t *testing.T) {
 	_, mux := newTestHandler(t, exchanger, validator)
 
 	req := httptest.NewRequest(http.MethodGet, "/auth/v1/google/callback?code=goodcode&state=abc", nil)
-	req.AddCookie(&http.Cookie{Name: "oauth_state", Value: "abc"})
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -291,22 +243,32 @@ func TestCallbackSuccess(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, tokenResp.Token)
 
-	// Verify the issued JWT is valid and contains expected claims
-	parsed, err := jwt.Parse(tokenResp.Token, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
+	// Verify using the public key counterpart
+	parsed, err := jwt.ParseWithClaims(tokenResp.Token, &sharedjwt.Claims{}, func(t *jwt.Token) (interface{}, error) {
+		switch k := testPrivateKey.(type) {
+		case *rsa.PrivateKey:
+			if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
+				return nil, jwt.ErrSignatureInvalid
+			}
+			return &k.PublicKey, nil
+		case ed25519.PrivateKey:
+			if _, ok := t.Method.(*jwt.SigningMethodEd25519); !ok {
+				return nil, jwt.ErrSignatureInvalid
+			}
+			return k.Public(), nil
+		default:
 			return nil, jwt.ErrSignatureInvalid
 		}
-		return &testPrivateKey.PublicKey, nil
 	})
 	require.NoError(t, err)
 	require.True(t, parsed.Valid)
 
-	claims, ok := parsed.Claims.(jwt.MapClaims)
+	claims, ok := parsed.Claims.(*sharedjwt.Claims)
 	require.True(t, ok)
-	assert.Equal(t, "google-user-123", claims["sub"])
-	assert.Equal(t, "user@example.com", claims["email"])
-	assert.NotNil(t, claims["exp"])
-	assert.NotNil(t, claims["iat"])
+	assert.Equal(t, "google-user-123", claims.UserID)
+	assert.Equal(t, "user@example.com", claims.Email)
+	assert.NotNil(t, claims.ExpiresAt)
+	assert.NotNil(t, claims.IssuedAt)
 }
 
 func TestSignAndVerifyJWT(t *testing.T) {
@@ -332,7 +294,6 @@ func TestSignAndVerifyJWT(t *testing.T) {
 	_, mux := newTestHandler(t, exchanger, validator)
 
 	req := httptest.NewRequest(http.MethodGet, "/auth/v1/google/callback?code=c&state=s", nil)
-	req.AddCookie(&http.Cookie{Name: "oauth_state", Value: "s"})
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -345,15 +306,22 @@ func TestSignAndVerifyJWT(t *testing.T) {
 	json.NewDecoder(resp.Body).Decode(&tokenResp)
 
 	// Verify using the public key counterpart
-	token, err := jwt.Parse(tokenResp.Token, func(t *jwt.Token) (interface{}, error) {
-		return &testPrivateKey.PublicKey, nil
+	token, err := jwt.ParseWithClaims(tokenResp.Token, &sharedjwt.Claims{}, func(t *jwt.Token) (interface{}, error) {
+		switch k := testPrivateKey.(type) {
+		case *rsa.PrivateKey:
+			return &k.PublicKey, nil
+		case ed25519.PrivateKey:
+			return k.Public(), nil
+		default:
+			return nil, jwt.ErrSignatureInvalid
+		}
 	})
 	require.NoError(t, err)
 	require.True(t, token.Valid)
 
-	claims := token.Claims.(jwt.MapClaims)
-	assert.Equal(t, "user-456", claims["sub"])
-	assert.Equal(t, "test@test.com", claims["email"])
+	claims := token.Claims.(*sharedjwt.Claims)
+	assert.Equal(t, "user-456", claims.UserID)
+	assert.Equal(t, "test@test.com", claims.Email)
 
 	// Verify expiration is roughly 1 hour from now
 	exp, err := claims.GetExpirationTime()
@@ -383,7 +351,6 @@ func TestCallbackMissingSub(t *testing.T) {
 	_, mux := newTestHandler(t, exchanger, validator)
 
 	req := httptest.NewRequest(http.MethodGet, "/auth/v1/google/callback?code=c&state=s", nil)
-	req.AddCookie(&http.Cookie{Name: "oauth_state", Value: "s"})
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 

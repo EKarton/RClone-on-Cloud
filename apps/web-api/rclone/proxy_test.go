@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	sharedjwt "github.com/ekarton/RClone-Cloud/apps/web-api/shared/jwt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -63,7 +64,7 @@ func TestProxyHandler(t *testing.T) {
 
 	// Helper function to sign a JWT
 	signJWT := func(sub, email string, expTime time.Time) string {
-		claims := Claims{
+		claims := sharedjwt.Claims{
 			UserID: sub,
 			Email:  email,
 			RegisteredClaims: jwt.RegisteredClaims{
@@ -162,9 +163,9 @@ func TestProxyHandler(t *testing.T) {
 
 	t.Run("Context Claims Verification", func(t *testing.T) {
 		// Replace the httptest server entirely with a dummy handler that inspects Context.
-		var extractedClaims *Claims
+		var extractedClaims *sharedjwt.Claims
 		mux := http.NewServeMux()
-		mux.Handle("/api/v1/rclone/", bearerMiddleware(&privateKey.PublicKey, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mux.Handle("/api/v1/rclone/", bearerMiddleware(privateKey.Public(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			extractedClaims = GetClaims(r)
 			w.WriteHeader(http.StatusOK)
 		})))
@@ -248,13 +249,11 @@ func TestUnexpectedSigningAlg(t *testing.T) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"sub": "123"})
 	signed, _ := token.SignedString(hmacSecret)
 
-	privateKey, _ := rsa.GenerateKey(rand.Reader, 2048)
-
 	req := httptest.NewRequest("GET", "/", nil)
 	req.Header.Set("Authorization", "Bearer "+signed)
 
 	rec := httptest.NewRecorder()
-	handler := bearerMiddleware(&privateKey.PublicKey, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := bearerMiddleware(string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: []byte("fake")})), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 

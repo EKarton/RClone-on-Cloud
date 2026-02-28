@@ -26,7 +26,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("mongo connect: %v", err)
 	}
-	defer client.Disconnect(ctx)
+	defer func() {
+		log.Println("shutting down mongo...")
+		if err := client.Disconnect(ctx); err != nil {
+			log.Printf("error shutting down mongo: %v", err)
+		}
+	}()
 
 	// -- Rclone config (encrypted in MongoDB) --
 	store, err := mongocfg.New(client.Database("rclone").Collection("configs"), env.EncryptionKey)
@@ -42,7 +47,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("init rclone rc server: %v", err)
 	}
-	defer rcServer.Shutdown()
+	defer func() {
+		log.Printf("shutting down rclone rc server...")
+		if err := rcServer.Shutdown(); err != nil {
+			log.Printf("error shutting down rclone rc server: %v", err)
+		}
+	}()
 
 	// -- Rclone Proxy (JWT-protected) --
 	proxyHandler, err := rclone.NewProxyHandler(env.JWTPublicKeyPEM, "127.0.0.1:9090")
@@ -75,6 +85,6 @@ func main() {
 	}()
 
 	<-ctx.Done()
-	log.Println("shutting down...")
+	log.Println("shutting down web api...")
 	server.Shutdown(context.Background())
 }

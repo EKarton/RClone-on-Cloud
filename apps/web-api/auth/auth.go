@@ -2,26 +2,20 @@ package auth
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/base64"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/idtoken"
+
+	sharedjwt "github.com/ekarton/RClone-Cloud/apps/web-api/shared/jwt"
 )
 
 const (
-	// stateCookieName is the cookie used to store the OAuth2 CSRF state.
-	stateCookieName = "oauth_state"
 	// defaultTokenTTL is how long issued JWTs are valid.
 	defaultTokenTTL = 1 * time.Hour
 )
@@ -66,7 +60,7 @@ func (g *googleIDTokenValidator) Validate(ctx context.Context, idToken string, a
 // Handler serves the Google OAuth2 login flow and issues JWTs.
 type Handler struct {
 	oauthConfig      *oauth2.Config
-	privateKey       *rsa.PrivateKey
+	privateKey       any
 	tokenTTL         time.Duration
 	exchanger        TokenExchanger
 	idValidator      IDTokenValidator
@@ -84,7 +78,7 @@ type Config struct {
 
 // NewHandler creates an auth Handler from the given config.
 func NewHandler(cfg Config) (*Handler, error) {
-	privateKey, err := loadRSAPrivateKey(cfg.PrivateKeyPEM)
+	privateKey, err := sharedjwt.LoadPrivateKey(cfg.PrivateKeyPEM)
 	if err != nil {
 		return nil, fmt.Errorf("load private key: %w", err)
 	}
@@ -120,48 +114,15 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 // handleLogin redirects the user to Google's consent screen.
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
-	state, err := randomState(32)
-	if err != nil {
-		writeError(w, "could not generate state", http.StatusInternalServerError)
-		return
-	}
-
-	// Store state in a secure, short-lived cookie for CSRF protection.
-	http.SetCookie(w, &http.Cookie{
-		Name:     stateCookieName,
-		Value:    state,
-		Path:     "/",
-		MaxAge:   300, // 5 minutes
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		Secure:   r.TLS != nil,
-	})
-
+	state := "state"
 	url := h.oauthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline)
 	http.Redirect(w, r, url, http.StatusFound)
 }
 
 // HandleCallback handles the redirect from Google after user consent.
 func (h *Handler) handleCallback(w http.ResponseWriter, r *http.Request) {
-	// 1. Verify state for CSRF protection
-	cookie, err := r.Cookie(stateCookieName)
-	if err != nil || cookie.Value == "" {
-		writeError(w, "missing state cookie", http.StatusForbidden)
-		return
-	}
-	queryState := r.URL.Query().Get("state")
-	if queryState == "" || queryState != cookie.Value {
-		writeError(w, "state mismatch", http.StatusForbidden)
-		return
-	}
-
-	// Clear the state cookie
-	http.SetCookie(w, &http.Cookie{
-		Name:   stateCookieName,
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
-	})
+	// 1. In a production environment, you should verify the state for CSRF protection.
+	// However, we are removing the state cookie as requested.
 
 	// 2. Exchange authorization code for token
 	code := r.URL.Query().Get("code")
@@ -218,54 +179,9 @@ func (h *Handler) handleCallback(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(TokenResponse{Token: signedToken})
 }
 
-// signJWT creates an RS256-signed JWT with the given user info.
+// signJWT creates a signed JWT with the given user info.
 func (h *Handler) signJWT(userID, email string) (string, error) {
-	now := time.Now()
-	claims := jwt.MapClaims{
-		"sub":   userID,
-		"email": email,
-		"iat":   now.Unix(),
-		"exp":   now.Add(h.tokenTTL).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	return token.SignedString(h.privateKey)
-}
-
-// --- Helpers ---
-
-// loadRSAPrivateKey parses a PEM-encoded RSA private key string.
-func loadRSAPrivateKey(pemContent string) (*rsa.PrivateKey, error) {
-	if pemContent == "" {
-		return nil, fmt.Errorf("JWT_PRIVATE_KEY is not set")
-	}
-
-	block, _ := pem.Decode([]byte(pemContent))
-	if block == nil {
-		return nil, fmt.Errorf("private key is not valid PEM")
-	}
-
-	// Try PKCS#8 first, then fall back to PKCS#1
-	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-	if err != nil {
-		rsaKey, err2 := x509.ParsePKCS1PrivateKey(block.Bytes)
-		if err2 != nil {
-			return nil, fmt.Errorf("parse private key: pkcs8=%v, pkcs1=%v", err, err2)
-		}
-		return rsaKey, nil
-	}
-	rsaKey, ok := key.(*rsa.PrivateKey)
-	if !ok {
-		return nil, fmt.Errorf("private key is not RSA")
-	}
-	return rsaKey, nil
-}
-
-func randomState(n int) (string, error) {
-	b := make([]byte, n)
-	if _, err := rand.Read(b); err != nil {
-		return "", err
-	}
-	return base64.URLEncoding.EncodeToString(b), nil
+	return sharedjwt.SignToken(h.privateKey, h.tokenTTL, userID, email)
 }
 
 func writeError(w http.ResponseWriter, msg string, status int) {
