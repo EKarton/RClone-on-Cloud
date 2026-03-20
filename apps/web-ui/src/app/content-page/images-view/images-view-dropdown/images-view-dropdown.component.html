@@ -1,0 +1,88 @@
+<div class="dropdown dropdown-end">
+  <div
+    tabindex="0"
+    role="button"
+    class="btn btn-sm btn-ghost rounded-lg capitalize hover:border hover:border-current"
+  >
+    @if (imagesViewOption() === ImagesViewOptions.LIST) {
+      <svg
+        aria-label="list"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1"
+        class="size-5"
+      >
+        <g
+          stroke-linejoin="round"
+          stroke-linecap="round"
+          stroke-width="3"
+          fill="none"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+          />
+        </g>
+      </svg>
+
+      List
+    } @else {
+      <svg
+        aria-label="map"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1"
+        class="size-5"
+      >
+        <g
+          stroke-linejoin="round"
+          stroke-linecap="round"
+          stroke-width="2"
+          fill="none"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"
+          />
+        </g>
+      </svg>
+
+      Map
+    }
+  </div>
+  <div
+    class="dropdown-content z-[1] menu shadow-lg bg-base-300 rounded-box border border-base-300 flex flex-col gap-4 max-w-xs p-4 mt-2 border rounded-lg"
+  >
+    <!-- List view options -->
+    <div class="flex flex-col gap-2">
+      <label class="label cursor-pointer">
+        <input
+          type="radio"
+          data-testid="list-view-radio-button"
+          class="radio radio-xs checked:bg-primary"
+          [checked]="imagesViewOption() === ImagesViewOptions.LIST"
+          (change)="setImagesViewOption(ImagesViewOptions.LIST)"
+        />
+        <span class="label-text ml-2">List</span>
+      </label>
+      <label class="label cursor-pointer">
+        <input
+          type="radio"
+          data-testid="map-view-radio-button"
+          class="radio radio-xs checked:bg-primary"
+          [checked]="imagesViewOption() === ImagesViewOptions.MAP"
+          (change)="setImagesViewOption(ImagesViewOptions.MAP)"
+        />
+        <span class="label-text ml-2">Map</span>
+      </label>
+    </div>
+  </div>
+</div>

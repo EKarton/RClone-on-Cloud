@@ -1,23 +1,27 @@
-import { Component } from '@angular/core';
-import { environment } from '../../environment/environment';
+import { CommonModule } from '@angular/common';
+import { Component, HostListener, inject, signal } from '@angular/core';
+
+import { environment } from '../../environments/environment';
+import { WINDOW } from '../app.tokens';
+import { ThemeToggleButtonComponent } from '../themes/components/theme-toggle-button/theme-toggle-button.component';
 
 @Component({
   selector: 'app-home-page',
-  standalone: true,
-  template: `
-    <div class="hero min-h-screen bg-base-200">
-      <div class="hero-content text-center">
-        <div class="max-w-md">
-          <h1 class="text-5xl font-bold">RClone Cloud</h1>
-          <p class="py-6">Manage your remote files securely through the web with your configured RClone backends.</p>
-          <button class="btn btn-primary" (click)="login()">Login with Google</button>
-        </div>
-      </div>
-    </div>
-  `
+  imports: [CommonModule, ThemeToggleButtonComponent],
+  templateUrl: './home-page.component.html',
 })
 export class HomePageComponent {
-  login() {
-    window.location.href = environment.loginUrl;
+  private readonly window: Window = inject(WINDOW);
+
+  readonly isScrolled = signal(false);
+
+  @HostListener('window:scroll', [])
+  onScroll() {
+    this.isScrolled.set(this.window.pageYOffset > 50);
+  }
+
+  handleLoginClick() {
+    this.window.localStorage.removeItem('auth_redirect_path');
+    this.window.location.href = `${environment.loginUrl}?select_account=true`;
   }
 }

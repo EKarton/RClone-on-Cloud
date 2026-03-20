@@ -1,0 +1,92 @@
+<div class="dropdown dropdown-end">
+  <div
+    tabindex="0"
+    role="button"
+    class="btn btn-sm btn-ghost rounded-lg capitalize hover:border hover:border-current"
+  >
+    @if (isAscending()) {
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        class="size-5"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M10 17a.75.75 0 0 1-.75-.75V5.612L5.29 9.77a.75.75 0 0 1-1.08-1.04l5.25-5.5a.75.75 0 0 1 1.08 0l5.25 5.5a.75.75 0 1 1-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0 1 10 17Z"
+          clip-rule="evenodd"
+        />
+      </svg>
+
+      {{ sortByFieldText() }}
+    } @else {
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        class="size-5"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M10 3a.75.75 0 0 1 .75.75v10.638l3.96-4.158a.75.75 0 1 1 1.08 1.04l-5.25 5.5a.75.75 0 0 1-1.08 0l-5.25-5.5a.75.75 0 1 1 1.08-1.04l3.96 4.158V3.75A.75.75 0 0 1 10 3Z"
+          clip-rule="evenodd"
+        />
+      </svg>
+
+      {{ sortByFieldText() }}
+    }
+  </div>
+  <div
+    class="dropdown-content z-[1] menu shadow-lg bg-base-300 rounded-box border border-base-300 flex flex-col gap-4 max-w-xs p-4 mt-2 border rounded-lg"
+  >
+    <!-- Sort Field Radios -->
+    <div class="flex flex-col gap-2">
+      <label class="label cursor-pointer">
+        <input
+          type="radio"
+          data-testid="sort-by-id-radio-button"
+          class="radio radio-xs checked:bg-primary"
+          [checked]="sortBy().field === SortByFields.ID"
+          (change)="setField(SortByFields.ID)"
+        />
+        <span class="label-text ml-2">ID</span>
+      </label>
+      <label class="label cursor-pointer">
+        <input
+          type="radio"
+          data-testid="sort-by-date-taken-radio-button"
+          class="radio radio-xs checked:bg-primary"
+          [checked]="sortBy().field === SortByFields.DATE_TAKEN"
+          (change)="setField(SortByFields.DATE_TAKEN)"
+        />
+        <span class="label-text ml-2">Date Taken</span>
+      </label>
+    </div>
+
+    <hr />
+
+    <!-- Sort Direction Radios -->
+    <div class="flex flex-col gap-2">
+      <label class="label cursor-pointer">
+        <input
+          type="radio"
+          data-testid="sort-ascending-radio-button"
+          class="radio radio-xs checked:bg-primary"
+          [checked]="sortBy().direction === SortDirection.ASCENDING"
+          (change)="setDirection(SortDirection.ASCENDING)"
+        />
+        <span class="label-text ml-2">Ascending</span>
+      </label>
+      <label class="label cursor-pointer">
+        <input
+          type="radio"
+          data-testid="sort-descending-radio-button"
+          class="radio radio-xs checked:bg-primary"
+          [checked]="sortBy().direction === SortDirection.DESCENDING"
+          (change)="setDirection(SortDirection.DESCENDING)"
+        />
+        <span class="label-text ml-2">Descending</span>
+      </label>
+    </div>
+  </div>
+</div>

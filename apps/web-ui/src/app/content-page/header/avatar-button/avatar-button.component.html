@@ -1,0 +1,46 @@
+<div class="relative">
+  <div>
+    <button
+      type="button"
+      class="relative flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+      id="user-menu-button"
+      aria-expanded="false"
+      aria-haspopup="true"
+      (click)="toggleDropdown()"
+    >
+      <span class="absolute -inset-1.5"></span>
+      <span class="sr-only">Open user menu</span>
+      <img
+        class="size-8 rounded-full"
+        [src]="profileUrl()"
+        alt="Profile image"
+      />
+    </button>
+  </div>
+
+  @if (isDropdownVisible()) {
+    <div
+      class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md py-1 shadow-lg bg-base-300 ring-1 ring-black/5 focus:outline-none"
+      [ngClass]="{
+        'right-0': dropdownPosition() === 'right',
+        'left-0': dropdownPosition() === 'left',
+      }"
+      role="menu"
+      aria-orientation="vertical"
+      aria-labelledby="user-menu-button"
+      tabindex="-1"
+      (clickOutside)="closeDropdown()"
+    >
+      <button
+        type="button"
+        data-testid="signout-button"
+        class="block px-4 py-2 text-sm"
+        role="menuitem"
+        tabindex="-1"
+        (click)="signOut()"
+      >
+        Sign out
+      </button>
+    </div>
+  }
+</div>

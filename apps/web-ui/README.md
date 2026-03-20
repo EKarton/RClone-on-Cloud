@@ -1,72 +1,153 @@
-# RClone-Cloud Web UI
+# Photos Drive Web UI
 
-This project is a modern, responsive Angular application acting as the frontend for the [RClone-Cloud Web API](../web-api). It allows you to securely authenticate via Google OAuth2 and manage your configured RClone remote backends directly from your browser.
+[![Netlify Status](https://api.netlify.com/api/v1/badges/36282e46-c4ab-407f-8a6e-b6dbb4f40748/deploy-status)](https://app.netlify.com/sites/photos-drive-demo/deploys)
+![check-code-coverage](https://img.shields.io/badge/code--coverage-100-brightgreen)
 
-## Tech Stack
-- **Framework**: Angular 19 (Standalone Components)
-- **Styling**: Tailwind CSS & DaisyUI
-- **State Management**: NgRx (Store, Effects)
-- **Tooling**: Vite/esbuild & `@ngx-env/builder` for native `.env` variable parsing
+## Description
 
-## Prerequisites
-Before you begin, ensure you have Node.js and npm installed.
-
-You will also need to install the Angular CLI globally if you haven't already:
-```bash
-npm install -g @angular/cli
-```
+This project is a web ui for Photos Drive. This web ui allows users to list and see their photos and videos on a web browser. This web ui will only read photos and videos and never modify anything in the database.
 
 ## Getting Started
 
-1. **Install Dependencies**
-   Navigate to the `apps/web-ui` directory and install the required npm packages:
-   ```bash
-   cd apps/web-ui
-   npm install
-   ```
+### Installation
 
-2. **Configure Environment Variables**
-   The application uses `@ngx-env/builder` to load environment variables from a `.env` file. Create a `.env` file in the root of the `apps/web-ui` directory:
-   ```bash
-   NG_APP_LOGIN_URL=http://localhost:3000/auth/v1/google/login
-   NG_APP_WEB_API_ENDPOINT=http://localhost:3000
-   ```
-   *(Ensure these URLs point to where your Go Web API is currently running. If you deploy to production, update these values accordingly!)*
+1. First, get the Gemini API key by following [this guide](./docs/generate_gemini_api_key.md)
 
-3. **Run the Development Server**
-   Start the Angular application locally:
-   ```bash
-   ng serve
-   ```
-   The application will be available at `http://localhost:4200/`.
+1. Next, install angular by running:
 
-## Architecture Overview
+    ```bash
+    npm install -g @angular/cli
+    ```
 
-1. **Authentication Flow**
-   When a user clicks "Login", they are redirected to the Go API's Google OAuth2 login endpoint. Upon successful login, Google redirects the user back to `/auth/v1/google/callback` on this Angular app, providing an authorization `code`. The Angular NgRx Effects layer then securely exchanges this code for a JWT via the API, saving it into the local state.
-   
-2. **RClone Services**
-   The `RcloneWebApiService` interacts seamlessly with the Web API. It directly injects the NgRx Auth Store to extract the stored JWT and uses it as an `Authorization: Bearer` header when querying endpoints like `/config/listremotes` and `/operations/list`.
+1. Then, install the project's dependencies by running:
 
-3. **Result Wrapper Pattern**
-   To gracefully handle HTTP network and validation errors without tearing down RxJS observable streams, we utilize a custom `Result<T>` wrapper pattern. All API fetches return cleanly typed models dictating both `data`, `isLoading`, and `error` states directly to the components.
+    ```bash
+    npm install
+    ```
 
-## Testing & Linting
+1. Then, create a `.env` file to store your environment variables, like:
 
-To execute the unit tests (Vitest configuration):
+    ```text
+    NG_APP_LOGIN_URL=http://localhost:3000/auth/v1/google
+    NG_APP_WEB_API_ENDPOINT=http://localhost:3000
+
+    NG_APP_GEMINI_API_KEY="YOUR_GEMINI_KEY"
+    NG_APP_GEMINI_MODEL="gemini-2.5-flash"
+    ```
+
+    where:
+    - `NG_APP_LOGIN_URL`: is the login url of your [web-api](./../web-api)
+    - `NG_APP_WEB_API_ENDPOINT`: is the domain of your [web-api](./../web-api)
+    - `NG_APP_GEMINI_API_KEY`: is the Gemini API key from the first step
+    - `NG_APP_GEMINI_MODEL`: is the Gemini model to use (ex: 'gemini-2.5-flash')
+
+1. Next, run:
+
+    ```bash
+    npm run dev
+    ```
+
+    It should start a local development server of this app to <http://localhost:4200>. Once the server is running, open your browser and navigate to <http://localhost:4200>. The application will automatically reload whenever you modify any of the source files.
+
+## Development
+
+### Code scaffolding
+
+Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+
 ```bash
-ng test
+ng generate component component-name
 ```
 
-To run the TypeScript linter:
+For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+
 ```bash
-ng lint
+ng generate --help
 ```
 
-## Building for Production
+### Building
 
-To build a minimized, statically-compiled version of the Web UI for production deployment:
+To build a production-level project run:
+
 ```bash
-ng build
+npm run build
 ```
-The compiled assets will be available in the `dist/web-ui` directory, ready to be served by NGINX, Apache, or exported to GitHub Pages/Render!
+
+This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+
+You can run the optimized build of your app on <http://localhost:4200> by running:
+
+```bash
+
+npm run serve
+```
+
+### Linting
+
+To check for code styles, run
+
+```bash
+npm run lint
+```
+
+To automatically fix errors in code styles, run:
+
+```bash
+npm run lint:fix
+```
+
+### Running unit tests
+
+To run all unit tests, run:
+
+```bash
+npm run test
+```
+
+It will also check for code coverage, which you can see from the `./coverage` directory.
+
+To only run specific unit test(s), run:
+
+```bash
+npm run test:in <path-to-test-file>
+```
+
+For instance, to only run tests under `src/app/content-page/store/media-items`, run:
+
+```bash
+npm run test:in src/app/content-page/store/media-items
+```
+
+### Running end-to-end tests
+
+For end-to-end (e2e) testing, run:
+
+```bash
+ng e2e
+```
+
+Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+
+### Additional Resources
+
+For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+## Deployment
+
+- If you are deploying to Netlify, refer to the [docs](./docs/deploying_to_netlify.md)
+
+## Usage
+
+Please note that this project is used for educational purposes and is not intended to be used commercially. We are not liable for any damages/changes done by this project.
+
+## Credits
+
+Emilio Kartono, who made the entire project.
+
+UX Library provided by Daisy UI.
+
+Icons provided by <https://heroicons.com>.
+
+## License
+
+This project is protected under the GNU licence. Please refer to the root project's LICENSE.txt for more information.

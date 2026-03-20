@@ -1,30 +1,25 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { filter, switchMap, map } from 'rxjs/operators';
-import { authActions } from './auth.actions';
-import { AuthWebApiService } from '../services/webapi.service';
-import { hasSucceed } from '../../shared/results/results';
+import { map, mergeMap } from 'rxjs/operators';
+
+import { toResult } from '../../shared/results/rxjs/toResult';
+import { TokenResponse, WebApiService } from '../services/webapi.service';
+import * as authActions from './auth.actions';
 
 @Injectable()
 export class AuthEffects {
-  private actions$ = inject(Actions);
-  private webapiService = inject(AuthWebApiService);
+  private readonly actions$ = inject(Actions);
+  private readonly webApiService = inject(WebApiService);
 
-  loadAuth$ = createEffect(() => {
+  loadAlbumDetails$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(authActions.loadAuth),
-      switchMap(({ code }) =>
-        this.webapiService.fetchAccessToken(code).pipe(
-          filter(result => !result.isLoading),
-          map(result => {
-            if (hasSucceed(result) && result.data) {
-              return authActions.loadAuthSuccess({ token: result.data.token });
-            } else {
-              return authActions.loadAuthFailure({ error: result.error?.message ?? 'Unknown error' });
-            }
-          })
-        )
-      )
+      mergeMap(({ code }) => {
+        return this.webApiService.fetchAccessToken(code).pipe(
+          toResult<TokenResponse>(),
+          map((result) => authActions.loadAuthResult({ result })),
+        );
+      }),
     );
   });
 }

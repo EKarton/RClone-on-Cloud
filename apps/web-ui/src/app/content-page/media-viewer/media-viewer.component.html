@@ -1,0 +1,194 @@
+<dialog #modal class="modal backdrop-blur-xl bg-white/70 dark:bg-gray-800/70">
+  @let mediaDetails = mediaDetailsResult();
+
+  <!-- Top bar -->
+  <div
+    class="flex justify-center items-center gap-4 w-full absolute top-0 left-0 pb-1 px-2 pt-3"
+  >
+    @if (mediaDetails | hasSucceeded) {
+      <div
+        data-testid="media-viewer-formatted-date-text"
+        class="text-sm whitespace-nowrap"
+      >
+        {{ mediaDetails.data!.formattedDate }}
+      </div>
+    }
+
+    <div class="flex gap-2">
+      <!-- The open in new window button -->
+      @if (mediaDetails | hasSucceeded) {
+        <a
+          data-testid="media-viewer-new-window-button"
+          class="btn btn-circle btn-outline border-none btn-sm"
+          [href]="mediaDetails.data!.url"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+            />
+          </svg>
+        </a>
+      }
+
+      <!-- The share button -->
+      @if (isShareSupported && (mediaDetails | hasSucceeded)) {
+        <button
+          data-testid="media-viewer-share-button"
+          class="btn btn-circle btn-outline border-none btn-sm"
+          (click)="share(mediaDetails.data!.url, mediaDetails.data!.fileName)"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15"
+            />
+          </svg>
+        </button>
+      }
+
+      <!-- The download button -->
+      @if (mediaDetails | hasSucceeded) {
+        <a
+          data-testid="media-viewer-download-button"
+          class="btn btn-circle btn-outline border-none btn-sm"
+          [href]="mediaDetails.data!.downloadUrl"
+          [download]="mediaDetails.data!.fileName"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+            />
+          </svg>
+        </a>
+      }
+
+      <!-- The close dialog button -->
+      <button
+        data-testid="media-viewer-close-button"
+        class="btn btn-circle btn-outline border-none btn-sm"
+        (click)="closeDialog()"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="size-5"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 18 18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Middle content -->
+  @if (mediaDetails | isPending) {
+    <div class="modal-box w-auto h-auto bg-transparent shadow-none">
+      <span class="loading loading-spinner loading-lg"></span>
+    </div>
+  } @else if (mediaDetails | hasFailed) {
+    <div class="modal-box p-0 m-0">
+      <span data-testid="media-viewer-error"
+        >Error: {{ mediaDetails.error!.message }}</span
+      >
+    </div>
+  } @else {
+    @if (mediaDetails.data!.mimeType.startsWith('video')) {
+      <video
+        data-testid="media-viewer-video"
+        class="modal-box rounded-sm p-0 m-0 max-h-[calc(100vh-150px)] max-w-[100vw] w-auto h-auto"
+        controls
+      >
+        <source
+          [src]="mediaDetails.data!.url"
+          [type]="mediaDetails.data!.mimeType"
+        />
+        Your browser does not support the video tag.
+      </video>
+    } @else if (mediaDetails.data!.mimeType.startsWith('image')) {
+      <img
+        data-testid="media-viewer-image"
+        class="modal-box rounded-sm p-0 m-0 max-h-[calc(100vh-150px)] max-w-[100vw] w-auto h-auto"
+        [src]="mediaDetails.data!.url"
+        [alt]="mediaDetails.data!.imageAlt"
+      />
+    } @else {
+      <div class="modal-box p-0 m-0">
+        <span data-testid="media-viewer-unknown">
+          Unhandled media type: {{ mediaDetails.data!.mimeType }}
+        </span>
+      </div>
+    }
+  }
+  <form
+    method="dialog"
+    class="modal-backdrop"
+    (click)="closeDialog()"
+    (keydown.enter)="closeDialog()"
+  >
+    <button (click)="closeDialog()">close</button>
+  </form>
+
+  <!-- Bottom middle content -->
+  <div class="flex items-center gap-1 absolute bottom-2 m-4">
+    @if ((mediaDetails | hasSucceeded) && mediaDetails.data!.locationName) {
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        class="size-6"
+      >
+        <path
+          fill-rule="evenodd"
+          d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+          clip-rule="evenodd"
+        />
+      </svg>
+
+      <span>
+        <a
+          data-testid="media-viewer-location-text"
+          class="link link-hover"
+          [href]="mediaDetails.data!.locationUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ mediaDetails.data!.locationName }}</a
+        >
+      </span>
+    }
+  </div>
+</dialog>

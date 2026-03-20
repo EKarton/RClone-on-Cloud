@@ -1,0 +1,170 @@
+<div class="overflow-x-auto w-full">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (albumsResult() | isPending) {
+        @for (i of currentPageSize() | range; track i) {
+          <tr data-testid="table-row-skeleton">
+            <td>
+              <div class="skeleton w-auto h-8"></div>
+            </td>
+            <td>
+              <div class="skeleton w-auto h-8"></div>
+            </td>
+          </tr>
+        }
+      } @else if (albumsResult() | hasFailed) {
+        <tr data-testid="table-row-error">
+          <td colspan="2">
+            <div>Error: {{ albumsResult().error! }}</div>
+          </td>
+        </tr>
+      } @else {
+        @for (album of albumsResult().data!; track album.id) {
+          <tr
+            class="hover:bg-base-300 cursor-pointer hover:underline"
+            data-testid="table-row-album"
+            [routerLink]="['/albums', album.id]"
+          >
+            <td>
+              <div class="flex gap-2 items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="size-6"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
+                  />
+                </svg>
+                <span>
+                  {{ album.albumName }}
+                </span>
+              </div>
+            </td>
+            <td>
+              @let mediaItemsCount = album.numMediaItems;
+              @let childAlbumsCount = album.numChildAlbums;
+
+              @if (mediaItemsCount > 0 && childAlbumsCount > 0) {
+                {{ mediaItemsCount }}
+                {{ mediaItemsCount === 1 ? 'photo' : 'photos' }} &middot;
+                {{ childAlbumsCount }}
+                {{ childAlbumsCount === 1 ? 'album' : 'albums' }}
+              } @else if (mediaItemsCount > 0) {
+                {{ mediaItemsCount }}
+                {{ mediaItemsCount === 1 ? 'photo' : 'photos' }}
+              } @else {
+                {{ childAlbumsCount }}
+                {{ childAlbumsCount === 1 ? 'album' : 'albums' }}
+              }
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+
+  <div class="flex flex-wrap justify-end">
+    <!-- Pagination Controls -->
+    <div class="flex items-center gap-4 text-sm">
+      <!-- Page size selector -->
+      <div class="flex items-center gap-2 mt-4 mb-4">
+        <span class="whitespace-nowrap">Rows per page:</span>
+        <select
+          class="select"
+          [value]="currentPageSize()"
+          (change)="onPageSizeChange($event)"
+        >
+          @for (pageSize of pageSizeOptions; track pageSize) {
+            <option [value]="pageSize">{{ pageSize }}</option>
+          }
+        </select>
+      </div>
+
+      <span class="whitespage-nowrap">Page {{ pageNumber() }}</span>
+
+      <div>
+        <!-- First Page -->
+        <button
+          class="btn btn-ghost btn-circle"
+          data-testid="go-to-first-page-button"
+          (click)="goToFirstPage()"
+          aria-label="First page"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-4"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"
+            />
+          </svg>
+        </button>
+
+        <!-- Previous Page -->
+        <button
+          class="btn btn-ghost btn-circle"
+          data-testid="go-to-previous-page-button"
+          (click)="goToPreviousPage()"
+          aria-label="Previous page"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-4"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15.75 19.5 8.25 12l7.5-7.5"
+            />
+          </svg>
+        </button>
+
+        <!-- Next Page -->
+        <button
+          class="btn btn-ghost btn-circle"
+          data-testid="go-to-next-page-button"
+          [disabled]="!hasNextPage()"
+          (click)="goToNextPage()"
+          aria-label="Next page"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-4"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m8.25 4.5 7.5 7.5-7.5 7.5"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

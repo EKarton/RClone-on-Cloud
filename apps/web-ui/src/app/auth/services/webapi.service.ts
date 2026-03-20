@@ -1,25 +1,23 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable, catchError, map, startWith, of } from 'rxjs';
-import { Result, toFailure, toPending, toSuccess } from '../../shared/results/results';
-import { environment } from '../../../environment/environment';
+import { Observable } from 'rxjs';
+
+import { environment } from '../../../environments/environment';
 
 export interface TokenResponse {
-  token: string;
+  accessToken: string;
+  userProfileUrl: string;
+  mapboxApiToken: string;
 }
 
 @Injectable({ providedIn: 'root' })
-export class AuthWebApiService {
-  private http = inject(HttpClient);
-  private readonly apiUrl = environment.webApiEndpoint;
+export class WebApiService {
+  private readonly httpClient = inject(HttpClient);
 
-  fetchAccessToken(code: string): Observable<Result<TokenResponse>> {
-    return this.http.get<TokenResponse>(`${this.apiUrl}/auth/v1/google/callback`, {
-      params: { code }
-    }).pipe(
-      map(response => toSuccess(response)),
-      catchError(error => of(toFailure<TokenResponse>(new Error(error.message ?? 'Unknown error')))),
-      startWith(toPending<TokenResponse>())
-    );
+  fetchAccessToken(code: string): Observable<TokenResponse> {
+    const url = `${environment.webApiEndpoint}/auth/v1/google/callback`;
+    return this.httpClient.post<TokenResponse>(url, {
+      code,
+    });
   }
 }

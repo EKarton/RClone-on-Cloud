@@ -1,0 +1,186 @@
+<nav>
+  <div class="container mx-auto px-4">
+    <div class="relative flex h-16 items-center justify-between">
+      <div class="flex gap-4">
+        <button
+          type="button"
+          data-testid="hamburger-menu-button"
+          class="md:hidden"
+          (click)="openSideBar()"
+          aria-label="Open main menu"
+        >
+          <svg
+            class="size-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
+
+        <div class="flex shrink-0 items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            class="size-6"
+          >
+            <path d="M12 9a3.75 3.75 0 1 0 0 7.5A3.75 3.75 0 0 0 12 9Z" />
+            <path
+              fill-rule="evenodd"
+              d="M9.344 3.071a49.52 49.52 0 0 1 5.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 0 1-3 3h-15a3 3 0 0 1-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 0 0 1.11-.71l.822-1.315a2.942 2.942 0 0 1 2.332-1.39ZM6.75 12.75a5.25 5.25 0 1 1 10.5 0 5.25 5.25 0 0 1-10.5 0Zm12-1.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+      </div>
+      <div
+        class="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0"
+      >
+        <!-- Search Button Start -->
+        <button
+          data-testid="search-button"
+          class="btn btn-ghost btn-circle mr-2"
+          aria-label="Search"
+          (click)="onSearchClick()"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15.75 15.75 19.5 19.5m-4.036-9a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
+            />
+          </svg>
+        </button>
+        <div role="tablist" class="tabs tabs-border hidden md:block">
+          <a
+            data-testid="albums-tab"
+            role="tab"
+            class="tab"
+            [ngClass]="{ 'tab-active': selectedTab() === Tabs.ALBUMS }"
+            [routerLink]="['/albums', 'root']"
+          >
+            Albums
+          </a>
+          <a
+            data-testid="photos-tab"
+            role="tab"
+            class="tab"
+            [ngClass]="{ 'tab-active': selectedTab() === Tabs.PHOTOS }"
+            [routerLink]="['/photos']"
+          >
+            Photos
+          </a>
+        </div>
+        <app-theme-toggle-button class="mr-3 hidden md:block" />
+        <app-header-avatar-button class="hidden md:block" />
+      </div>
+    </div>
+  </div>
+</nav>
+@if (isSidebarOpen()) {
+  <aside class="fixed inset-0 z-40 flex">
+    <button class="fixed inset-0 bg-black opacity-55" (click)="closeSideBar()">
+      <span class="sr-only">Close sidebar</span>
+    </button>
+
+    <div
+      class="relative w-64 flex flex-col h-full z-50 py-4 bg-base-300 shadow-lg"
+    >
+      <div class="flex items-center justify-between pl-4">
+        <div class="flex gap-2 items-center">
+          <app-header-avatar-button dropdownPosition="left" />
+          <app-theme-toggle-button />
+        </div>
+        <button
+          data-testid="close-sidepanel-button"
+          class="self-end btn btn-ghost btn-circle"
+          aria-label="Close menu"
+          (click)="closeSideBar()"
+        >
+          <!-- X (close) icon -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18 18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <nav class="menu flex flex-col w-full gap-2 pt-4 pr-4 pl-0">
+        <a
+          class="flex items-center gap-4 py-3 pl-4 pr-16 text-left rounded-r-lg hover:bg-gray-300 dark:hover:bg-gray-700"
+          [ngClass]="{
+            'bg-gray-300 dark:bg-gray-800 shadow':
+              selectedTab() === Tabs.ALBUMS,
+          }"
+          [routerLink]="['/albums', 'root']"
+          (click)="closeSideBar()"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
+            />
+          </svg>
+          Albums
+        </a>
+        <a
+          class="flex items-center gap-4 py-3 pl-4 pr-16 text-left rounded-r-lg hover:bg-gray-300 dark:hover:bg-gray-700"
+          [ngClass]="{
+            'bg-gray-300 dark:bg-gray-800 shadow':
+              selectedTab() === Tabs.PHOTOS,
+          }"
+          [routerLink]="['/photos']"
+          (click)="closeSideBar()"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+            />
+          </svg>
+          Photos
+        </a>
+      </nav>
+    </div>
+  </aside>
+}

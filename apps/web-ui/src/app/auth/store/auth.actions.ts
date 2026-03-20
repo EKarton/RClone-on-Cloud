@@ -1,10 +1,16 @@
-import { createActionGroup, props } from '@ngrx/store';
+import { createAction, props } from '@ngrx/store';
 
-export const authActions = createActionGroup({
-  source: 'Auth',
-  events: {
-    'Load Auth': props<{ code: string }>(),
-    'Load Auth Success': props<{ token: string }>(),
-    'Load Auth Failure': props<{ error: string }>(),
-  },
-});
+import { Result } from '../../shared/results/results';
+import { TokenResponse } from '../services/webapi.service';
+
+/** An action that authenticates user via Google OAuth2 code. */
+export const loadAuth = createAction(
+  '[Auth] Load auth details from auth code',
+  props<{ code: string }>(),
+);
+
+/** An action that saves the results of authenticating with Web Api. */
+export const loadAuthResult = createAction(
+  '[Auth] Saves results of getting auth details of a user',
+  props<{ result: Result<TokenResponse> }>(),
+);

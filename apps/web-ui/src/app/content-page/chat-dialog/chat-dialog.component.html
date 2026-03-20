@@ -1,0 +1,163 @@
+<dialog
+  #chatDialog
+  class="modal backdrop-blur-xl bg-white/70 dark:bg-gray-800/70"
+>
+  <!-- Dialog area -->
+  @if (messages().length === 0) {
+    <div
+      class="modal-box max-w-2xl px-3 overflow-y-auto bg-transparent shadow-none"
+    >
+      <div class="flex flex-col items-center gap-1 pb-16">
+        <p class="text-xl">Photos Search</p>
+        <ngx-typed-writer
+          [strings]="[
+            'Ask: photos of santorini',
+            'Ask: photos of family pictures',
+            'Ask: photos of 2025',
+          ]"
+          [isHTML]="true"
+          [smartBackspace]="true"
+          [backSpeed]="20"
+          [typeSpeed]="30"
+        ></ngx-typed-writer>
+      </div>
+    </div>
+    <form
+      method="dialog"
+      class="modal-backdrop"
+      (click)="closeDialog()"
+      (keydown.enter)="closeDialog()"
+    >
+      <button (click)="closeDialog()">close</button>
+    </form>
+  } @else {
+    <div
+      class="modal-box h-screen w-screen w-full h-full max-w-full max-h-full overflow-y-auto bg-transparent shadow-none"
+    >
+      <div class="mx-auto max-w-2xl px-2 pt-14 pb-28 flex flex-col gap-4">
+        @for (message of messages(); track message.id) {
+          <div class="flex flex-col gap-4 w-full">
+            <div
+              class="flex w-full"
+              [ngClass]="{ 'justify-end': message.type === 'User' }"
+            >
+              @let messageContentResult = message.content;
+              <div
+                class="max-w-[80%]"
+                [ngClass]="{
+                  'bg-gray-200 dark:bg-gray-700 rounded-full px-3 py-2':
+                    message.type === 'User',
+                }"
+              >
+                @if (
+                  (messageContentResult | isPending) ||
+                  !messageContentResult.data!.safeHtmlOutput
+                ) {
+                  <span class="loading loading-md"></span>
+                } @else if (messageContentResult | hasFailed) {
+                  Agent has thrown an error
+                } @else {
+                  <span
+                    [innerHtml]="messageContentResult.data!.safeHtmlOutput"
+                  ></span>
+                }
+              </div>
+            </div>
+
+            @if (messageContentResult | hasFailed) {
+              <div class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                <p>Error details:</p>
+                {{ messageContentResult.error }}
+              </div>
+            } @else if (messageContentResult | hasSucceeded) {
+              @let reasoning = messageContentResult.data?.reasoning;
+              @if (reasoning && reasoning.length > 0) {
+                <app-reasoning-collapse [reasonings]="reasoning" />
+              }
+
+              @let mediaItemIds = messageContentResult.data?.mediaItemIds;
+              @if (mediaItemIds && mediaItemIds.length > 0) {
+                <app-chat-dialog-media-items-gallery
+                  class="max-w-[95%]"
+                  [mediaItemIds]="mediaItemIds"
+                />
+              }
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Top bar -->
+  <div
+    class="flex justify-end gap-4 absolute top-0 left-0 right-0 pb-1 px-2 pt-3"
+  >
+    <!-- Clear chat button -->
+    @if (messages().length > 0) {
+      <button
+        data-testid="clear-chat"
+        class="btn btn-ghost btn-sm"
+        (click)="clearChat()"
+      >
+        Clear chat
+      </button>
+    }
+
+    <!-- The close dialog button -->
+    <button
+      data-testid="close-dialog"
+      class="btn btn-circle btn-ghost border-none btn-sm"
+      (click)="closeDialog()"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        class="size-5"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M6 18 18 6M6 6l12 12"
+        />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Search bar -->
+  <div
+    class="absolute bottom-8 left-3 right-3 mx-auto flex justify-center z-100"
+  >
+    <label
+      class="input input-lg flex-1 rounded-full max-w-2xl p-3 focus-within:outline-none focus-within:ring-0"
+    >
+      <svg
+        class="h-[1em] opacity-50"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+      >
+        <g
+          stroke-linejoin="round"
+          stroke-linecap="round"
+          stroke-width="2.5"
+          fill="none"
+          stroke="currentColor"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </g>
+      </svg>
+      <input
+        type="text"
+        class="grow focus:outline-none focus:ring-0 appearance-none"
+        placeholder="Search"
+        [formControl]="searchControl"
+        (keydown.enter)="onSearch()"
+      />
+      <kbd class="kbd kbd-sm">↵</kbd>
+    </label>
+  </div>
+</dialog>

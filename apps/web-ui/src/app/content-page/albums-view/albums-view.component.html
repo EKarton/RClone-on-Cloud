@@ -1,0 +1,42 @@
+@let albumId = albumId$ | async;
+@let albumResult = albumResult$ | async;
+
+@if (albumId && albumResult) {
+  <app-content-page-breadcrumbs [albumId]="albumId" />
+
+  @if (albumResult | isPending) {
+    <span>Loading...</span>
+  } @else if (albumResult | hasFailed) {
+    <span>Error: {{ albumResult.error!.message }}</span>
+  } @else {
+    @if (albumResult.data!.numChildAlbums > 0) {
+      <app-content-albums-list [albumId]="albumId" />
+
+      @if (albumResult.data!.numMediaItems > 0) {
+        <div class="divider"></div>
+      }
+    }
+
+    @if (albumResult.data!.numMediaItems > 0) {
+      <app-content-images-view [albumId]="albumId" />
+    }
+
+    @if (
+      albumResult.data!.numChildAlbums === 0 &&
+      albumResult.data!.numMediaItems === 0
+    ) {
+      <div class="flex items-center justify-center flex-grow p-8">
+        <div>
+          <img
+            src="/assets/content-page/empty-album.jpeg"
+            alt="Empty album"
+            class="w-64 h-64 mx-auto object-cover mb-8 rounded"
+          />
+          <p class="text-lg">
+            There are no albums and no photos in this album.
+          </p>
+        </div>
+      </div>
+    }
+  }
+}

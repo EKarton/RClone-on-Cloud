@@ -1,0 +1,17 @@
+<div class="flex gap-2 flex-wrap items-center">
+  @for (mediaItem of mediaItemsToDisplay(); track mediaItem.id) {
+    <app-image
+      [mediaItemId]="mediaItem.id"
+      [gPhotosMediaItemId]="mediaItem.gPhotosMediaItemId"
+      [fileName]="mediaItem.fileName"
+      [width]="(100 / mediaItem.height) * mediaItem.width"
+      [height]="100"
+    />
+  }
+
+  @if (!isExpanded() && mediaItemIds().length > 5) {
+    <button class="btn btn-soft" (click)="toggle()">
+      See {{ mediaItemIds().length - 5 }} more
+    </button>
+  }
+</div>

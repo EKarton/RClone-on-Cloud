@@ -1,0 +1,21 @@
+@if (breadcrumbItems$ | async; as results) {
+  @if (results | isPending) {
+    <div class="skeleton h-4 w-1/3"></div>
+  } @else if (results | hasFailed) {
+    <span>Error! {{ results.error!.message }}</span>
+  } @else {
+    <div #breadcrumbContainer class="breadcrumbs text-sm">
+      <ul>
+        @for (breadcrumb of results.data!; track breadcrumb.id) {
+          <li>
+            <a
+              data-testid="breadcrumb-link"
+              [routerLink]="breadcrumb.routerLink"
+              >{{ breadcrumb.text }}</a
+            >
+          </li>
+        }
+      </ul>
+    </div>
+  }
+}
