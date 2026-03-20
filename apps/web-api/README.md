@@ -14,7 +14,7 @@ Prerequisites:
 - Docker
 - Go
 
-1. First, follow [this guide](./setup_oauth2.md) to create a new GCP project for the Web API, create a new OAuth2 client, and obtain the client ID and client secrets from your newly created OAuth2 client.
+1. First, follow [this guide](./docs/setup_oauth2.md) to create a new GCP project for the Web API, create a new OAuth2 client, and obtain the client ID and client secrets from your newly created OAuth2 client.
 
 1. Generate public and private keys by running:
 
@@ -45,36 +45,36 @@ AUTH_JWT_PUBLIC_KEY=<Your JWT public key (Raw PEM string)>
 AUTH_JWT_PRIVATE_KEY=<Your JWT private key (Raw PEM string)>
 AUTH_GOOGLE_CLIENT_ID=<Your Google client ID>
 AUTH_GOOGLE_CLIENT_SECRET=123
-AUTH_GOOGLE_REDIRECT_URL=http://localhost:3000/auth/v1/google/callback
-LISTEN_ADDR=:9000
+AUTH_GOOGLE_REDIRECT_URL=http://localhost:4200/auth/v1/google/callback
+LISTEN_ADDR=:3000
 ```
 
-2. Install dependencies by running:
+1. Install dependencies by running:
 
 ```shell
 go install .
 ```
 
-3. Run the app locally by running:
+1. Run the app locally by running:
 
 ```shell
 go run .
 ```
 
-4. Build a production version of the app by running:
+1. Build a production version of the app by running:
 
 ```shell
 mkdir -p bin
 go build -o bin/rclone-cloud-web-api .
 ```
 
-5. Run tests by running:
+1. Run tests by running:
 
 ```shell
 go test ./... -v -coverprofile=coverage.out
 ```
 
-6. See code coverage after running the above command:
+1. See code coverage after running the above command:
 
 ```shell
 go tool cover -html=coverage.out

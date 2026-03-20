@@ -41,6 +41,12 @@ func main() {
 	if err := store.Load(); err != nil {
 		log.Fatalf("load config: %v", err)
 	}
+	defer func() {
+		log.Println("saving config to mongo...")
+		if err := store.Save(); err != nil {
+			log.Printf("error saving config: %v", err)
+		}
+	}()
 
 	// -- Google OAuth2 --
 	authHandler, err := auth.NewHandler(auth.Config{

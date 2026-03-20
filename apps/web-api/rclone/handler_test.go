@@ -116,4 +116,55 @@ remote = %s
 
 		assert.Equal(t, "world", string(data))
 	})
+
+	// 7. Verify that methods NOT in the allowlist are rejected with 403
+	t.Run("Disallowed Method Returns 403", func(t *testing.T) {
+		for _, blocked := range []string{
+			"rc/noop",
+			"core/version",
+			"config/setpath",
+			"fscache/clear",
+		} {
+			blocked := blocked
+			t.Run(blocked, func(t *testing.T) {
+				resp, err := client.Post(baseURL+"/"+blocked, "application/json", bytes.NewReader([]byte("{}")))
+				require.NoError(t, err)
+				defer resp.Body.Close()
+				assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+			})
+		}
+	})
+
+	// 8. Verify that all allowlisted methods pass the allowlist gate.
+	// We do not test their full behaviour here—just that they are not rejected with 403.
+	// (They may return 4xx/5xx for other reasons, e.g. missing parameters.)
+	t.Run("Allowed Methods Pass Allowlist", func(t *testing.T) {
+		for _, allowed := range []string{
+			"config/listremotes",
+			"operations/list",
+			"operations/about",
+			"operations/stat",
+			"config/get",
+			"operations/purge",
+			"operations/deletefile",
+			"sync/copy",
+			"operations/copyfile",
+			"operations/movefile",
+			"sync/move",
+			"operations/mkdir",
+			"operations/cleanup",
+			"job/status",
+			"job/stop",
+		} {
+			allowed := allowed
+			t.Run(allowed, func(t *testing.T) {
+				resp, err := client.Post(baseURL+"/"+allowed, "application/json", bytes.NewReader([]byte("{}")))
+				require.NoError(t, err)
+				defer resp.Body.Close()
+				// The allowlist should let these through — status must NOT be 403.
+				assert.NotEqual(t, http.StatusForbidden, resp.StatusCode,
+					"method %q should not be blocked by the allowlist", allowed)
+			})
+		}
+	})
 }

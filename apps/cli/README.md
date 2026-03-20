@@ -56,13 +56,13 @@ go tool cover -html=coverage.out
 1. Migrate rclone.conf to MongoDB by running:
 
 ```shell
-./bin/rclone-cloud-cli migrate --from-file <path/to/rclone.conf> --to-mongodb-uri <mongodb-uri>
+go run . migrate --from-file <path/to/rclone.conf> --to-mongodb-uri <mongodb-uri>
 ```
 
 1. Dump MongoDB configs to an INI file by running:
 
 ```shell
-./bin/rclone-cloud-cli dump --from-mongodb-uri <path/to/mongodb-uri> --to-file <path/to/output/file>
+go run . dump --from-mongodb-uri <path/to/mongodb-uri> --to-file <path/to/output/file>
 ```
 
 ## Making changes to RClone config in MongoDB
