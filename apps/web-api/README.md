@@ -80,6 +80,12 @@ Prerequisites:
    go tool cover -html=coverage.out
    ```
 
+1. Run linting by running:
+
+   ```shell
+   golangci-lint run ./...
+   ```
+
 ## Running with Docker
 
 You can run the API as a lightweight Docker container.

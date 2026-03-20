@@ -1,0 +1,22 @@
+##################################################################
+# A Github action used to deploy the Web API to Render.com (Test)
+##################################################################
+
+name: Deploy Test Web API
+on:
+  workflow_run:
+    workflows: ["Publish Web API"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    name: Deploy to Test Environment
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy web app to Render.com 
+        run: |
+          curl -f -X POST "${{ secrets.RENDER_DEPLOY_TEST_APP_HOOK_URL }}"
