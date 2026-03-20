@@ -11,6 +11,7 @@ import (
 	"github.com/ekarton/RClone-Cloud/apps/web-api/auth"
 	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone"
 	mongocfg "github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
+	"github.com/ekarton/RClone-Cloud/apps/web-api/shared/cors"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -71,7 +72,7 @@ func main() {
 	authHandler.RegisterRoutes(mux)
 	rcloneHandler.RegisterRoutes(mux)
 
-	server := &http.Server{Addr: env.ListenAddr, Handler: mux}
+	server := &http.Server{Addr: env.ListenAddr, Handler: cors.NewMiddleware(env.CORSAllowedURLs)(mux)}
 	go func() {
 		log.Printf("API listening on %s", env.ListenAddr)
 		if err := server.ListenAndServe(); err != http.ErrServerClosed {

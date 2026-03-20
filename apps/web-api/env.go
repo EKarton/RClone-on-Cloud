@@ -20,6 +20,7 @@ type Env struct {
 	GoogleRedirectURL  string
 	ListenAddr         string
 	AllowedGoogleIDs   []string
+	CORSAllowedURLs    []string
 }
 
 // LoadEnv reads and validates all required environment variables,
@@ -42,6 +43,15 @@ func LoadEnv() Env {
 		log.Fatal("AUTH_ALLOWED_GOOGLE_IDS must contain at least one valid Google ID")
 	}
 
+	corsAllowedURLsStr := getEnv("CORS_ALLOWED_URLS", "http://localhost:4200")
+	var corsAllowedURLs []string
+	for _, url := range strings.Split(corsAllowedURLsStr, ",") {
+		url = strings.TrimSpace(url)
+		if url != "" {
+			corsAllowedURLs = append(corsAllowedURLs, url)
+		}
+	}
+
 	return Env{
 		EncryptionKey:      requireEnv("RCLONE_CONFIG_ENCRYPTION_KEY"),
 		MongoURI:           requireEnv("RCLONE_CONFIG_MONGODB_URI"),
@@ -52,6 +62,7 @@ func LoadEnv() Env {
 		GoogleRedirectURL:  getEnv("AUTH_GOOGLE_REDIRECT_URL", "http://localhost:8080/auth/v1/google/callback"),
 		ListenAddr:         getEnv("LISTEN_ADDR", ":8080"),
 		AllowedGoogleIDs:   allowedGoogleIDs,
+		CORSAllowedURLs:    corsAllowedURLs,
 	}
 }
 
