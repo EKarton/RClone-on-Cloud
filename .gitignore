@@ -35,3 +35,4 @@ rclone.conf
 
 .DS_Store
 tmp/
+.vscode/
