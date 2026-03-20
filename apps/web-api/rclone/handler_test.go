@@ -144,7 +144,6 @@ remote = %s
 			"operations/list",
 			"operations/about",
 			"operations/stat",
-			"config/get",
 			"operations/purge",
 			"operations/deletefile",
 			"sync/copy",

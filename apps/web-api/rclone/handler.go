@@ -29,7 +29,6 @@ var allowedMethods = map[string]struct{}{
 	"operations/list":       {},
 	"operations/about":      {},
 	"operations/stat":       {},
-	"config/get":            {},
 	"operations/uploadfile": {},
 	"operations/purge":      {},
 	"operations/deletefile": {},
