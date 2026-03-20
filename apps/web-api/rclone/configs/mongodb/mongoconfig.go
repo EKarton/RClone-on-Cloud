@@ -91,7 +91,7 @@ func (s *MongoStorage) Load() error {
 	if err != nil {
 		return fmt.Errorf("load: %w", err)
 	}
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 
 	data := make(map[string]map[string]string)
 	for cursor.Next(ctx) {
@@ -154,10 +154,12 @@ func (s *MongoStorage) Save() error {
 		var doc struct {
 			ID string `bson:"_id"`
 		}
-		cursor.Decode(&doc)
+		if err := cursor.Decode(&doc); err != nil {
+			return fmt.Errorf("save: decode existing: %w", err)
+		}
 		existingIDs[doc.ID] = true
 	}
-	cursor.Close(ctx)
+	_ = cursor.Close(ctx)
 
 	// Upsert current in-memory sections as flattened documents
 	for section, kv := range s.data {

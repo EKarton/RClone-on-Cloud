@@ -26,7 +26,7 @@ func TestRCloneAPIHandler(t *testing.T) {
 	tempDir := t.TempDir()
 	confPath := filepath.Join(tempDir, "rclone.conf")
 	_ = os.WriteFile(confPath, []byte("[testremote]\ntype = local\n"), 0600)
-	config.SetConfigPath(confPath)
+	require.NoError(t, config.SetConfigPath(confPath))
 	configfile.Install()
 	// 2. Generate an RSA Keypair
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -84,7 +84,9 @@ func TestRCloneAPIHandler(t *testing.T) {
 		req, _ := http.NewRequest("POST", ts.URL+"/api/v1/rclone/rc/noop", nil)
 		resp, err := client.Do(req)
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		defer func() {
+			require.NoError(t, resp.Body.Close())
+		}()
 
 		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 
@@ -97,7 +99,9 @@ func TestRCloneAPIHandler(t *testing.T) {
 		req.Header.Set("Authorization", "Bearer invalid.jwt.token")
 		resp, err := client.Do(req)
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		defer func() {
+			require.NoError(t, resp.Body.Close())
+		}()
 
 		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 	})
@@ -107,7 +111,9 @@ func TestRCloneAPIHandler(t *testing.T) {
 		req.Header.Set("Authorization", "Bearer "+signInvalidJWT())
 		resp, err := client.Do(req)
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		defer func() {
+			require.NoError(t, resp.Body.Close())
+		}()
 
 		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 	})
@@ -117,7 +123,9 @@ func TestRCloneAPIHandler(t *testing.T) {
 		req.Header.Set("Authorization", "Bearer "+signJWT("123", "test@test.com", time.Now().Add(-1*time.Hour)))
 		resp, err := client.Do(req)
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		defer func() {
+			require.NoError(t, resp.Body.Close())
+		}()
 
 		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 
@@ -130,7 +138,9 @@ func TestRCloneAPIHandler(t *testing.T) {
 		req.Header.Set("Authorization", "Bearer "+signJWT("user-1", "user@test.com", time.Now().Add(1*time.Hour)))
 		resp, err := client.Do(req)
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		defer func() {
+			require.NoError(t, resp.Body.Close())
+		}()
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 

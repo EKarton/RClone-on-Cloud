@@ -39,7 +39,7 @@ remote = %s
 	require.NoError(t, err)
 
 	// Point rclone to our test config
-	config.SetConfigPath(confPath)
+	require.NoError(t, config.SetConfigPath(confPath))
 	configfile.Install()
 	store := config.Data()
 
@@ -66,7 +66,9 @@ remote = %s
 	t.Run("List Remotes", func(t *testing.T) {
 		resp, err := client.Post(baseURL+"/config/listremotes", "application/json", bytes.NewReader([]byte("{}")))
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		defer func() {
+			require.NoError(t, resp.Body.Close())
+		}()
 
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -84,7 +86,9 @@ remote = %s
 		reqBody := `{"fs": "localtest:", "remote": ""}`
 		resp, err := client.Post(baseURL+"/operations/list", "application/json", bytes.NewReader([]byte(reqBody)))
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		defer func() {
+			require.NoError(t, resp.Body.Close())
+		}()
 
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -107,7 +111,9 @@ remote = %s
 	t.Run("Get Object", func(t *testing.T) {
 		resp, err := client.Get(baseURL + "/[localtest:]/hello.txt")
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		defer func() {
+			require.NoError(t, resp.Body.Close())
+		}()
 
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -129,7 +135,9 @@ remote = %s
 			t.Run(blocked, func(t *testing.T) {
 				resp, err := client.Post(baseURL+"/"+blocked, "application/json", bytes.NewReader([]byte("{}")))
 				require.NoError(t, err)
-				defer resp.Body.Close()
+				defer func() {
+					require.NoError(t, resp.Body.Close())
+				}()
 				assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 			})
 		}
@@ -159,7 +167,9 @@ remote = %s
 			t.Run(allowed, func(t *testing.T) {
 				resp, err := client.Post(baseURL+"/"+allowed, "application/json", bytes.NewReader([]byte("{}")))
 				require.NoError(t, err)
-				defer resp.Body.Close()
+				defer func() {
+					require.NoError(t, resp.Body.Close())
+				}()
 				// The allowlist should let these through — status must NOT be 403.
 				assert.NotEqual(t, http.StatusForbidden, resp.StatusCode,
 					"method %q should not be blocked by the allowlist", allowed)
