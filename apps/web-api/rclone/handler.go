@@ -22,6 +22,27 @@ import (
 
 var fsMatch = regexp.MustCompile(`^\[(.*?)\](.*)$`)
 
+// allowedMethods is the set of rclone RC endpoints that this API exposes.
+// Any POST to a path not listed here will be rejected with HTTP 403.
+var allowedMethods = map[string]struct{}{
+	"rc/noop":               {},
+	"config/listremotes":    {},
+	"operations/list":       {},
+	"operations/about":      {},
+	"operations/stat":       {},
+	"operations/uploadfile": {},
+	"operations/purge":      {},
+	"operations/deletefile": {},
+	"sync/copy":             {},
+	"operations/copyfile":   {},
+	"operations/movefile":   {},
+	"sync/move":             {},
+	"operations/mkdir":      {},
+	"operations/cleanup":    {},
+	"job/status":            {},
+	"job/stop":              {},
+}
+
 // RCHandler dispatches requests directly to rclone's rc/jobs system.
 type RCHandler struct{}
 
@@ -132,6 +153,11 @@ func (h *RCHandler) handlePost(w http.ResponseWriter, r *http.Request, path stri
 			h.writeError(path, in, w, fmt.Errorf("failed to read input JSON: %w", err), http.StatusBadRequest)
 			return
 		}
+	}
+
+	if _, ok := allowedMethods[path]; !ok {
+		h.writeError(path, in, w, fmt.Errorf("method %q is not allowed", path), http.StatusForbidden)
+		return
 	}
 
 	call := rc.Calls.Get(path)

@@ -41,7 +41,9 @@ func TestDumpConfig(t *testing.T) {
 	// 3. Seed MongoDB document using MongoStorage (to ensure correct encryption/flattening)
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
 	require.NoError(t, err)
-	defer client.Disconnect(ctx)
+	defer func() {
+		require.NoError(t, client.Disconnect(ctx))
+	}()
 
 	coll := client.Database("rclone").Collection("configs")
 	storage, err := mongodb.New(coll, encryptionKey)

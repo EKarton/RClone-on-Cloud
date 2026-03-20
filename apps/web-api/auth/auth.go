@@ -176,7 +176,7 @@ func (h *Handler) handleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(TokenResponse{Token: signedToken})
+	_ = json.NewEncoder(w).Encode(TokenResponse{Token: signedToken})
 }
 
 // signJWT creates a signed JWT with the given user info.
@@ -187,5 +187,5 @@ func (h *Handler) signJWT(userID, email string) (string, error) {
 func writeError(w http.ResponseWriter, msg string, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(ErrorResponse{Error: msg})
+	_ = json.NewEncoder(w).Encode(ErrorResponse{Error: msg})
 }

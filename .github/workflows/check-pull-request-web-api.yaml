@@ -1,0 +1,86 @@
+##################################################################
+# A Github action used to check pull requests on Web API
+# More info at https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions
+##################################################################
+
+name: Check pull request on Web API
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web-api/**"
+      - ".github/workflows/check-pull-request-web-api.yaml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web-api/**"
+      - ".github/workflows/check-pull-request-web-api.yaml"
+
+jobs:
+  build:
+    name: Build Web API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache-dependency-path: apps/web-api/go.sum
+
+      - name: Build
+        working-directory: ./apps/web-api
+        run: go build ./...
+
+  lint:
+    name: Lint Web API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache-dependency-path: apps/web-api/go.sum
+
+      - name: Run golangci-lint
+        working-directory: ./apps/web-api
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          golangci-lint run ./...
+
+  run-tests:
+    name: Run tests in Web API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache-dependency-path: apps/web-api/go.sum
+
+      - name: Run tests
+        working-directory: ./apps/web-api
+        run: go test -v -race ./...
+
+  build-docker:
+    name: Build the Web API app via Docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build the Docker image
+        run: |
+          cd ./apps/web-api
+          docker build -t test-web-api .

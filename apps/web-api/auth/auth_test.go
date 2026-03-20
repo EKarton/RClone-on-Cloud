@@ -107,7 +107,9 @@ func TestLoginRedirect(t *testing.T) {
 	mux.ServeHTTP(rec, req)
 
 	resp := rec.Result()
-	defer resp.Body.Close()
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
 
 	assert.Equal(t, http.StatusFound, resp.StatusCode)
 
@@ -124,12 +126,14 @@ func TestCallbackMissingCode(t *testing.T) {
 	mux.ServeHTTP(rec, req)
 
 	resp := rec.Result()
-	defer resp.Body.Close()
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
 
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 	var errResp ErrorResponse
-	json.NewDecoder(resp.Body).Decode(&errResp)
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
 	assert.Contains(t, errResp.Error, "missing code")
 }
 
@@ -144,12 +148,14 @@ func TestCallbackInvalidGoogleToken(t *testing.T) {
 	mux.ServeHTTP(rec, req)
 
 	resp := rec.Result()
-	defer resp.Body.Close()
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
 
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 
 	var errResp ErrorResponse
-	json.NewDecoder(resp.Body).Decode(&errResp)
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
 	assert.Contains(t, errResp.Error, "token exchange failed")
 }
 
@@ -169,12 +175,14 @@ func TestCallbackNoIDToken(t *testing.T) {
 	mux.ServeHTTP(rec, req)
 
 	resp := rec.Result()
-	defer resp.Body.Close()
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
 
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 
 	var errResp ErrorResponse
-	json.NewDecoder(resp.Body).Decode(&errResp)
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
 	assert.Contains(t, errResp.Error, "no id_token")
 }
 
@@ -194,12 +202,14 @@ func TestCallbackIDTokenValidationFails(t *testing.T) {
 	mux.ServeHTTP(rec, req)
 
 	resp := rec.Result()
-	defer resp.Body.Close()
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
 
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 
 	var errResp ErrorResponse
-	json.NewDecoder(resp.Body).Decode(&errResp)
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
 	assert.Contains(t, errResp.Error, "id token validation failed")
 }
 
@@ -234,7 +244,9 @@ func TestCallbackSuccess(t *testing.T) {
 	mux.ServeHTTP(rec, req)
 
 	resp := rec.Result()
-	defer resp.Body.Close()
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -298,12 +310,14 @@ func TestSignAndVerifyJWT(t *testing.T) {
 	mux.ServeHTTP(rec, req)
 
 	resp := rec.Result()
-	defer resp.Body.Close()
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var tokenResp TokenResponse
-	json.NewDecoder(resp.Body).Decode(&tokenResp)
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&tokenResp))
 
 	// Verify using the public key counterpart
 	token, err := jwt.ParseWithClaims(tokenResp.Token, &sharedjwt.Claims{}, func(t *jwt.Token) (interface{}, error) {
@@ -355,11 +369,13 @@ func TestCallbackMissingSub(t *testing.T) {
 	mux.ServeHTTP(rec, req)
 
 	resp := rec.Result()
-	defer resp.Body.Close()
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
 
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 
 	var errResp ErrorResponse
-	json.NewDecoder(resp.Body).Decode(&errResp)
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
 	assert.Contains(t, errResp.Error, "missing sub")
 }

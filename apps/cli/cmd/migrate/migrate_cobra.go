@@ -17,6 +17,10 @@ var MigrateCmd = &cobra.Command{
 func init() {
 	MigrateCmd.Flags().String("from-file", "", "Path to rclone.conf (required)")
 	MigrateCmd.Flags().String("to-mongodb-uri", "", "MongoDB connection URI (required)")
-	MigrateCmd.MarkFlagRequired("from-file")
-	MigrateCmd.MarkFlagRequired("to-mongodb-uri")
+	if err := MigrateCmd.MarkFlagRequired("from-file"); err != nil {
+		panic(err)
+	}
+	if err := MigrateCmd.MarkFlagRequired("to-mongodb-uri"); err != nil {
+		panic(err)
+	}
 }

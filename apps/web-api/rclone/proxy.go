@@ -83,5 +83,5 @@ func jsonError(w http.ResponseWriter, msg string, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("WWW-Authenticate", `Bearer realm="rclone-api"`)
 	w.WriteHeader(status)
-	fmt.Fprintf(w, `{"error":"%s"}`, msg)
+	_, _ = fmt.Fprintf(w, `{"error":"%s"}`, msg)
 }

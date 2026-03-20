@@ -67,7 +67,9 @@ region = us-east-1`
 	// 5. Connect to MongoDB and verify the data
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
 	require.NoError(t, err)
-	defer client.Disconnect(ctx)
+	defer func() {
+		require.NoError(t, client.Disconnect(ctx))
+	}()
 
 	coll := client.Database("rclone").Collection("configs")
 

@@ -29,7 +29,11 @@ func Migrate(configPath string, mongoURI string) {
 	if err != nil {
 		log.Fatalf("mongo connect: %v", err)
 	}
-	defer client.Disconnect(ctx)
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			log.Printf("mongo disconnect: %v", err)
+		}
+	}()
 
 	mongoStore, err := mongodb.New(
 		client.Database("rclone").Collection("configs"),

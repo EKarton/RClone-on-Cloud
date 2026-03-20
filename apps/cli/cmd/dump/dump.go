@@ -21,7 +21,11 @@ func Dump(mongoURI, filePath string) {
 	if err != nil {
 		log.Fatalf("mongo connect: %v", err)
 	}
-	defer client.Disconnect(ctx)
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			log.Printf("mongo disconnect: %v", err)
+		}
+	}()
 
 	// 2. Initialize MongoStorage
 	encKey := os.Getenv("RCLONE_ENCRYPTION_KEY")
