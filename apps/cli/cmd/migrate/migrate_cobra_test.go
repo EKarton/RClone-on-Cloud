@@ -58,7 +58,9 @@ scope = drive`
 	// 4. Verify in DB
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
 	require.NoError(t, err)
-	defer client.Disconnect(ctx)
+	defer func() {
+		require.NoError(t, client.Disconnect(ctx))
+	}()
 
 	coll := client.Database("rclone").Collection("configs")
 	count, err := coll.CountDocuments(ctx, map[string]interface{}{"_id": "testremote"})

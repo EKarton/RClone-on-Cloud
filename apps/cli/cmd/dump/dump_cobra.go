@@ -17,6 +17,10 @@ var DumpCmd = &cobra.Command{
 func init() {
 	DumpCmd.Flags().String("from-mongodb-uri", "", "MongoDB connection URI (required)")
 	DumpCmd.Flags().String("to-file", "", "Output file path (required)")
-	DumpCmd.MarkFlagRequired("from-mongodb-uri")
-	DumpCmd.MarkFlagRequired("to-file")
+	if err := DumpCmd.MarkFlagRequired("from-mongodb-uri"); err != nil {
+		panic(err)
+	}
+	if err := DumpCmd.MarkFlagRequired("to-file"); err != nil {
+		panic(err)
+	}
 }
