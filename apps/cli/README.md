@@ -13,6 +13,7 @@ Prerequisites:
 
 - Docker
 - Go
+- golangci-lint
 - MongoDB URI
 - RClone config file
 
@@ -78,19 +79,25 @@ export RCLONE_CONFIG_ENCRYPTION_KEY=<YOUR_ENCRYPTION_KEY>
 
 1. Run tests by running:
 
-```shell
-go test ./... -v -coverprofile=coverage.out
-```
+    ```shell
+    go test ./... -v -coverprofile=coverage.out
+    ```
 
 1. See test coverage by running:
 
-```shell
-go tool cover -html=coverage.out
-```
+    ```shell
+    go tool cover -html=coverage.out
+    ```
 
 1. Build the app by running:
 
-```shell
-mkdir -p bin
-go build -o bin/rclone-cloud-cli .
-```
+    ```shell
+    mkdir -p bin
+    go build -o bin/rclone-cloud-cli .
+    ```
+
+1. Run linting by running:
+
+    ```shell
+    golangci-lint run ./...
+    ```
