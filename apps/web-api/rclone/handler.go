@@ -25,6 +25,7 @@ var fsMatch = regexp.MustCompile(`^\[(.*?)\](.*)$`)
 // allowedMethods is the set of rclone RC endpoints that this API exposes.
 // Any POST to a path not listed here will be rejected with HTTP 403.
 var allowedMethods = map[string]struct{}{
+	"rc/noop":               {},
 	"config/listremotes":    {},
 	"operations/list":       {},
 	"operations/about":      {},

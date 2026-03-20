@@ -126,7 +126,6 @@ remote = %s
 	// 7. Verify that methods NOT in the allowlist are rejected with 403
 	t.Run("Disallowed Method Returns 403", func(t *testing.T) {
 		for _, blocked := range []string{
-			"rc/noop",
 			"core/version",
 			"config/setpath",
 			"fscache/clear",
@@ -148,6 +147,7 @@ remote = %s
 	// (They may return 4xx/5xx for other reasons, e.g. missing parameters.)
 	t.Run("Allowed Methods Pass Allowlist", func(t *testing.T) {
 		for _, allowed := range []string{
+			"rc/noop",
 			"config/listremotes",
 			"operations/list",
 			"operations/about",
@@ -163,7 +163,6 @@ remote = %s
 			"job/status",
 			"job/stop",
 		} {
-			allowed := allowed
 			t.Run(allowed, func(t *testing.T) {
 				resp, err := client.Post(baseURL+"/"+allowed, "application/json", bytes.NewReader([]byte("{}")))
 				require.NoError(t, err)
