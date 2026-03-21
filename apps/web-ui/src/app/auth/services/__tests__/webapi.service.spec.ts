@@ -37,9 +37,7 @@ describe('WebApiService', () => {
   it('should fetch access token', () => {
     const mockCode = 'test-auth-code';
     const mockResponse: TokenResponse = {
-      accessToken: 'mockAccessToken',
-      userProfileUrl: 'mockUserProfileUrl',
-      mapboxApiToken: 'mockMapboxApiToken',
+      token: 'mockAccessToken',
     };
 
     service.fetchAccessToken(mockCode).subscribe((response) => {

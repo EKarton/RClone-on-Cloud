@@ -9,10 +9,7 @@ export const authReducer = createReducer(
 
   on(authActions.loadAuthResult, (state, { result }): AuthState => {
     return {
-      ...state,
-      authToken: result.data?.accessToken ?? '',
-      userProfileUrl: result.data?.userProfileUrl ?? '',
-      mapboxApiToken: result.data?.mapboxApiToken ?? '',
+      authToken: result.data?.token ?? '',
     };
   }),
 );

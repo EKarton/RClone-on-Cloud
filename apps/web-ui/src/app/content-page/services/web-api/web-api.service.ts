@@ -1,8 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { map, Observable, switchMap, take } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
+import { authState } from '../../../auth/store';
 import { Result } from '../../../shared/results/results';
 import { toResult } from '../../../shared/results/rxjs/toResult';
 import { GetAlbumDetailsResponse } from './types/album';
@@ -21,6 +23,7 @@ import {
   ListMediaItemsResponse,
   RawListMediaItemsResponse,
 } from './types/list-media-items';
+import { ListRemotesResponse } from './types/list-remotes';
 import {
   MediaItem,
   MediaItemDetailsApiResponse,
@@ -39,6 +42,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class WebApiService {
   private readonly httpClient = inject(HttpClient);
+  private readonly store = inject(Store);
 
   /** Fetches the details of an album. */
   getAlbum(
@@ -300,5 +304,25 @@ export class WebApiService {
       dateTaken: new Date(rawDoc.dateTaken),
       mimeType: rawDoc.mimeType,
     };
+  }
+
+  /** Lists the rclone remotes available */
+  listRemotes(): Observable<Result<ListRemotesResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/config/listremotes`;
+    return this.store.select(authState.selectAuthToken).pipe(
+      take(1),
+      switchMap((authToken) =>
+        this.httpClient.post<ListRemotesResponse>(
+          url,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          },
+        ),
+      ),
+      toResult(),
+    );
   }
 }

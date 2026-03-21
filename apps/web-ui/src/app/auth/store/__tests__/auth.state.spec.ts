@@ -22,8 +22,6 @@ describe('Auth Selectors', () => {
   it('should select the auth token', () => {
     const state: AuthState = {
       authToken: 'mockAccessToken',
-      userProfileUrl: 'mockUserProfileUrl',
-      mapboxApiToken: 'mockMapboxApiToken',
     };
 
     const result = selectAuthToken.projector(state);
@@ -33,12 +31,10 @@ describe('Auth Selectors', () => {
   it('should select the user profile URL', () => {
     const state: AuthState = {
       authToken: 'mockAccessToken',
-      userProfileUrl: 'mockUserProfileUrl',
-      mapboxApiToken: 'mockMapboxApiToken',
     };
 
     const result = selectUserProfileUrl.projector(state);
-    expect(result).toBe('mockUserProfileUrl');
+    expect(result).toBe('');
   });
 
   it('should return empty string for auth token when state is initial', () => {
@@ -53,6 +49,14 @@ describe('Auth Selectors', () => {
 
   it('should return empty string for mapbox api token when state is initial', () => {
     const result = selectMapboxApiToken.projector(initialState);
+    expect(result).toBe('');
+  });
+
+  it('should return empty string for mapbox api token even if state has token', () => {
+    const state: AuthState = {
+      authToken: 'mockAccessToken',
+    };
+    const result = selectMapboxApiToken.projector(state);
     expect(result).toBe('');
   });
 });

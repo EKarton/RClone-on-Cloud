@@ -11,7 +11,7 @@ export class AuthEffects {
   private readonly actions$ = inject(Actions);
   private readonly webApiService = inject(WebApiService);
 
-  loadAlbumDetails$ = createEffect(() => {
+  loadAuthDetails$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(authActions.loadAuth),
       mergeMap(({ code }) => {

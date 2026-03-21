@@ -5,9 +5,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface TokenResponse {
-  accessToken: string;
-  userProfileUrl: string;
-  mapboxApiToken: string;
+  token: string;
 }
 
 @Injectable({ providedIn: 'root' })

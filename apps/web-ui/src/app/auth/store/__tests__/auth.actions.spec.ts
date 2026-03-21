@@ -16,9 +16,7 @@ describe('Auth Actions', () => {
   describe('loadAuthResult', () => {
     it('should create an action to save auth results', () => {
       const result: Result<TokenResponse> = toSuccess({
-        accessToken: 'mockAccessToken',
-        userProfileUrl: 'http://profile.com/1',
-        mapboxApiToken: 'mockMapboxApiToken',
+        token: 'mockAccessToken',
       });
       const action = loadAuthResult({ result });
 

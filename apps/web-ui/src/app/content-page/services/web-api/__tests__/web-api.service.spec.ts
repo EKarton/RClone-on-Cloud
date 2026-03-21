@@ -4,6 +4,7 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideMockStore } from '@ngrx/store/testing';
 
 import { environment } from '../../../../../environments/environment';
 import { toSuccess } from '../../../../shared/results/results';
@@ -34,6 +35,7 @@ describe('WebApiService', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideMockStore(),
         WebApiService,
       ],
     });
@@ -699,6 +701,23 @@ describe('WebApiService', () => {
       );
       expect(req.request.body).toEqual(request);
 
+      req.flush(mockResponse);
+    });
+  });
+
+  describe('listRemotes', () => {
+    it('should make a POST request to list remotes', () => {
+      const mockResponse = { remotes: ['remote1', 'remote2'] };
+
+      service.listRemotes().subscribe((response) => {
+        expect(response).toEqual(toSuccess(mockResponse));
+      });
+
+      const req = httpMock.expectOne(
+        `${environment.webApiEndpoint}/api/v1/rclone/config/listremotes`,
+      );
+
+      expect(req.request.method).toBe('POST');
       req.flush(mockResponse);
     });
   });

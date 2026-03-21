@@ -34,16 +34,14 @@ describe('AuthEffects', () => {
   it('should dispatch loadAuthResult action on successful token fetch', (done) => {
     const code = 'test-auth-code';
     const tokenResponse: TokenResponse = {
-      accessToken: 'mockAccessToken',
-      userProfileUrl: 'http://profile.com/1',
-      mapboxApiToken: 'mockMapboxApiToken',
+      token: 'mockAccessToken',
     };
     const result: Result<TokenResponse> = toSuccess(tokenResponse);
 
     actions$ = of(authActions.loadAuth({ code }));
     webApiService.fetchAccessToken.and.returnValue(of(tokenResponse));
 
-    effects.loadAlbumDetails$.subscribe((action) => {
+    effects.loadAuthDetails$.subscribe((action) => {
       expect(action).toEqual(authActions.loadAuthResult({ result }));
       done();
     });
@@ -56,7 +54,7 @@ describe('AuthEffects', () => {
     actions$ = of(authActions.loadAuth({ code }));
     webApiService.fetchAccessToken.and.returnValue(throwError(() => error));
 
-    effects.loadAlbumDetails$.subscribe((action) => {
+    effects.loadAuthDetails$.subscribe((action) => {
       expect(action).toEqual(
         authActions.loadAuthResult({ result: toFailure(error) }),
       );

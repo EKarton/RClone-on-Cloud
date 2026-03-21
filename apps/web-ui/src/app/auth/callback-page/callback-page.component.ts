@@ -37,7 +37,7 @@ export class CallbackPageComponent implements OnInit, OnDestroy {
         .subscribe(() => {
           const redirectPath =
             this.window.localStorage.getItem('auth_redirect_path') ??
-            '/albums/root';
+            '/content/remotes';
 
           this.router.navigate([redirectPath]);
         }),
