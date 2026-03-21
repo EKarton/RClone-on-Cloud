@@ -1,29 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component } from '@angular/core';
 
 import { ThemeToggleButtonComponent } from '../../themes/components/theme-toggle-button/theme-toggle-button.component';
 
 @Component({
   standalone: true,
   selector: 'app-content-header',
-  imports: [
-    CommonModule,
-    RouterModule,
-    ThemeToggleButtonComponent,
-  ],
+  imports: [CommonModule, ThemeToggleButtonComponent],
   templateUrl: './header.component.html',
 })
-export class HeaderComponent implements OnInit {
-  readonly isSidebarOpen = signal(false);
-
-  ngOnInit() { }
-
-  openSideBar() {
-    this.isSidebarOpen.set(true);
-  }
-
-  closeSideBar() {
-    this.isSidebarOpen.set(false);
-  }
-}
+export class HeaderComponent {}

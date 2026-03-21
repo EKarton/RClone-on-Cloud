@@ -60,7 +60,8 @@ describe('WebApiService', () => {
 
     service.fetchAccessToken(mockCode).subscribe({
       next: (response) => {
-        expect(response).toEqual(toFailure(new Error('Server error')));
+        expect(response.isFailure()).toBeTrue();
+        expect(response.error).toEqual(new Error('Server error'));
       },
       error: (error) => {
         expect(error.status).toBe(500);
