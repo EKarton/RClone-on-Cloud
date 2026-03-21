@@ -81,6 +81,7 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
+// String returns a redacted string representation of the Env.
 func (e Env) String() string {
 	return fmt.Sprintf("ListenAddr=%s MongoURI=*** GoogleRedirectURL=%s", e.ListenAddr, e.GoogleRedirectURL)
 }
