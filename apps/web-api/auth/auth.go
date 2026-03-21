@@ -36,6 +36,11 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
+// CallbackRequest is the JSON body for the callback request.
+type CallbackRequest struct {
+	Code string `json:"code"`
+}
+
 // --- Interfaces for testability ---
 
 // TokenExchanger exchanges an authorization code for an OAuth2 token.
@@ -109,7 +114,7 @@ func NewHandler(cfg Config) (*Handler, error) {
 // RegisterRoutes mounts /auth/login and /auth/callback on the given mux.
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /auth/v1/google/login", h.handleLogin)
-	mux.HandleFunc("GET /auth/v1/google/callback", h.handleCallback)
+	mux.HandleFunc("POST /auth/v1/google/callback", h.handleCallback)
 }
 
 // handleLogin redirects the user to Google's consent screen.
@@ -125,7 +130,12 @@ func (h *Handler) handleCallback(w http.ResponseWriter, r *http.Request) {
 	// However, we are removing the state cookie as requested.
 
 	// 2. Exchange authorization code for token
-	code := r.URL.Query().Get("code")
+	var code string
+	var req CallbackRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err == nil {
+		code = req.Code
+	}
+
 	if code == "" {
 		writeError(w, "missing code parameter", http.StatusBadRequest)
 		return
@@ -174,6 +184,8 @@ func (h *Handler) handleCallback(w http.ResponseWriter, r *http.Request) {
 		writeError(w, "could not issue token", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("granted token for user: %s", userID)
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(TokenResponse{Token: signedToken})
