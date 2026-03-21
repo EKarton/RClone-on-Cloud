@@ -4,11 +4,11 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { Map as ImmutableMap } from 'immutable';
 import { of } from 'rxjs';
 
-import { toSuccess, toFailure } from '../../../shared/results/results';
 import { WINDOW } from '../../../app.tokens';
+import { toFailure, toSuccess } from '../../../shared/results/results';
+import { TokenResponse, WebApiService } from '../../services/webapi.service';
 import { authActions } from '../../store';
 import { CallbackPageComponent } from '../callback-page.component';
-import { TokenResponse, WebApiService } from '../../services/webapi.service';
 
 describe('CallbackPageComponent', () => {
   let fixture: ComponentFixture<CallbackPageComponent>;

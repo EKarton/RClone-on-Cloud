@@ -8,12 +8,7 @@ import { MediaViewerComponent } from './media-viewer/media-viewer.component';
 @Component({
   standalone: true,
   selector: 'app-content-page',
-  imports: [
-    CommonModule,
-    HeaderComponent,
-    MediaViewerComponent,
-    RouterOutlet,
-  ],
+  imports: [CommonModule, HeaderComponent, MediaViewerComponent, RouterOutlet],
   templateUrl: './content-page.component.html',
 })
-export class ContentPageComponent { }
+export class ContentPageComponent {}

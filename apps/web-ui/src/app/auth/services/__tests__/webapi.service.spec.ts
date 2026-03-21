@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import {
   HttpTestingController,
   provideHttpClientTesting,
@@ -6,8 +6,8 @@ import {
 import { TestBed } from '@angular/core/testing';
 
 import { environment } from '../../../../environments/environment';
+import { hasFailed, toSuccess } from '../../../shared/results/results';
 import { TokenResponse, WebApiService } from '../webapi.service';
-import { toFailure, toSuccess } from '../../../shared/results/results';
 
 describe('WebApiService', () => {
   let service: WebApiService;
@@ -60,12 +60,11 @@ describe('WebApiService', () => {
 
     service.fetchAccessToken(mockCode).subscribe({
       next: (response) => {
-        expect(response.isFailure()).toBeTrue();
-        expect(response.error).toEqual(new Error('Server error'));
-      },
-      error: (error) => {
-        expect(error.status).toBe(500);
-        expect(error.error).toContain('Server error');
+        expect(hasFailed(response)).toBeTrue();
+        expect(response.error).toBeInstanceOf(HttpErrorResponse);
+        expect((response.error as HttpErrorResponse).error).toBe(
+          'Server error',
+        );
       },
     });
 

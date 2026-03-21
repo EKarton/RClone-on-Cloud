@@ -9,11 +9,7 @@ export const routes: Routes = [
   {
     path: '',
     component: ContentPageComponent,
-    children: [
-      { path: 'remotes', component: RemotesViewComponent },
-    ],
-    providers: [
-      provideState(dialogFeature),
-    ],
+    children: [{ path: 'remotes', component: RemotesViewComponent }],
+    providers: [provideState(dialogFeature)],
   },
 ];

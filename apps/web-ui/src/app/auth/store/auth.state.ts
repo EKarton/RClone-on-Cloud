@@ -1,5 +1,4 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { Result, toPending } from '../../shared/results/results';
 
 /** The type defs of this NgRx store. */
 export interface AuthState {

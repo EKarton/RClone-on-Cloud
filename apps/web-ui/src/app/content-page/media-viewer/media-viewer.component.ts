@@ -97,7 +97,7 @@ export class MediaViewerComponent implements AfterViewInit, OnDestroy {
   share(url: string, fileName: string) {
     const shareData = {
       title: fileName,
-      text: 'Photo from Photos Drive',
+      text: 'Photo from RClone on Cloud',
       url,
     };
 

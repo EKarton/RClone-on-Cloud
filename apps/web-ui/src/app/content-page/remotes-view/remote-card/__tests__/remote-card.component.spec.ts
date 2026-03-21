@@ -1,15 +1,15 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
 
 import {
-  toSuccess,
-  toPending,
   toFailure,
+  toPending,
+  toSuccess,
 } from '../../../../shared/results/results';
-import { RemoteCardComponent } from '../remote-card.component';
-import { WebApiService } from '../../../services/web-api/web-api.service';
 import { ListRemoteUsageResponse } from '../../../services/web-api/types/list-remote-usage';
+import { WebApiService } from '../../../services/web-api/web-api.service';
+import { RemoteCardComponent } from '../remote-card.component';
 
 describe('RemoteCardComponent', () => {
   let webApiService: jasmine.SpyObj<WebApiService>;

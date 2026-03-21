@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "photos-drive-web-ui": {
+    "rclone-on-cloud-web-ui": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@ngx-env/builder:application",
           "options": {
-            "outputPath": "dist/photos-drive-web-ui",
+            "outputPath": "dist/rclone-on-cloud-web-ui",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": ["zone.js"],
@@ -65,10 +65,10 @@
           "builder": "@ngx-env/builder:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "photos-drive-web-ui:build:production"
+              "buildTarget": "rclone-on-cloud-web-ui:build:production"
             },
             "development": {
-              "buildTarget": "photos-drive-web-ui:build:development"
+              "buildTarget": "rclone-on-cloud-web-ui:build:development"
             }
           },
           "defaultConfiguration": "development",

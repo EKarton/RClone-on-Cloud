@@ -1,11 +1,11 @@
-# Photos Drive Web UI
+# RClone on Cloud Web UI
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/36282e46-c4ab-407f-8a6e-b6dbb4f40748/deploy-status)](https://app.netlify.com/sites/photos-drive-demo/deploys)
 ![check-code-coverage](https://img.shields.io/badge/code--coverage-100-brightgreen)
 
 ## Description
 
-This project is a web ui for Photos Drive. This web ui allows users to list and see their photos and videos on a web browser. This web ui will only read photos and videos and never modify anything in the database.
+This project is a web ui for RClone on Cloud. This web ui allows users to list and see their photos and videos on a web browser. This web ui will only read photos and videos and never modify anything in the database.
 
 ## Getting Started
 
@@ -15,39 +15,40 @@ This project is a web ui for Photos Drive. This web ui allows users to list and 
 
 1. Next, install angular by running:
 
-    ```bash
-    npm install -g @angular/cli
-    ```
+   ```bash
+   npm install -g @angular/cli
+   ```
 
 1. Then, install the project's dependencies by running:
 
-    ```bash
-    npm install
-    ```
+   ```bash
+   npm install
+   ```
 
 1. Then, create a `.env` file to store your environment variables, like:
 
-    ```text
-    NG_APP_LOGIN_URL=http://localhost:3000/auth/v1/google
-    NG_APP_WEB_API_ENDPOINT=http://localhost:3000
+   ```text
+   NG_APP_LOGIN_URL=http://localhost:3000/auth/v1/google
+   NG_APP_WEB_API_ENDPOINT=http://localhost:3000
 
-    NG_APP_GEMINI_API_KEY="YOUR_GEMINI_KEY"
-    NG_APP_GEMINI_MODEL="gemini-2.5-flash"
-    ```
+   NG_APP_GEMINI_API_KEY="YOUR_GEMINI_KEY"
+   NG_APP_GEMINI_MODEL="gemini-2.5-flash"
+   ```
 
-    where:
-    - `NG_APP_LOGIN_URL`: is the login url of your [web-api](./../web-api)
-    - `NG_APP_WEB_API_ENDPOINT`: is the domain of your [web-api](./../web-api)
-    - `NG_APP_GEMINI_API_KEY`: is the Gemini API key from the first step
-    - `NG_APP_GEMINI_MODEL`: is the Gemini model to use (ex: 'gemini-2.5-flash')
+   where:
+
+   - `NG_APP_LOGIN_URL`: is the login url of your [web-api](./../web-api)
+   - `NG_APP_WEB_API_ENDPOINT`: is the domain of your [web-api](./../web-api)
+   - `NG_APP_GEMINI_API_KEY`: is the Gemini API key from the first step
+   - `NG_APP_GEMINI_MODEL`: is the Gemini model to use (ex: 'gemini-2.5-flash')
 
 1. Next, run:
 
-    ```bash
-    npm run dev
-    ```
+   ```bash
+   npm run dev
+   ```
 
-    It should start a local development server of this app to <http://localhost:4200>. Once the server is running, open your browser and navigate to <http://localhost:4200>. The application will automatically reload whenever you modify any of the source files.
+   It should start a local development server of this app to <http://localhost:4200>. Once the server is running, open your browser and navigate to <http://localhost:4200>. The application will automatically reload whenever you modify any of the source files.
 
 ## Development
 

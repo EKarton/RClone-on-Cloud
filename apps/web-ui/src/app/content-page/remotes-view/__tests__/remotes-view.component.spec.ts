@@ -1,18 +1,17 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
 
 import {
-  toSuccess,
-  toPending,
   toFailure,
+  toPending,
+  toSuccess,
 } from '../../../shared/results/results';
-import { RemotesViewComponent } from '../remotes-view.component';
-import { WebApiService } from '../../services/web-api/web-api.service';
 import { ListRemotesResponse } from '../../services/web-api/types/list-remotes';
+import { WebApiService } from '../../services/web-api/web-api.service';
+import { RemotesViewComponent } from '../remotes-view.component';
 
 describe('RemotesViewComponent', () => {
-  let fixture: ComponentFixture<RemotesViewComponent>;
   let webApiService: jasmine.SpyObj<WebApiService>;
 
   beforeEach(() => {

@@ -1,15 +1,15 @@
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { map, Subscription, switchMap } from 'rxjs';
 
 import { WINDOW } from '../../app.tokens';
-import { authActions } from '../store';
-import { WebApiService } from '../services/webapi.service';
-import { filterOnlySuccess } from '../../shared/results/rxjs/filterOnlySuccess';
 import { HasFailedPipe } from '../../shared/results/pipes/has-failed.pipe';
 import { IsPendingPipe } from '../../shared/results/pipes/is-pending.pipe';
-import { CommonModule } from '@angular/common';
+import { filterOnlySuccess } from '../../shared/results/rxjs/filterOnlySuccess';
+import { WebApiService } from '../services/webapi.service';
+import { authActions } from '../store';
 
 @Component({
   selector: 'app-callback-page',

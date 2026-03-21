@@ -1,11 +1,11 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { filter, map, Observable, switchMap, take } from 'rxjs';
+import { map, Observable, switchMap, take } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { authState } from '../../../auth/store';
-import { hasSucceed, Result } from '../../../shared/results/results';
+import { Result } from '../../../shared/results/results';
 import { toResult } from '../../../shared/results/rxjs/toResult';
 import { GetAlbumDetailsResponse } from './types/album';
 import {
@@ -23,6 +23,7 @@ import {
   ListMediaItemsResponse,
   RawListMediaItemsResponse,
 } from './types/list-media-items';
+import { ListRemoteUsageResponse } from './types/list-remote-usage';
 import { ListRemotesResponse } from './types/list-remotes';
 import {
   MediaItem,
@@ -38,7 +39,6 @@ import {
   VectorSearchMediaItemsRequest,
   VectorSearchMediaItemsResponse,
 } from './types/search-media-items-by-text';
-import { ListRemoteUsageResponse } from './types/list-remote-usage';
 
 @Injectable({ providedIn: 'root' })
 export class WebApiService {

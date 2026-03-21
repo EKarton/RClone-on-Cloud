@@ -1,11 +1,11 @@
 {
-  "name": "photos-drive-web-ui",
+  "name": "rclone-on-cloud-web-ui",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
     "dev": "ng serve",
     "build": "NODE_ENV=prod ng build",
-    "serve": "serve -s dist/photos-drive-web-ui/browser -l 4200",
+    "serve": "serve -s dist/rclone-on-cloud-web-ui/browser -l 4200",
     "watch": "ng build --watch --configuration development",
     "test": "NG_APP_ENV=test ng test --watch=false --no-progress --browsers=ChromeHeadless --code-coverage",
     "test:in": "NG_APP_ENV=test ng test --watch=false --no-progress --browsers=ChromeHeadless --code-coverage --include",
