@@ -38,6 +38,7 @@ import {
   VectorSearchMediaItemsRequest,
   VectorSearchMediaItemsResponse,
 } from './types/search-media-items-by-text';
+import { ListRemoteUsageResponse } from './types/list-remote-usage';
 
 @Injectable({ providedIn: 'root' })
 export class WebApiService {
@@ -304,6 +305,26 @@ export class WebApiService {
       dateTaken: new Date(rawDoc.dateTaken),
       mimeType: rawDoc.mimeType,
     };
+  }
+
+  /** List the remote usage */
+  listRemoteUsage(remote: string): Observable<Result<ListRemoteUsageResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/about`;
+    return this.store.select(authState.selectAuthToken).pipe(
+      take(1),
+      switchMap((authToken) =>
+        this.httpClient.post<ListRemoteUsageResponse>(
+          url,
+          { fs: `${remote}:` },
+          {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          },
+        ),
+      ),
+      toResult(),
+    );
   }
 
   /** Lists the rclone remotes available */
