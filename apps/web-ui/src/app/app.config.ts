@@ -11,7 +11,6 @@ import { provideState, provideStore } from '@ngrx/store';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 
 import { routes } from './app.routes';
-import { AuthEffects } from './auth/store/auth.effects';
 import { authFeature } from './auth/store/auth.reducer';
 import { webApiAuthRequestInterceptor } from './content-page/interceptors/webapi-auth-request.interceptor';
 import { webApiHttpCacheInterceptor } from './content-page/interceptors/webapi-cache.interceptor';
@@ -35,7 +34,6 @@ export const appConfig: ApplicationConfig = {
     provideState(authFeature),
 
     provideEffects(ThemeEffects),
-    provideEffects(AuthEffects),
 
     provideStoreDevtools({ maxAge: 25, logOnly: !isDevMode() }),
   ],

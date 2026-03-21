@@ -2,7 +2,16 @@
   <div class="card w-96">
     <div class="card-body items-center text-center">
       <h2 class="card-title">
-        <span class="loading loading-spinner loading-lg"></span> Logging in...
+        @if (authTokenResult$ | async; as authTokenResult) {
+          @if (authTokenResult | isPending) {
+            <span class="loading loading-spinner loading-lg"></span> Logging
+            in...
+          } @else if (authTokenResult | hasFailed) {
+            <span>Error: {{ authTokenResult.error!.message }}</span>
+          } @else {
+            <span>Logged in!</span>
+          }
+        }
       </h2>
     </div>
   </div>

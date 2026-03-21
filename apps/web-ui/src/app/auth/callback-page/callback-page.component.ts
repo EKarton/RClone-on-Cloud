@@ -1,22 +1,27 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { filter, map, Subscription } from 'rxjs';
+import { map, Subscription, switchMap } from 'rxjs';
 
 import { WINDOW } from '../../app.tokens';
-import { hasSucceed } from '../../shared/results/results';
-import { authActions, authState } from '../store';
+import { authActions } from '../store';
+import { WebApiService } from '../services/webapi.service';
+import { filterOnlySuccess } from '../../shared/results/rxjs/filterOnlySuccess';
+import { HasFailedPipe } from '../../shared/results/pipes/has-failed.pipe';
+import { IsPendingPipe } from '../../shared/results/pipes/is-pending.pipe';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-callback-page',
-  imports: [],
   templateUrl: './callback-page.component.html',
+  imports: [CommonModule, IsPendingPipe, HasFailedPipe],
 })
 export class CallbackPageComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly store = inject(Store);
   private readonly window = inject(WINDOW);
+  private readonly webApiService = inject(WebApiService);
 
   private readonly subscription = new Subscription();
 
@@ -24,24 +29,19 @@ export class CallbackPageComponent implements OnInit, OnDestroy {
     map((params) => params.get('code')!),
   );
 
+  readonly authTokenResult$ = this.code$.pipe(
+    switchMap((code) => this.webApiService.fetchAccessToken(code)),
+  );
+
   ngOnInit(): void {
     this.subscription.add(
-      this.code$.subscribe((code) => {
-        this.store.dispatch(authActions.loadAuth({ code }));
+      this.authTokenResult$.pipe(filterOnlySuccess()).subscribe(({ token }) => {
+        this.store.dispatch(authActions.setAuthToken({ authToken: token }));
+        const redirectPath =
+          this.window.localStorage.getItem('auth_redirect_path') ?? '/remotes';
+
+        this.router.navigate([redirectPath]);
       }),
-    );
-
-    this.subscription.add(
-      this.store
-        .select(authState.selectAuthTokenResult)
-        .pipe(filter((result) => hasSucceed(result)))
-        .subscribe(() => {
-          const redirectPath =
-            this.window.localStorage.getItem('auth_redirect_path') ??
-            '/remotes';
-
-          this.router.navigate([redirectPath]);
-        }),
     );
   }
 

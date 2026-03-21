@@ -309,10 +309,8 @@ export class WebApiService {
   /** Lists the rclone remotes available */
   listRemotes(): Observable<Result<ListRemotesResponse>> {
     const url = `${environment.webApiEndpoint}/api/v1/rclone/config/listremotes`;
-    return this.store.select(authState.selectAuthTokenResult).pipe(
-      filter((result) => hasSucceed(result)),
+    return this.store.select(authState.selectAuthToken).pipe(
       take(1),
-      map((result) => result.data!),
       switchMap((authToken) =>
         this.httpClient.post<ListRemotesResponse>(
           url,

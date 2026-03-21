@@ -3,6 +3,11 @@ import { createAction, props } from '@ngrx/store';
 import { Result } from '../../shared/results/results';
 import { TokenResponse } from '../services/webapi.service';
 
+export const setAuthToken = createAction(
+  '[Auth] Save auth token to the store',
+  props<{ authToken: string }>(),
+);
+
 /** An action that authenticates user via Google OAuth2 code. */
 export const loadAuth = createAction(
   '[Auth] Load auth details from auth code',

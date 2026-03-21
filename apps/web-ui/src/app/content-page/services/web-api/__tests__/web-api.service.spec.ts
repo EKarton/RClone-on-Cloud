@@ -40,7 +40,7 @@ describe('WebApiService', () => {
           selectors: [
             {
               selector: authState.selectAuthToken,
-              value: toSuccess('authToken123'),
+              value: 'mockAccessToken',
             },
           ],
         }),
@@ -245,7 +245,7 @@ describe('WebApiService', () => {
       const req = httpMock.expectOne((req) => {
         return (
           req.url ===
-            `${environment.webApiEndpoint}/api/v1/media-items/search` &&
+          `${environment.webApiEndpoint}/api/v1/media-items/search` &&
           req.params.get('albumId') === 'album123' &&
           req.params.get('pageSize') === '10' &&
           req.params.get('pageToken') === 'page123' &&
@@ -341,7 +341,7 @@ describe('WebApiService', () => {
       const req = httpMock.expectOne((req) => {
         return (
           req.url ===
-            `${environment.webApiEndpoint}/api/v1/media-items/sample` &&
+          `${environment.webApiEndpoint}/api/v1/media-items/sample` &&
           req.params.get('albumId') === 'album123' &&
           req.params.get('earliest') === earliestDate.toISOString() &&
           req.params.get('latest') === latestDate.toISOString() &&
@@ -727,7 +727,7 @@ describe('WebApiService', () => {
 
       expect(req.request.method).toBe('POST');
       expect(req.request.headers.get('Authorization')).toEqual(
-        'Bearer authToken123',
+        'Bearer mockAccessToken',
       );
       req.flush(mockResponse);
     });

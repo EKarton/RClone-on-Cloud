@@ -7,6 +7,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { environment } from '../../../../environments/environment';
 import { TokenResponse, WebApiService } from '../webapi.service';
+import { toFailure, toSuccess } from '../../../shared/results/results';
 
 describe('WebApiService', () => {
   let service: WebApiService;
@@ -41,7 +42,7 @@ describe('WebApiService', () => {
     };
 
     service.fetchAccessToken(mockCode).subscribe((response) => {
-      expect(response).toEqual(mockResponse);
+      expect(response).toEqual(toSuccess(mockResponse));
     });
 
     const req = httpMock.expectOne(
@@ -58,7 +59,9 @@ describe('WebApiService', () => {
     const mockCode = 'test-auth-code';
 
     service.fetchAccessToken(mockCode).subscribe({
-      next: () => fail('expected an error, not token'),
+      next: (response) => {
+        expect(response).toEqual(toFailure(new Error('Server error')));
+      },
       error: (error) => {
         expect(error.status).toBe(500);
         expect(error.error).toContain('Server error');
