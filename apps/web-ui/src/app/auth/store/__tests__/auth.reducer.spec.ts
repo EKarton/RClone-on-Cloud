@@ -11,6 +11,20 @@ describe('Auth Reducer', () => {
     initialState = buildInitialState();
   });
 
+  it('should update the state with loadAuth action', () => {
+    const action = authActions.loadAuth({ code: 'test' });
+    const state = authReducer(initialState, action);
+
+    expect(state.authToken.isLoading).toBeTrue();
+  });
+
+  it('should update the state with loadAuthStarted action', () => {
+    const action = authActions.loadAuthStarted();
+    const state = authReducer(initialState, action);
+
+    expect(state.authToken.isLoading).toBeTrue();
+  });
+
   it('should update the state with loadAuthResult action', () => {
     const mockResult = toSuccess<TokenResponse>({
       token: 'mockAccessToken',
@@ -19,15 +33,18 @@ describe('Auth Reducer', () => {
     const action = authActions.loadAuthResult({ result: mockResult });
     const state = authReducer(initialState, action);
 
-    expect(state.authToken).toEqual('mockAccessToken');
+    expect(state.authToken).toEqual(toSuccess('mockAccessToken'));
   });
 
   it('should handle loadAuthResult action with missing data gracefully', () => {
-    const mockResult = toFailure<TokenResponse>(new Error('Random error'));
+    const error = new Error('Random error');
+    const mockResult = toFailure<TokenResponse>(error);
 
     const action = authActions.loadAuthResult({ result: mockResult });
     const state = authReducer(initialState, action);
 
-    expect(state.authToken).toEqual('');
+    expect(state.authToken).toEqual(toFailure('Random error' as any));
+    // Actually toFailure(error) stores the error object.
+    expect(state.authToken.error).toBe(error);
   });
 });

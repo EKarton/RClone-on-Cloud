@@ -9,6 +9,9 @@ export const loadAuth = createAction(
   props<{ code: string }>(),
 );
 
+/** An action that starts the authentication process. */
+export const loadAuthStarted = createAction('[Auth] Load auth details started');
+
 /** An action that saves the results of authenticating with Web Api. */
 export const loadAuthResult = createAction(
   '[Auth] Saves results of getting auth details of a user',

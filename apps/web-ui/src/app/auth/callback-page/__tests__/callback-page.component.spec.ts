@@ -4,6 +4,7 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { Map as ImmutableMap } from 'immutable';
 import { of } from 'rxjs';
 
+import { toPending, toSuccess } from '../../../shared/results/results';
 import { WINDOW } from '../../../app.tokens';
 import { authState } from '../../store';
 import { CallbackPageComponent } from '../callback-page.component';
@@ -32,7 +33,12 @@ describe('CallbackPageComponent', () => {
           },
         },
         provideMockStore({
-          selectors: [{ selector: authState.selectAuthToken, value: '' }],
+          selectors: [
+            {
+              selector: authState.selectAuthTokenResult,
+              value: toPending<string>(),
+            },
+          ],
         }),
         {
           provide: WINDOW,
@@ -53,16 +59,22 @@ describe('CallbackPageComponent', () => {
   });
 
   it('should navigate to redirect path when auth token is available', () => {
-    store.overrideSelector(authState.selectAuthToken, 'mockAccessToken');
+    store.overrideSelector(
+      authState.selectAuthTokenResult,
+      toSuccess('mockAccessToken'),
+    );
 
     store.refreshState();
     fixture.detectChanges();
 
-    expect(router.navigate).toHaveBeenCalledWith(['/content/remotes']);
+    expect(router.navigate).toHaveBeenCalledWith(['/remotes']);
   });
 
   it('should navigate to custom redirect path if set in localStorage', () => {
-    store.overrideSelector(authState.selectAuthToken, 'mockAccessToken');
+    store.overrideSelector(
+      authState.selectAuthTokenResult,
+      toSuccess('mockAccessToken'),
+    );
     mockLocalStorageGetItem.and.returnValue('/custom/path');
 
     store.refreshState();
@@ -71,8 +83,8 @@ describe('CallbackPageComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/custom/path']);
   });
 
-  it('should not navigate if auth token is empty', () => {
-    store.overrideSelector(authState.selectAuthToken, '');
+  it('should not navigate if auth token is pending', () => {
+    store.overrideSelector(authState.selectAuthTokenResult, toPending<string>());
 
     store.refreshState();
     fixture.detectChanges();

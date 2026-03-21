@@ -1,11 +1,11 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { map, Observable, switchMap, take } from 'rxjs';
+import { filter, map, Observable, switchMap, take } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { authState } from '../../../auth/store';
-import { Result } from '../../../shared/results/results';
+import { hasSucceed, Result } from '../../../shared/results/results';
 import { toResult } from '../../../shared/results/rxjs/toResult';
 import { GetAlbumDetailsResponse } from './types/album';
 import {
@@ -309,8 +309,10 @@ export class WebApiService {
   /** Lists the rclone remotes available */
   listRemotes(): Observable<Result<ListRemotesResponse>> {
     const url = `${environment.webApiEndpoint}/api/v1/rclone/config/listremotes`;
-    return this.store.select(authState.selectAuthToken).pipe(
+    return this.store.select(authState.selectAuthTokenResult).pipe(
+      filter((result) => hasSucceed(result)),
       take(1),
+      map((result) => result.data!),
       switchMap((authToken) =>
         this.httpClient.post<ListRemotesResponse>(
           url,

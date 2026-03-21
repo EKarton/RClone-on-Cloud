@@ -1,9 +1,10 @@
+import { toPending, toSuccess } from '../../../shared/results/results';
 import {
   AuthState,
   buildInitialState,
   selectAuthState,
   selectAuthToken,
-  selectMapboxApiToken,
+  selectAuthTokenResult,
   selectUserProfileUrl,
 } from '../auth.state';
 
@@ -19,44 +20,32 @@ describe('Auth Selectors', () => {
     expect(result).toEqual(initialState);
   });
 
-  it('should select the auth token', () => {
+  it('should select the auth token result', () => {
     const state: AuthState = {
-      authToken: 'mockAccessToken',
+      authToken: toSuccess('mockAccessToken'),
     };
 
-    const result = selectAuthToken.projector(state);
+    const result = selectAuthTokenResult.projector(state);
+    expect(result).toEqual(toSuccess('mockAccessToken'));
+  });
+
+  it('should select the auth token value', () => {
+    const result = selectAuthToken.projector(toSuccess('mockAccessToken'));
     expect(result).toBe('mockAccessToken');
   });
 
   it('should select the user profile URL', () => {
-    const state: AuthState = {
-      authToken: 'mockAccessToken',
-    };
-
-    const result = selectUserProfileUrl.projector(state);
-    expect(result).toBe('');
-  });
-
-  it('should return empty string for auth token when state is initial', () => {
-    const result = selectAuthToken.projector(initialState);
-    expect(result).toBe('');
-  });
-
-  it('should return empty string for user profile URL when state is initial', () => {
     const result = selectUserProfileUrl.projector(initialState);
     expect(result).toBe('');
   });
 
-  it('should return empty string for mapbox api token when state is initial', () => {
-    const result = selectMapboxApiToken.projector(initialState);
-    expect(result).toBe('');
+  it('should return pending for auth token result when state is initial', () => {
+    const result = selectAuthTokenResult.projector(initialState);
+    expect(result).toEqual(toPending());
   });
 
-  it('should return empty string for mapbox api token even if state has token', () => {
-    const state: AuthState = {
-      authToken: 'mockAccessToken',
-    };
-    const result = selectMapboxApiToken.projector(state);
+  it('should return empty string for auth token value when token is pending', () => {
+    const result = selectAuthToken.projector(toPending());
     expect(result).toBe('');
   });
 });

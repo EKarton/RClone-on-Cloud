@@ -4,6 +4,7 @@ import { Store } from '@ngrx/store';
 import { filter, map, Subscription } from 'rxjs';
 
 import { WINDOW } from '../../app.tokens';
+import { hasSucceed } from '../../shared/results/results';
 import { authActions, authState } from '../store';
 
 @Component({
@@ -32,8 +33,8 @@ export class CallbackPageComponent implements OnInit, OnDestroy {
 
     this.subscription.add(
       this.store
-        .select(authState.selectAuthToken)
-        .pipe(filter((accessToken) => accessToken.length > 0))
+        .select(authState.selectAuthTokenResult)
+        .pipe(filter((result) => hasSucceed(result)))
         .subscribe(() => {
           const redirectPath =
             this.window.localStorage.getItem('auth_redirect_path') ??

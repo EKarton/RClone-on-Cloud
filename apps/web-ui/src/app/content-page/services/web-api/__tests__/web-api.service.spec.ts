@@ -7,6 +7,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideMockStore } from '@ngrx/store/testing';
 
 import { environment } from '../../../../../environments/environment';
+import { authState } from '../../../../auth/store';
 import { toSuccess } from '../../../../shared/results/results';
 import { GetAlbumDetailsResponse } from '../types/album';
 import { GetGPhotosMediaItemDetailsResponse } from '../types/gphotos-media-item';
@@ -35,7 +36,14 @@ describe('WebApiService', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        provideMockStore(),
+        provideMockStore({
+          selectors: [
+            {
+              selector: authState.selectAuthToken,
+              value: toSuccess('authToken123'),
+            },
+          ],
+        }),
         WebApiService,
       ],
     });
@@ -718,6 +726,9 @@ describe('WebApiService', () => {
       );
 
       expect(req.request.method).toBe('POST');
+      expect(req.request.headers.get('Authorization')).toEqual(
+        'Bearer authToken123',
+      );
       req.flush(mockResponse);
     });
   });

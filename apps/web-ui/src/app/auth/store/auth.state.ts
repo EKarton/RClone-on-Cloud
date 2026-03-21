@@ -1,13 +1,14 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
+import { Result, toPending } from '../../shared/results/results';
 
 /** The type defs of this NgRx store. */
 export interface AuthState {
-  authToken: string;
+  authToken: Result<string>;
 }
 
 /** Used to build the initial state of the NgRx store. */
 export const buildInitialState: () => AuthState = () => ({
-  authToken: '',
+  authToken: toPending<string>(),
 });
 
 /** The feature key shared with the reducer. */
@@ -16,10 +17,16 @@ export const FEATURE_KEY = 'Auth';
 /** Returns the entire state of the auth store */
 export const selectAuthState = createFeatureSelector<AuthState>(FEATURE_KEY);
 
-/** Returns the auth token. */
-export const selectAuthToken = createSelector(
+/** Returns the auth token result. */
+export const selectAuthTokenResult = createSelector(
   selectAuthState,
   (state) => state.authToken,
+);
+
+/** Returns the auth token value as a string. */
+export const selectAuthToken = createSelector(
+  selectAuthTokenResult,
+  (result) => result.data ?? '',
 );
 
 /** Returns the user profile url. */
