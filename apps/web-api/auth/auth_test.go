@@ -103,7 +103,7 @@ func newTestHandler(t *testing.T, exchanger TokenExchanger, validator IDTokenVal
 func TestLoginRedirect(t *testing.T) {
 	_, mux := newTestHandler(t, nil, nil)
 
-	req := httptest.NewRequest(http.MethodGet, "/auth/v1/google/login", nil)
+	req := httptest.NewRequest(http.MethodGet, "/auth/v1/google/login?state=test-state", nil)
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -113,10 +113,28 @@ func TestLoginRedirect(t *testing.T) {
 	}()
 
 	assert.Equal(t, http.StatusFound, resp.StatusCode)
-
-	assert.Equal(t, http.StatusFound, resp.StatusCode)
 	location := resp.Header.Get("Location")
 	assert.Contains(t, location, "accounts.google.com")
+	assert.Contains(t, location, "state=test-state")
+}
+
+func TestLoginRedirectMissingState(t *testing.T) {
+	_, mux := newTestHandler(t, nil, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/auth/v1/google/login", nil)
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	resp := rec.Result()
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var errResp ErrorResponse
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
+	assert.Contains(t, errResp.Error, "missing state")
 }
 
 func TestCallbackMissingCode(t *testing.T) {

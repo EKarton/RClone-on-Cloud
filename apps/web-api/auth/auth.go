@@ -119,7 +119,12 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 // handleLogin redirects the user to Google's consent screen.
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
-	state := "state"
+	state := r.URL.Query().Get("state")
+	if state == "" {
+		writeError(w, "missing state parameter", http.StatusBadRequest)
+		return
+	}
+
 	url := h.oauthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline)
 	http.Redirect(w, r, url, http.StatusFound)
 }
