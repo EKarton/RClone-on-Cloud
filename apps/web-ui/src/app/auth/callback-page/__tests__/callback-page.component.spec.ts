@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, ParamMap, Router } from '@angular/router';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { Map as ImmutableMap } from 'immutable';
 import { CookieService } from 'ngx-cookie-service';
@@ -17,7 +17,7 @@ describe('CallbackPageComponent', () => {
   let router: jasmine.SpyObj<Router>;
   let webApiService: jasmine.SpyObj<WebApiService>;
   let mockLocalStorageGetItem: jasmine.Spy;
-  let queryParamMapSubject: BehaviorSubject<any>;
+  let queryParamMapSubject: BehaviorSubject<ParamMap>;
   let cookieService: CookieService;
 
   beforeEach(() => {
@@ -25,8 +25,8 @@ describe('CallbackPageComponent', () => {
       .createSpy('getItem')
       .and.returnValue(null);
 
-    queryParamMapSubject = new BehaviorSubject(
-      ImmutableMap({ code: 'test-auth-code', state: 'valid-state' }),
+    queryParamMapSubject = new BehaviorSubject<ParamMap>(
+      convertToParamMap({ code: 'test-auth-code', state: 'valid-state' }),
     );
 
     router = jasmine.createSpyObj('Router', ['navigate']);
@@ -120,7 +120,7 @@ describe('CallbackPageComponent', () => {
 
   it('should redirect back to home if state parameter is missing', () => {
     cookieService.set('oauth_state', 'valid-state');
-    queryParamMapSubject.next(ImmutableMap({ code: 'test-auth-code' }));
+    queryParamMapSubject.next(convertToParamMap({ code: 'test-auth-code' }));
     fixture.detectChanges();
 
     expect(router.navigate).toHaveBeenCalledWith(['/']);
@@ -129,7 +129,7 @@ describe('CallbackPageComponent', () => {
 
   it('should redirect back to home if state parameter does not match stored state', () => {
     queryParamMapSubject.next(
-      ImmutableMap({ code: 'test-auth-code', state: 'invalid-state' }),
+      convertToParamMap({ code: 'test-auth-code', state: 'invalid-state' }),
     );
     fixture.detectChanges();
 
