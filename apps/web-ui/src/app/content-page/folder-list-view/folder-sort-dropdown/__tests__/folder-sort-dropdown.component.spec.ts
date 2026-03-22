@@ -4,18 +4,18 @@ import {
   ListAlbumsSortByFields,
   ListAlbumsSortDirection,
 } from '../../../services/web-api/types/list-albums';
-import { AlbumsSortDropdownComponent } from '../folder-sort-dropdown.component';
+import { FolderSortDropdownComponent } from '../folder-sort-dropdown.component';
 
-describe('AlbumsSortDropdownComponent', () => {
-  let fixture: ComponentFixture<AlbumsSortDropdownComponent>;
-  let component: AlbumsSortDropdownComponent;
+describe('FolderSortDropdownComponent', () => {
+  let fixture: ComponentFixture<FolderSortDropdownComponent>;
+  let component: FolderSortDropdownComponent;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AlbumsSortDropdownComponent],
+      imports: [FolderSortDropdownComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AlbumsSortDropdownComponent);
+    fixture = TestBed.createComponent(FolderSortDropdownComponent);
     component = fixture.componentInstance;
 
     fixture.componentRef.setInput('sortBy', {

@@ -1,17 +1,17 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, input, Signal } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterModule } from '@angular/router';
 import { Buffer } from 'buffer';
+import { switchMap } from 'rxjs';
 
 import { HasFailedPipe } from '../../../shared/results/pipes/has-failed.pipe';
 import { IsPendingPipe } from '../../../shared/results/pipes/is-pending.pipe';
-import { ListAlbumsSortBy } from '../../services/web-api/types/list-albums';
 import { Result, toPending } from '../../../shared/results/results';
+import { mapResultRxJs } from '../../../shared/results/rxjs/mapResultRxJs';
+import { ListAlbumsSortBy } from '../../services/web-api/types/list-albums';
 import { ListFolderResponse } from '../../services/web-api/types/list-folder';
 import { REMOTE_PATH$ } from '../folder-list-view.tokens';
-import { switchMap } from 'rxjs';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { mapResultRxJs } from '../../../shared/results/rxjs/mapResultRxJs';
 
 interface Item {
   name: string;

@@ -11,6 +11,8 @@
         data-testid="album"
         class="flex items-center gap-2 border border-opacity-50 rounded-md pl-5 pr-6 pt-3 pb-3 hover:bg-base-300 cursor-pointer hover:underline"
         (click)="item.onClick()"
+        (keydown.enter)="item.onClick()"
+        tabindex="0"
       >
         @if (item.isDir) {
           <img

@@ -1,14 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, input } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { switchMap } from 'rxjs';
+import { RouterModule } from '@angular/router';
 import { Buffer } from 'buffer';
+import { switchMap } from 'rxjs';
 
 import { PrettyBytesPipe } from '../../../shared/pipes/pretty-bytes.pipe';
 import { HasFailedPipe } from '../../../shared/results/pipes/has-failed.pipe';
 import { IsPendingPipe } from '../../../shared/results/pipes/is-pending.pipe';
 import { WebApiService } from '../../services/web-api/web-api.service';
-import { RouterModule } from '@angular/router';
 
 @Component({
   standalone: true,

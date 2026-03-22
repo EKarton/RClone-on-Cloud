@@ -2,10 +2,138 @@
   <table class="table">
     <thead>
       <tr>
-        <th>Name</th>
-        <th>Date Modified</th>
-        <th>Size</th>
-        <th>Type</th>
+        <th
+          (click)="toggleSort('name')"
+          class="cursor-pointer hover:bg-base-200 select-none"
+        >
+          <div class="flex items-center gap-1">
+            Name
+            @if (sortConfig()?.field === 'name') {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                @if (sortConfig()?.direction === 'asc') {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 15l7-7 7 7"
+                  />
+                } @else {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                }
+              </svg>
+            }
+          </div>
+        </th>
+        <th
+          (click)="toggleSort('lastModified')"
+          class="cursor-pointer hover:bg-base-200 select-none"
+        >
+          <div class="flex items-center gap-1">
+            Date Modified
+            @if (sortConfig()?.field === 'lastModified') {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                @if (sortConfig()?.direction === 'asc') {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 15l7-7 7 7"
+                  />
+                } @else {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                }
+              </svg>
+            }
+          </div>
+        </th>
+        <th
+          (click)="toggleSort('size')"
+          class="cursor-pointer hover:bg-base-200 select-none"
+        >
+          <div class="flex items-center gap-1">
+            Size
+            @if (sortConfig()?.field === 'size') {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                @if (sortConfig()?.direction === 'asc') {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 15l7-7 7 7"
+                  />
+                } @else {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                }
+              </svg>
+            }
+          </div>
+        </th>
+        <th
+          (click)="toggleSort('mimeType')"
+          class="cursor-pointer hover:bg-base-200 select-none"
+        >
+          <div class="flex items-center gap-1">
+            Type
+            @if (sortConfig()?.field === 'mimeType') {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                @if (sortConfig()?.direction === 'asc') {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 15l7-7 7 7"
+                  />
+                } @else {
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                }
+              </svg>
+            }
+          </div>
+        </th>
       </tr>
     </thead>
     <tbody>

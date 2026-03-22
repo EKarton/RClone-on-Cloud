@@ -6,19 +6,26 @@ import {
   input,
   Signal,
 } from '@angular/core';
+import { computed, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterModule } from '@angular/router';
 import { Buffer } from 'buffer';
+import prettyBytes from 'pretty-bytes';
 
 import { RangePipe } from '../../../shared/pipes/range.pipe';
 import { HasFailedPipe } from '../../../shared/results/pipes/has-failed.pipe';
 import { IsPendingPipe } from '../../../shared/results/pipes/is-pending.pipe';
-import { Result, toPending } from '../../../shared/results/results';
+import { hasSucceed, Result, toSuccess } from '../../../shared/results/results';
 import { ListFolderResponse } from '../../services/web-api/types/list-folder';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { REMOTE_PATH$ } from '../folder-list-view.tokens';
-import { switchMap } from 'rxjs';
-import { mapResultRxJs } from '../../../shared/results/rxjs/mapResultRxJs';
-import prettyBytes from 'pretty-bytes';
+
+export type SortField = 'name' | 'lastModified' | 'size' | 'mimeType';
+export type SortDirection = 'asc' | 'desc';
+
+export interface SortConfig {
+  field: SortField;
+  direction: SortDirection;
+}
 
 interface Item {
   name: string;
@@ -45,40 +52,115 @@ interface Item {
 export class FolderListTableComponent {
   readonly contentsResult = input.required<Result<ListFolderResponse>>();
 
-  private readonly contentsResult$ = toObservable(this.contentsResult);
-  private readonly remotePath$ = inject(REMOTE_PATH$);
+  readonly sortConfig = signal<SortConfig | null>(null);
+
+  private readonly remotePath = toSignal(inject(REMOTE_PATH$));
   private readonly router = inject(Router);
 
-  readonly itemsResult: Signal<Result<Item[]>> = toSignal(
-    this.remotePath$.pipe(
-      switchMap(({ remote, path }) => {
-        return this.contentsResult$.pipe(
-          mapResultRxJs((contents) => {
-            return contents.items.map((item) => {
-              return {
-                name: item.name,
-                mimeType: item.mimeType ?? '',
-                size: item.size ? prettyBytes(item.size) : undefined,
-                lastModified: item.modTime?.toDateString() ?? undefined,
-                isDir: item.isDir,
-                onClick: () => {
-                  if (item.isDir) {
-                    const newPath = path ? `${path}/${item.path}` : item.path;
+  readonly itemsResult: Signal<Result<Item[]>> = computed(() => {
+    const result = this.contentsResult();
+    const sort = this.sortConfig();
+    const remotePath = this.remotePath();
 
-                    this.router.navigate([
-                      '/folders',
-                      Buffer.from(`${remote}:${newPath}`)
-                        .toString('base64')
-                        .replace(/=/g, ''),
-                    ]);
-                  }
-                },
-              };
-            });
-          }),
-        );
-      }),
-    ),
-    { initialValue: toPending<Item[]>() },
-  );
+    if (!hasSucceed(result) || !remotePath) {
+      return result as unknown as Result<Item[]>;
+    }
+
+    const items = [...result.data!.items];
+
+    if (sort) {
+      items.sort((a, b) => {
+        // Folders always first
+        if (a.isDir && !b.isDir) {
+          return -1;
+        }
+        if (!a.isDir && b.isDir) {
+          return 1;
+        }
+
+        let valA: string | Date | number;
+        let valB: string | Date | number;
+
+        switch (sort.field) {
+          case 'name':
+            valA = a.name.toLowerCase();
+            valB = b.name.toLowerCase();
+            break;
+          case 'size':
+            valA = a.size ?? 0;
+            valB = b.size ?? 0;
+            break;
+          case 'lastModified':
+            valA = a.modTime?.getTime() ?? 0;
+            valB = b.modTime?.getTime() ?? 0;
+            break;
+          case 'mimeType':
+            valA = (a.mimeType ?? '').toLowerCase();
+            valB = (b.mimeType ?? '').toLowerCase();
+            break;
+          default:
+            valA = 0;
+            valB = 0;
+            break;
+        }
+
+        if (valA < valB) {
+          return sort.direction === 'asc' ? -1 : 1;
+        }
+        if (valA > valB) {
+          return sort.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    } else {
+      // Default: Folders first, then name ASC
+      items.sort((a, b) => {
+        if (a.isDir && !b.isDir) {
+          return -1;
+        }
+        if (!a.isDir && b.isDir) {
+          return 1;
+        }
+        return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+      });
+    }
+
+    const mappedItems: Item[] = items.map((item) => {
+      return {
+        name: item.name,
+        mimeType: item.mimeType ?? '',
+        size: item.size ? prettyBytes(item.size) : undefined,
+        lastModified: item.modTime?.toDateString() ?? undefined,
+        isDir: item.isDir,
+        onClick: () => {
+          if (item.isDir) {
+            const newPath = remotePath.path
+              ? `${remotePath.path}/${item.path}`
+              : item.path;
+
+            this.router.navigate([
+              '/folders',
+              Buffer.from(`${remotePath.remote}:${newPath}`)
+                .toString('base64')
+                .replace(/=/g, ''),
+            ]);
+          }
+        },
+      };
+    });
+
+    return toSuccess(mappedItems);
+  });
+
+  toggleSort(field: SortField) {
+    this.sortConfig.update((current) => {
+      if (current?.field === field) {
+        return {
+          field,
+          direction: current.direction === 'asc' ? 'desc' : 'asc',
+        };
+      }
+      return { field, direction: 'asc' };
+    });
+  }
 }

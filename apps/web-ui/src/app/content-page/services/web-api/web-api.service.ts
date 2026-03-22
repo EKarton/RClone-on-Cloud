@@ -6,6 +6,7 @@ import { map, Observable, switchMap, take } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { authState } from '../../../auth/store';
 import { Result } from '../../../shared/results/results';
+import { mapResultRxJs } from '../../../shared/results/rxjs/mapResultRxJs';
 import { toResult } from '../../../shared/results/rxjs/toResult';
 import { GetAlbumDetailsResponse } from './types/album';
 import {
@@ -18,6 +19,7 @@ import {
 } from './types/gphotos-media-item';
 import { GetHeatmapRequest, GetHeatmapResponse } from './types/heatmap';
 import { ListAlbumsRequest, ListAlbumsResponse } from './types/list-albums';
+import { ListFolderResponse, RawListFolderResponse } from './types/list-folder';
 import {
   ListMediaItemsRequest,
   ListMediaItemsResponse,
@@ -39,9 +41,6 @@ import {
   VectorSearchMediaItemsRequest,
   VectorSearchMediaItemsResponse,
 } from './types/search-media-items-by-text';
-import { ListFolderResponse, RawListFolderResponse } from './types/list-folder';
-import { mapResult } from '../../../shared/results/utils/mapResult';
-import { mapResultRxJs } from '../../../shared/results/rxjs/mapResultRxJs';
 
 @Injectable({ providedIn: 'root' })
 export class WebApiService {

@@ -6,27 +6,27 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-
-import { FolderBreadcrumbsComponent } from './folder-breadcrumbs/folder-breadcrumbs.component';
-import { REMOTE_PATH$, REMOTE_PATH$_PROVIDER } from './folder-list-view.tokens';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterModule } from '@angular/router';
+import { map, switchMap } from 'rxjs/operators';
+
+import { Result, toPending } from '../../shared/results/results';
 import {
   ListAlbumsSortBy,
   ListAlbumsSortByFields,
   ListAlbumsSortDirection,
 } from '../services/web-api/types/list-albums';
+import { ListFolderResponse } from '../services/web-api/types/list-folder';
+import { WebApiService } from '../services/web-api/web-api.service';
+import { FolderBreadcrumbsComponent } from './folder-breadcrumbs/folder-breadcrumbs.component';
 import {
   FolderDisplayDropdownComponent,
   ListViewOptions,
 } from './folder-display-dropdown/folder-display-dropdown.component';
 import { FolderListCardsComponent } from './folder-list-cards/folder-list-cards.component';
 import { FolderListTableComponent } from './folder-list-table/folder-list-table.component';
+import { REMOTE_PATH$, REMOTE_PATH$_PROVIDER } from './folder-list-view.tokens';
 import { FolderSortDropdownComponent } from './folder-sort-dropdown/folder-sort-dropdown.component';
-import { switchMap } from 'rxjs/operators';
-import { WebApiService } from '../services/web-api/web-api.service';
-import { Result, toPending } from '../../shared/results/results';
-import { ListFolderResponse } from '../services/web-api/types/list-folder';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   standalone: true,
@@ -65,5 +65,12 @@ export class FolderListViewComponent {
       ),
     ),
     { initialValue: toPending<ListFolderResponse>() },
+  );
+
+  readonly currentFolderName: Signal<string> = toSignal(
+    this.remotePath$.pipe(
+      map(({ remote, path }) => path?.split('/').pop() ?? remote),
+    ),
+    { initialValue: '' },
   );
 }

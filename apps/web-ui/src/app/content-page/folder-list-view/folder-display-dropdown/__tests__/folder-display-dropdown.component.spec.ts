@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import {
-  AlbumsListViewDropdownComponent,
+  FolderDisplayDropdownComponent,
   ListViewOptions,
 } from '../folder-display-dropdown.component';
 
-describe('AlbumsListViewDropdownComponent', () => {
-  let fixture: ComponentFixture<AlbumsListViewDropdownComponent>;
-  let component: AlbumsListViewDropdownComponent;
+describe('FolderDisplayDropdownComponent', () => {
+  let fixture: ComponentFixture<FolderDisplayDropdownComponent>;
+  let component: FolderDisplayDropdownComponent;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AlbumsListViewDropdownComponent],
+      imports: [FolderDisplayDropdownComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AlbumsListViewDropdownComponent);
+    fixture = TestBed.createComponent(FolderDisplayDropdownComponent);
     component = fixture.componentInstance;
 
     fixture.componentRef.setInput('listViewOption', ListViewOptions.LIST);

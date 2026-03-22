@@ -1,7 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Buffer } from 'buffer';
-import { Component, ElementRef, inject, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { Buffer } from 'buffer';
 import { map, Observable, Subscription } from 'rxjs';
 
 import { REMOTE_PATH$ } from '../folder-list-view.tokens';
@@ -17,7 +24,7 @@ export interface BreadcrumbItem {
   imports: [CommonModule, RouterModule],
   templateUrl: './folder-breadcrumbs.component.html',
 })
-export class FolderBreadcrumbsComponent {
+export class FolderBreadcrumbsComponent implements OnInit, OnDestroy {
   readonly remotePath$ = inject(REMOTE_PATH$);
 
   @ViewChild('breadcrumbContainer')
