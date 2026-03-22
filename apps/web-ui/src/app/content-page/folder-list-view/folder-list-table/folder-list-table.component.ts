@@ -12,7 +12,6 @@ import { Buffer } from 'buffer';
 import { RangePipe } from '../../../shared/pipes/range.pipe';
 import { HasFailedPipe } from '../../../shared/results/pipes/has-failed.pipe';
 import { IsPendingPipe } from '../../../shared/results/pipes/is-pending.pipe';
-import { ListAlbumsSortBy } from '../../services/web-api/types/list-albums';
 import { Result, toPending } from '../../../shared/results/results';
 import { ListFolderResponse } from '../../services/web-api/types/list-folder';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
@@ -44,7 +43,6 @@ interface Item {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FolderListTableComponent {
-  readonly sortBy = input.required<ListAlbumsSortBy>();
   readonly contentsResult = input.required<Result<ListFolderResponse>>();
 
   private readonly contentsResult$ = toObservable(this.contentsResult);

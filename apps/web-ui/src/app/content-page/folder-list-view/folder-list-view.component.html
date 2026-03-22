@@ -2,16 +2,15 @@
   <app-folder-breadcrumbs />
 
   <div class="flex items-center gap-2">
-    <app-folder-sort-dropdown [(sortBy)]="filesSortBy" />
+    @if (filesListViewOption() === ListViewOptions.LIST) {
+      <app-folder-sort-dropdown [(sortBy)]="filesSortBy" />
+    }
     <app-folder-display-dropdown [(listViewOption)]="filesListViewOption" />
   </div>
 </div>
 <div class="mb-4xl">
   @if (filesListViewOption() === ListViewOptions.TABLE) {
-    <app-folder-list-table
-      [sortBy]="filesSortBy()"
-      [contentsResult]="contentsResult()"
-    />
+    <app-folder-list-table [contentsResult]="contentsResult()" />
   } @else {
     <app-folder-list-cards
       [sortBy]="filesSortBy()"
