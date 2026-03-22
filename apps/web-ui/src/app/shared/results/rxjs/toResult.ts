@@ -1,6 +1,14 @@
-import { catchError, map, Observable, of, pipe, UnaryFunction } from 'rxjs';
+import {
+  catchError,
+  map,
+  Observable,
+  of,
+  pipe,
+  startWith,
+  UnaryFunction,
+} from 'rxjs';
 
-import { Result, toFailure, toSuccess } from '../results';
+import { Result, toFailure, toPending, toSuccess } from '../results';
 
 export function toResult<T>(): UnaryFunction<
   Observable<T>,
@@ -9,5 +17,6 @@ export function toResult<T>(): UnaryFunction<
   return pipe(
     map((t: T) => toSuccess(t)),
     catchError((error: Error) => of(toFailure<T>(error))),
+    startWith(toPending<T>()),
   );
 }

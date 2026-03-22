@@ -1,0 +1,26 @@
+@let breadcrumbItems = breadcrumbItems$ | async;
+@if (breadcrumbItems === undefined) {
+  <div class="skeleton h-4 w-1/3"></div>
+} @else if (breadcrumbItems) {
+  <div #breadcrumbContainer class="breadcrumbs text-sm">
+    <ul>
+      @for (breadcrumb of breadcrumbItems; track breadcrumb.id) {
+        <li>
+          @if (breadcrumb.routerLink) {
+            <a
+              data-testid="breadcrumb-link"
+              [routerLink]="breadcrumb.routerLink"
+              >{{ breadcrumb.text }}</a
+            >
+          } @else {
+            <span
+              data-testid="breadcrumb-text"
+              class="pointer-events-none cursor-default"
+              >{{ breadcrumb.text }}</span
+            >
+          }
+        </li>
+      }
+    </ul>
+  </div>
+}

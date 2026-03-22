@@ -1,6 +1,7 @@
 <div
   data-testid="remote-card"
   class="flex flex-col items-start gap-3 border border-opacity-30 rounded-md p-4 pb-5 hover:bg-base-300 cursor-pointer hover:underline"
+  [routerLink]="foldersLink()"
 >
   <div data-testid="remote-card-name" class="text">
     {{ remote() }}
@@ -11,7 +12,7 @@
       @if (usageResult | isPending) {
         <div
           data-testid="remote-space-skeleton"
-          class="skeleton w-32 h-4 rounded-md"
+          class="skeleton w-64 h-4 rounded-md"
         ></div>
       } @else if (usageResult | hasFailed) {
         <span data-testid="remote-space-error">
