@@ -1,10 +1,10 @@
-import { of } from 'rxjs';
+import { firstValueFrom, of, tap, toArray } from 'rxjs';
 
 import { Result, toFailure, toPending, toSuccess } from '../../results';
 import { fromResult } from '../fromResult';
 
 describe('fromResult', () => {
-  it('should emit data from successful Result values', (done) => {
+  it('should emit data from successful Result values', async () => {
     const results: Result<number>[] = [
       toSuccess(1),
       toSuccess(2),
@@ -12,50 +12,32 @@ describe('fromResult', () => {
     ];
     const source$ = of(...results);
 
-    const emitted: number[] = [];
-    source$.pipe(fromResult()).subscribe({
-      next: (value) => emitted.push(value),
-      complete: () => {
-        expect(emitted).toEqual([1, 2, 3]);
-        done();
-      },
-      error: (err) => done.fail(err),
-    });
+    const emitted = await firstValueFrom(source$.pipe(fromResult(), toArray()));
+    expect(emitted).toEqual([1, 2, 3]);
   });
 
-  it('should throw error from failed Result values', (done) => {
+  it('should throw error from failed Result values', async () => {
     const error = new Error('Test error');
     const results: Result<number>[] = [toFailure(error)];
     const source$ = of(...results);
 
-    source$.pipe(fromResult()).subscribe({
-      next: () => done.fail('Should not emit any value'),
-      error: (err) => {
-        expect(err).toBe(error);
-        done();
-      },
-      complete: () => done.fail('Should not complete successfully'),
-    });
+    await expect(firstValueFrom(source$.pipe(fromResult()))).rejects.toThrow(
+      error,
+    );
   });
 
-  it('should ignore pending Result values (no emission)', (done) => {
+  it('should ignore pending Result values (no emission)', async () => {
     const results: Result<number>[] = [toPending()];
     const source$ = of(...results);
 
-    let emitted = false;
-    source$.pipe(fromResult()).subscribe({
-      next: () => {
-        emitted = true;
-      },
-      complete: () => {
-        expect(emitted).toBeFalse();
-        done();
-      },
-      error: (err) => done.fail(err),
-    });
+    const emitted = await firstValueFrom(
+      source$.pipe(fromResult(), toArray()),
+      { defaultValue: [] },
+    );
+    expect(emitted).toEqual([]);
   });
 
-  it('should handle a mix of success, pending and failure results', (done) => {
+  it('should handle a mix of success, pending and failure results', async () => {
     const error = new Error('Failure error');
     const results: Result<number>[] = [
       toSuccess(1),
@@ -67,28 +49,27 @@ describe('fromResult', () => {
     const source$ = of(...results);
 
     const emitted: number[] = [];
-    source$.pipe(fromResult()).subscribe({
-      next: (v) => emitted.push(v),
-      error: (err) => {
-        expect(emitted).toEqual([1, 2]);
-        expect(err).toBe(error);
-        done();
-      },
-      complete: () => done.fail('Should error out on failure'),
+    const promise = new Promise<void>((resolve, reject) => {
+      source$.pipe(fromResult()).subscribe({
+        next: (val) => emitted.push(val as number),
+        error: (err) => {
+          expect(emitted).toEqual([1, 2]);
+          expect(err).toBe(error);
+          resolve();
+        },
+        complete: () => reject(new Error('Should have errored')),
+      });
     });
+    await promise;
   });
 
-  it('should complete without emission on empty source', (done) => {
+  it('should complete without emission on empty source', async () => {
     const source$ = of<Result<number>>();
 
-    let emitted = false;
-    source$.pipe(fromResult()).subscribe({
-      next: () => (emitted = true),
-      complete: () => {
-        expect(emitted).toBeFalse();
-        done();
-      },
-      error: (err) => done.fail(err),
-    });
+    const emitted = await firstValueFrom(
+      source$.pipe(fromResult(), toArray()),
+      { defaultValue: [] },
+    );
+    expect(emitted).toEqual([]);
   });
 });

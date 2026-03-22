@@ -24,6 +24,6 @@ describe('VideoViewerComponent', () => {
     );
     expect(video).toBeTruthy();
     expect(video.src).toBe('blob:http://localhost/test-video');
-    expect(video.controls).toBeTrue();
+    expect(video.controls).toBe(true);
   });
 });

@@ -1,6 +1,7 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
+import { vi } from 'vitest';
 
 import {
   toFailure,
@@ -14,16 +15,16 @@ import { FileViewerComponent } from '../file-viewer.component';
 import { FileViewerRequest } from '../file-viewer.request';
 
 describe('FileViewerComponent', () => {
-  let mockWebApiService: jasmine.SpyObj<WebApiService>;
+  let mockWebApiService: any;
   let mockStore: MockStore;
 
   beforeEach(async () => {
-    mockWebApiService = jasmine.createSpyObj('WebApiService', [
-      'fetchFileContent',
-    ]);
+    mockWebApiService = {
+      fetchFileContent: vi.fn(),
+    };
 
     // Default: no file content request
-    mockWebApiService.fetchFileContent.and.returnValue(of(toPending<Blob>()));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toPending<Blob>()));
 
     await TestBed.configureTestingModule({
       imports: [FileViewerComponent],
@@ -47,7 +48,7 @@ describe('FileViewerComponent', () => {
   });
 
   it('should show loading spinner when file is loading', () => {
-    mockWebApiService.fetchFileContent.and.returnValue(of(toPending<Blob>()));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toPending<Blob>()));
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: {
         requests: [
@@ -72,7 +73,7 @@ describe('FileViewerComponent', () => {
       'text/plain',
     );
 
-    mockWebApiService.fetchFileContent.and.returnValue(
+    mockWebApiService.fetchFileContent.mockReturnValue(
       of(toFailure<Blob>(new Error('Network error'))),
     );
     mockStore.setState({
@@ -103,7 +104,7 @@ describe('FileViewerComponent', () => {
     );
 
     const blob = new Blob(['image data'], { type: 'image/jpeg' });
-    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: {
         requests: [request],
@@ -131,7 +132,7 @@ describe('FileViewerComponent', () => {
     );
 
     const blob = new Blob(['video data'], { type: 'video/mp4' });
-    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: {
         requests: [request],
@@ -159,7 +160,7 @@ describe('FileViewerComponent', () => {
     );
 
     const blob = new Blob(['audio data'], { type: 'audio/mpeg' });
-    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: {
         requests: [request],
@@ -187,7 +188,7 @@ describe('FileViewerComponent', () => {
     );
 
     const blob = new Blob(['pdf data'], { type: 'application/pdf' });
-    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: {
         requests: [request],
@@ -215,7 +216,7 @@ describe('FileViewerComponent', () => {
     );
 
     const blob = new Blob(['Hello World'], { type: 'text/plain' });
-    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: {
         requests: [request],
@@ -242,7 +243,7 @@ describe('FileViewerComponent', () => {
     );
 
     const blob = new Blob(['{}'], { type: 'application/json' });
-    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: {
         requests: [request],
@@ -267,7 +268,7 @@ describe('FileViewerComponent', () => {
     );
 
     const blob = new Blob(['zip data'], { type: 'application/zip' });
-    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: {
         requests: [request],
@@ -295,7 +296,7 @@ describe('FileViewerComponent', () => {
     );
 
     const blob = new Blob(['data'], { type: 'image/jpeg' });
-    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: {
         requests: [request],
@@ -330,7 +331,7 @@ describe('FileViewerComponent', () => {
     );
 
     const blob = new Blob(['data'], { type: 'image/jpeg' });
-    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: {
         requests: [request],
@@ -343,7 +344,7 @@ describe('FileViewerComponent', () => {
     tick();
     fixture.detectChanges();
 
-    spyOn(mockStore, 'dispatch');
+    vi.spyOn(mockStore, 'dispatch');
 
     const closeBtn = fixture.nativeElement.querySelector(
       '[data-testid="file-viewer-close-button"]',
@@ -362,7 +363,7 @@ describe('FileViewerComponent', () => {
     );
 
     const blob = new Blob(['content'], { type: 'text/plain' });
-    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: {
         requests: [request],

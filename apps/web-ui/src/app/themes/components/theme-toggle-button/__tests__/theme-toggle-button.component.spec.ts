@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import { vi } from 'vitest';
 
 import { themeState } from '../../../store';
 import * as themeActions from '../../../store/theme.actions';
@@ -24,7 +25,7 @@ describe('ThemeToggleButtonComponent', () => {
     component = fixture.componentInstance;
     store = TestBed.inject(MockStore);
 
-    spyOn(store, 'dispatch');
+    vi.spyOn(store, 'dispatch');
   });
 
   it('should create component', () => {

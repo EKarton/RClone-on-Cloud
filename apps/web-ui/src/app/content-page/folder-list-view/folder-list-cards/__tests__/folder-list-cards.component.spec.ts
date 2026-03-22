@@ -4,6 +4,7 @@ import { Store } from '@ngrx/store';
 import { provideMockStore } from '@ngrx/store/testing';
 import { Buffer } from 'buffer';
 import { BehaviorSubject } from 'rxjs';
+import { vi } from 'vitest';
 
 import {
   toFailure,
@@ -39,8 +40,8 @@ describe('FolderListCardsComponent', () => {
 
     router = TestBed.inject(Router);
     store = TestBed.inject(Store);
-    spyOn(router, 'navigate');
-    spyOn(store, 'dispatch');
+    vi.spyOn(router, 'navigate');
+    vi.spyOn(store, 'dispatch');
 
     fixture = TestBed.createComponent(FolderListCardsComponent);
   });

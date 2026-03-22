@@ -1,10 +1,5 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import {
-  ApplicationConfig,
-  isDevMode,
-  provideZoneChangeDetection,
-} from '@angular/core';
-import { provideAnimations } from '@angular/platform-browser/animations';
+import { ApplicationConfig, isDevMode } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideEffects } from '@ngrx/effects';
 import { provideState, provideStore } from '@ngrx/store';
@@ -19,14 +14,7 @@ import { themeFeature } from './themes/store/theme.reducer';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideAnimations(),
-    provideHttpClient(
-      withInterceptors([
-        webApiAuthRequestInterceptor,
-        webApiHttpCacheInterceptor,
-      ]),
-    ),
-    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideHttpClient(withInterceptors([webApiAuthRequestInterceptor, webApiHttpCacheInterceptor])),
     provideRouter(routes),
     provideStore({}),
 

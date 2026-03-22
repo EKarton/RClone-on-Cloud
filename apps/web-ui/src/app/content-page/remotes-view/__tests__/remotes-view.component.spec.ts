@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
+import { vi } from 'vitest';
 
 import {
   toFailure,
@@ -13,10 +14,13 @@ import { WebApiService } from '../../services/web-api/web-api.service';
 import { RemotesViewComponent } from '../remotes-view.component';
 
 describe('RemotesViewComponent', () => {
-  let webApiService: jasmine.SpyObj<WebApiService>;
+  let webApiService: any;
 
   beforeEach(() => {
-    webApiService = jasmine.createSpyObj('WebApiService', ['listRemotes']);
+    webApiService = {
+      listRemotes: vi.fn(),
+      listRemoteUsage: vi.fn().mockReturnValue(of(toPending())),
+    };
 
     TestBed.configureTestingModule({
       imports: [RemotesViewComponent],
@@ -32,7 +36,7 @@ describe('RemotesViewComponent', () => {
     const mockResponse: ListRemotesResponse = {
       remotes: ['remote1', 'remote2'],
     };
-    webApiService.listRemotes.and.returnValue(of(toSuccess(mockResponse)));
+    webApiService.listRemotes.mockReturnValue(of(toSuccess(mockResponse)));
 
     const fixture = TestBed.createComponent(RemotesViewComponent);
     fixture.detectChanges();
@@ -44,7 +48,7 @@ describe('RemotesViewComponent', () => {
   });
 
   it('should display a skeleton when loading', () => {
-    webApiService.listRemotes.and.returnValue(
+    webApiService.listRemotes.mockReturnValue(
       of(toPending<ListRemotesResponse>()),
     );
 
@@ -59,7 +63,7 @@ describe('RemotesViewComponent', () => {
 
   it('should display an error message on failure', () => {
     const error = new Error('API Error');
-    webApiService.listRemotes.and.returnValue(
+    webApiService.listRemotes.mockReturnValue(
       of(toFailure<ListRemotesResponse>(error)),
     );
 

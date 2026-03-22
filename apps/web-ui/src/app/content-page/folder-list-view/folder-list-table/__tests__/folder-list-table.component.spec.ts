@@ -3,6 +3,7 @@ import { provideRouter, Router } from '@angular/router';
 import { provideMockStore } from '@ngrx/store/testing';
 import { Buffer } from 'buffer';
 import { of } from 'rxjs';
+import { vi } from 'vitest';
 
 import { authState } from '../../../../auth/store';
 import {
@@ -25,10 +26,12 @@ const ITEM_DETAILS = {
 };
 
 describe('FolderListTableComponent', () => {
-  let mockWebApiService: jasmine.SpyObj<WebApiService>;
+  let mockWebApiService: any;
 
   beforeEach(async () => {
-    mockWebApiService = jasmine.createSpyObj('WebApiService', ['listFolder']);
+    mockWebApiService = {
+      listFolder: vi.fn(),
+    };
 
     await TestBed.configureTestingModule({
       imports: [FolderListTableComponent],
@@ -63,7 +66,7 @@ describe('FolderListTableComponent', () => {
       fixture.nativeElement.querySelectorAll(
         '[data-testid="table-row-skeleton"]',
       ).length,
-    ).toEqual(10);
+    ).toBe(10);
   });
 
   it('should show error when items has failed to load', () => {
@@ -92,7 +95,7 @@ describe('FolderListTableComponent', () => {
     expect(
       fixture.nativeElement.querySelectorAll('[data-testid="table-row-item"]')
         .length,
-    ).toEqual(2);
+    ).toBe(2);
   });
 
   it('should toggle sort when header is clicked', () => {
@@ -320,7 +323,7 @@ describe('FolderListTableComponent', () => {
 
   it('should navigate when clicking a directory', () => {
     const router = TestBed.inject(Router);
-    spyOn(router, 'navigate');
+    vi.spyOn(router, 'navigate');
 
     const fixture = TestBed.createComponent(FolderListTableComponent);
     fixture.componentRef.setInput(
@@ -344,7 +347,7 @@ describe('FolderListTableComponent', () => {
 
   it('should NOT navigate when clicking a file', () => {
     const router = TestBed.inject(Router);
-    spyOn(router, 'navigate');
+    vi.spyOn(router, 'navigate');
 
     const fixture = TestBed.createComponent(FolderListTableComponent);
     fixture.componentRef.setInput(

@@ -4,6 +4,7 @@ import { provideRouter, Router, RouterModule } from '@angular/router';
 import { provideMockStore } from '@ngrx/store/testing';
 import { Buffer } from 'buffer';
 import { of } from 'rxjs';
+import { vi } from 'vitest';
 
 import { toPending } from '../../../shared/results/results';
 import { ListFolderResponse } from '../../services/web-api/types/list-folder';
@@ -11,11 +12,13 @@ import { WebApiService } from '../../services/web-api/web-api.service';
 import { FolderListViewComponent } from '../folder-list-view.component';
 
 describe('FolderListViewComponent', () => {
-  let webApiServiceSpy: jasmine.SpyObj<WebApiService>;
+  let webApiServiceSpy: any;
 
   beforeEach(async () => {
-    webApiServiceSpy = jasmine.createSpyObj('WebApiService', ['listFolder']);
-    webApiServiceSpy.listFolder.and.returnValue(
+    webApiServiceSpy = {
+      listFolder: vi.fn(),
+    };
+    webApiServiceSpy.listFolder.mockReturnValue(
       of(toPending<ListFolderResponse>()),
     );
 
@@ -34,14 +37,16 @@ describe('FolderListViewComponent', () => {
     }).compileComponents();
 
     const router = TestBed.inject(Router);
-    router.navigate([
+    await router.navigate([
       '/folders',
-      Buffer.from('my-remote:my/nested/dir').toString('base64'),
+      Buffer.from('my-remote:my/nested/dir').toString('base64').replace(/=/g, ''),
     ]);
   });
 
-  it('should display current folder correctly', () => {
+  it('should display current folder correctly', async () => {
     const fixture = TestBed.createComponent(EmptyComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     const h1 = fixture.nativeElement.querySelector(
@@ -51,8 +56,10 @@ describe('FolderListViewComponent', () => {
     expect(h1.textContent.trim()).toBe('dir');
   });
 
-  it('should default to LIST view option and display app-folder-list-cards', () => {
+  it('should default to LIST view option and display app-folder-list-cards', async () => {
     const fixture = TestBed.createComponent(EmptyComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(
@@ -66,8 +73,10 @@ describe('FolderListViewComponent', () => {
     ).toBeFalsy();
   });
 
-  it('should fetch listFolder from WebApiService using the remote and path from the tokens', () => {
+  it('should fetch listFolder from WebApiService using the remote and path from the tokens', async () => {
     const fixture = TestBed.createComponent(EmptyComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(webApiServiceSpy.listFolder).toHaveBeenCalledWith(

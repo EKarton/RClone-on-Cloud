@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 
 import { TextViewerComponent } from '../text-viewer.component';
 
@@ -22,7 +23,7 @@ describe('TextViewerComponent', () => {
   it('should display text content after blob is read', async () => {
     const fixture = TestBed.createComponent(TextViewerComponent);
     const blob = new Blob(['Hello World'], { type: 'text/plain' });
-    spyOn(blob, 'text').and.returnValue(Promise.resolve('Hello World'));
+    vi.spyOn(blob, 'text').mockReturnValue(Promise.resolve('Hello World'));
     fixture.componentRef.setInput('blob', blob);
     fixture.detectChanges();
     await fixture.whenStable();

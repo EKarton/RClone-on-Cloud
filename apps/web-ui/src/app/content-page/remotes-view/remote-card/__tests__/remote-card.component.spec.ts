@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
+import { vi } from 'vitest';
 
 import {
   toFailure,
@@ -13,10 +14,12 @@ import { WebApiService } from '../../../services/web-api/web-api.service';
 import { RemoteCardComponent } from '../remote-card.component';
 
 describe('RemoteCardComponent', () => {
-  let webApiService: jasmine.SpyObj<WebApiService>;
+  let webApiService: any;
 
   beforeEach(() => {
-    webApiService = jasmine.createSpyObj('WebApiService', ['listRemoteUsage']);
+    webApiService = {
+      listRemoteUsage: vi.fn(),
+    };
 
     TestBed.configureTestingModule({
       imports: [RemoteCardComponent],
@@ -29,7 +32,7 @@ describe('RemoteCardComponent', () => {
   });
 
   it('should display the remote name', () => {
-    webApiService.listRemoteUsage.and.returnValue(
+    webApiService.listRemoteUsage.mockReturnValue(
       of(toPending<ListRemoteUsageResponse>()),
     );
 
@@ -49,7 +52,7 @@ describe('RemoteCardComponent', () => {
       total: 1000 * 1000 * 10, // 10MB
       trashed: 1000 * 500, // 500KB
     };
-    webApiService.listRemoteUsage.and.returnValue(of(toSuccess(mockResponse)));
+    webApiService.listRemoteUsage.mockReturnValue(of(toSuccess(mockResponse)));
 
     const fixture = TestBed.createComponent(RemoteCardComponent);
     fixture.componentRef.setInput('remote', 'test-remote');
@@ -67,7 +70,7 @@ describe('RemoteCardComponent', () => {
       used: 1000 * 1000,
       // total and trashed are missing
     };
-    webApiService.listRemoteUsage.and.returnValue(of(toSuccess(mockResponse)));
+    webApiService.listRemoteUsage.mockReturnValue(of(toSuccess(mockResponse)));
 
     const fixture = TestBed.createComponent(RemoteCardComponent);
     fixture.componentRef.setInput('remote', 'test-remote');
@@ -85,7 +88,7 @@ describe('RemoteCardComponent', () => {
     const mockResponse: ListRemoteUsageResponse = {
       trashed: 1000 * 1000,
     };
-    webApiService.listRemoteUsage.and.returnValue(of(toSuccess(mockResponse)));
+    webApiService.listRemoteUsage.mockReturnValue(of(toSuccess(mockResponse)));
 
     const fixture = TestBed.createComponent(RemoteCardComponent);
     fixture.componentRef.setInput('remote', 'test-remote');
@@ -99,7 +102,7 @@ describe('RemoteCardComponent', () => {
   });
 
   it('should display a skeleton when loading usage info', () => {
-    webApiService.listRemoteUsage.and.returnValue(
+    webApiService.listRemoteUsage.mockReturnValue(
       of(toPending<ListRemoteUsageResponse>()),
     );
 
@@ -114,7 +117,7 @@ describe('RemoteCardComponent', () => {
   });
 
   it('should display an error message on usage fetch failure', () => {
-    webApiService.listRemoteUsage.and.returnValue(
+    webApiService.listRemoteUsage.mockReturnValue(
       of(toFailure<ListRemoteUsageResponse>(new Error('API Error'))),
     );
 

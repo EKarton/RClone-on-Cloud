@@ -31,8 +31,8 @@ describe('FolderSortDropdownComponent', () => {
     fixture.detectChanges();
 
     expect(component.sortBy().field).toBe(ListAlbumsSortByFields.NAME);
-    expect(nameRadio.checked).toBeTrue();
-    expect(getSortByIdRadioButton().checked).toBeFalse();
+    expect(nameRadio.checked).toBe(true);
+    expect(getSortByIdRadioButton().checked).toBe(false);
   });
 
   it('should update field to ID when ID radio is clicked given field is in NAME', () => {
@@ -44,8 +44,8 @@ describe('FolderSortDropdownComponent', () => {
     fixture.detectChanges();
 
     expect(component.sortBy().field).toBe(ListAlbumsSortByFields.ID);
-    expect(idRadio.checked).toBeTrue();
-    expect(getSortByNameRadioButton().checked).toBeFalse();
+    expect(idRadio.checked).toBe(true);
+    expect(getSortByNameRadioButton().checked).toBe(false);
   });
 
   it('should update direction to DESCENDING when Descending radio is clicked', () => {
@@ -56,8 +56,8 @@ describe('FolderSortDropdownComponent', () => {
     expect(component.sortBy().direction).toBe(
       ListAlbumsSortDirection.DESCENDING,
     );
-    expect(descRadio.checked).toBeTrue();
-    expect(getSortAscendingRadioButton().checked).toBeFalse();
+    expect(descRadio.checked).toBe(true);
+    expect(getSortAscendingRadioButton().checked).toBe(false);
   });
 
   it('should update direction to ASCENDING when Ascending radio is clicked given radio is in DESCENDING', () => {
@@ -71,8 +71,8 @@ describe('FolderSortDropdownComponent', () => {
     expect(component.sortBy().direction).toBe(
       ListAlbumsSortDirection.ASCENDING,
     );
-    expect(ascRadio.checked).toBeTrue();
-    expect(getSortDescendingRadioButton().checked).toBeFalse();
+    expect(ascRadio.checked).toBe(true);
+    expect(getSortDescendingRadioButton().checked).toBe(false);
   });
 
   it('should compute correct text for sortByFieldText', () => {

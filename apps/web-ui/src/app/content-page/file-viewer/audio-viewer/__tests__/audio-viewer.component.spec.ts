@@ -24,6 +24,6 @@ describe('AudioViewerComponent', () => {
     );
     expect(audio).toBeTruthy();
     expect(audio.src).toBe('blob:http://localhost/test-audio');
-    expect(audio.controls).toBeTrue();
+    expect(audio.controls).toBe(true);
   });
 });

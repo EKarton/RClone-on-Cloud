@@ -59,15 +59,14 @@ describe('HttpCacheService', () => {
     expect(service.get('/2')).toBeUndefined();
   });
 
-  it('should respect TTL and expire entries', (done) => {
+  it('should respect TTL and expire entries', async () => {
     const response = createResponse({ msg: 'temp' });
 
     service.set(testUrl, response, 100); // 100ms TTL
     expect(service.get(testUrl)).toBeTruthy();
-    setTimeout(() => {
-      expect(service.get(testUrl)).toBeUndefined();
-      done();
-    }, 150);
+
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    expect(service.get(testUrl)).toBeUndefined();
   });
 
   it('should enforce max cache size (evict old entries)', () => {

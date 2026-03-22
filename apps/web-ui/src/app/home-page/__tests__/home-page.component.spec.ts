@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideMockStore } from '@ngrx/store/testing';
 import { CookieService } from 'ngx-cookie-service';
+import { vi } from 'vitest';
 
 import { environment } from '../../../environments/environment';
 import { WINDOW } from '../../app.tokens';
@@ -11,7 +12,7 @@ describe('HomePageComponent', () => {
   let component: HomePageComponent;
   let fixture: ComponentFixture<HomePageComponent>;
   let mockWindow: {
-    localStorage: { removeItem: jasmine.Spy; setItem: jasmine.Spy };
+    localStorage: { removeItem: any; setItem: any };
     pageYOffset: number;
     location: { href: string; pathname: string };
     document: { cookie: string };
@@ -23,8 +24,8 @@ describe('HomePageComponent', () => {
       location: { href: '', pathname: '' },
       pageYOffset: 0,
       localStorage: {
-        removeItem: jasmine.createSpy('removeItem'),
-        setItem: jasmine.createSpy('setItem'),
+        removeItem: vi.fn(),
+        setItem: vi.fn(),
       },
       document: { cookie: '' },
     };
@@ -50,7 +51,7 @@ describe('HomePageComponent', () => {
     fixture.detectChanges();
 
     cookieService = TestBed.inject(CookieService);
-    spyOn(cookieService, 'set');
+    vi.spyOn(cookieService, 'set');
   });
 
   it('should create component', () => {
@@ -60,10 +61,10 @@ describe('HomePageComponent', () => {
   it('should have no shadow and bg-base-300 initially', () => {
     const header: HTMLElement = fixture.nativeElement.querySelector('header');
 
-    expect(header.classList.contains('shadow-none')).toBeTrue();
-    expect(header.classList.contains('bg-base-300')).toBeTrue();
-    expect(header.classList.contains('shadow-md')).toBeFalse();
-    expect(header.classList.contains('bg-base-200')).toBeFalse();
+    expect(header.classList.contains('shadow-none')).toBe(true);
+    expect(header.classList.contains('bg-base-300')).toBe(true);
+    expect(header.classList.contains('shadow-md')).toBe(false);
+    expect(header.classList.contains('bg-base-200')).toBe(false);
   });
 
   it('should add shadow and bg-base-200 when scrolled', () => {
@@ -77,10 +78,10 @@ describe('HomePageComponent', () => {
     window.dispatchEvent(new Event('scroll'));
     fixture.detectChanges();
 
-    expect(header.classList.contains('shadow-md')).toBeTrue();
-    expect(header.classList.contains('bg-base-200')).toBeTrue();
-    expect(header.classList.contains('shadow-none')).toBeFalse();
-    expect(header.classList.contains('bg-base-300')).toBeFalse();
+    expect(header.classList.contains('shadow-md')).toBe(true);
+    expect(header.classList.contains('bg-base-200')).toBe(true);
+    expect(header.classList.contains('shadow-none')).toBe(false);
+    expect(header.classList.contains('bg-base-300')).toBe(false);
   });
 
   it('should remove shadow and revert to bg-base-300 when scroll is at top', () => {
@@ -102,14 +103,14 @@ describe('HomePageComponent', () => {
     window.dispatchEvent(new Event('scroll'));
     fixture.detectChanges();
 
-    expect(header.classList.contains('shadow-none')).toBeTrue();
-    expect(header.classList.contains('bg-base-300')).toBeTrue();
-    expect(header.classList.contains('shadow-md')).toBeFalse();
-    expect(header.classList.contains('bg-base-200')).toBeFalse();
+    expect(header.classList.contains('shadow-none')).toBe(true);
+    expect(header.classList.contains('bg-base-300')).toBe(true);
+    expect(header.classList.contains('shadow-md')).toBe(false);
+    expect(header.classList.contains('bg-base-200')).toBe(false);
   });
 
   it('should clear auth redirect local storage, generate state, and redirect to login URL with state on handleLoginClick', () => {
-    spyOn(crypto, 'randomUUID').and.returnValue(
+    vi.spyOn(crypto, 'randomUUID').mockReturnValue(
       '123e4567-e89b-12d3-a456-426614174000',
     );
     const button = fixture.nativeElement.querySelector(

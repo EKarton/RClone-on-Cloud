@@ -84,7 +84,7 @@ describe('WebApiService', () => {
 
     expect(emissions.length).toBe(2);
     expect(emissions[0]).toEqual(toPending());
-    expect(hasFailed(emissions[1])).toBeTrue();
+    expect(hasFailed(emissions[1])).toBe(true);
     expect(emissions[1].error).toBeInstanceOf(HttpErrorResponse);
     expect((emissions[1].error as HttpErrorResponse).error).toBe(
       'Server error',

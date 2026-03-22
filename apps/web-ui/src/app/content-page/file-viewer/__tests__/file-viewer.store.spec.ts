@@ -1,5 +1,6 @@
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { of } from 'rxjs';
+import { vi } from 'vitest';
 
 import { toFailure, toSuccess } from '../../../shared/results/results';
 import { WebApiService } from '../../services/web-api/web-api.service';
@@ -7,12 +8,12 @@ import { FileViewerStore, INITIAL_STATE } from '../file-viewer.store';
 
 describe('FileViewerStore', () => {
   let store: FileViewerStore;
-  let mockWebApiService: jasmine.SpyObj<WebApiService>;
+  let mockWebApiService: any;
 
   beforeEach(() => {
-    mockWebApiService = jasmine.createSpyObj('WebApiService', [
-      'fetchFileContent',
-    ]);
+    mockWebApiService = {
+      fetchFileContent: vi.fn(),
+    };
 
     TestBed.configureTestingModule({
       providers: [
@@ -26,12 +27,12 @@ describe('FileViewerStore', () => {
 
   it('should have pending initial state', () => {
     expect(store.fileContentResult()).toEqual(INITIAL_STATE.fileContentResult);
-    expect(store.fileContentResult().isLoading).toBeTrue();
+    expect(store.fileContentResult().isLoading).toBe(true);
   });
 
   it('should load file content successfully', fakeAsync(() => {
     const blob = new Blob(['content'], { type: 'text/plain' });
-    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
 
     store.loadFile({
       remote: 'myremote',
@@ -45,13 +46,13 @@ describe('FileViewerStore', () => {
       'some/path',
       'file.txt',
     );
-    expect(store.fileContentResult().isLoading).toBeFalse();
+    expect(store.fileContentResult().isLoading).toBe(false);
     expect(store.fileContentResult().data).toEqual(blob);
   }));
 
   it('should handle file content load failure', fakeAsync(() => {
     const error = new Error('Network error');
-    mockWebApiService.fetchFileContent.and.returnValue(
+    mockWebApiService.fetchFileContent.mockReturnValue(
       of(toFailure<Blob>(error)),
     );
 
@@ -67,13 +68,13 @@ describe('FileViewerStore', () => {
       undefined,
       'missing.txt',
     );
-    expect(store.fileContentResult().isLoading).toBeFalse();
+    expect(store.fileContentResult().isLoading).toBe(false);
     expect(store.fileContentResult().error).toEqual(error);
   }));
 
   it('should reset to pending when loading a new file', fakeAsync(() => {
     const blob = new Blob(['content'], { type: 'text/plain' });
-    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
 
     store.loadFile({
       remote: 'myremote',
@@ -82,11 +83,11 @@ describe('FileViewerStore', () => {
     });
     tick();
 
-    expect(store.fileContentResult().isLoading).toBeFalse();
+    expect(store.fileContentResult().isLoading).toBe(false);
 
     // Load a second file — store should reset to pending during load
     const blob2 = new Blob(['other content'], { type: 'text/plain' });
-    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob2)));
+    mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob2)));
 
     store.loadFile({
       remote: 'myremote',

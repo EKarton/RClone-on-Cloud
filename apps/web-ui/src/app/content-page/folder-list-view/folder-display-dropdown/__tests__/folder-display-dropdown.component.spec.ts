@@ -22,16 +22,16 @@ describe('FolderDisplayDropdownComponent', () => {
   });
 
   it('should render List radio as selected when listViewOption is LIST', () => {
-    expect(getListRadio().checked).toBeTrue();
-    expect(getTableRadio().checked).toBeFalse();
+    expect(getListRadio().checked).toBe(true);
+    expect(getTableRadio().checked).toBe(false);
   });
 
   it('should render Table radio as selected when listViewOption is TABLE', () => {
     component.setListViewOption(ListViewOptions.TABLE);
     fixture.detectChanges();
 
-    expect(getTableRadio().checked).toBeTrue();
-    expect(getListRadio().checked).toBeFalse();
+    expect(getTableRadio().checked).toBe(true);
+    expect(getListRadio().checked).toBe(false);
   });
 
   it('should update to TABLE when Table radio is clicked', () => {
@@ -39,8 +39,8 @@ describe('FolderDisplayDropdownComponent', () => {
     fixture.detectChanges();
 
     expect(component.listViewOption()).toBe(ListViewOptions.TABLE);
-    expect(getTableRadio().checked).toBeTrue();
-    expect(getListRadio().checked).toBeFalse();
+    expect(getTableRadio().checked).toBe(true);
+    expect(getListRadio().checked).toBe(false);
   });
 
   it('should update to LIST when List radio is clicked given it was TABLE', () => {
@@ -51,8 +51,8 @@ describe('FolderDisplayDropdownComponent', () => {
     fixture.detectChanges();
 
     expect(component.listViewOption()).toBe(ListViewOptions.LIST);
-    expect(getListRadio().checked).toBeTrue();
-    expect(getTableRadio().checked).toBeFalse();
+    expect(getListRadio().checked).toBe(true);
+    expect(getTableRadio().checked).toBe(false);
   });
 
   function getListRadio(): HTMLInputElement {

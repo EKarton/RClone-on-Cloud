@@ -1,36 +1,34 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, ParamMap, Router } from '@angular/router';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { Map as ImmutableMap } from 'immutable';
 import { CookieService } from 'ngx-cookie-service';
 import { BehaviorSubject, of } from 'rxjs';
+import { vi } from 'vitest';
 
 import { WINDOW } from '../../../app.tokens';
 import { toFailure, toSuccess } from '../../../shared/results/results';
-import { TokenResponse, WebApiService } from '../../services/webapi.service';
+import { WebApiService } from '../../services/webapi.service';
 import { authActions } from '../../store';
 import { CallbackPageComponent } from '../callback-page.component';
 
 describe('CallbackPageComponent', () => {
   let fixture: ComponentFixture<CallbackPageComponent>;
   let store: MockStore;
-  let router: jasmine.SpyObj<Router>;
-  let webApiService: jasmine.SpyObj<WebApiService>;
-  let mockLocalStorageGetItem: jasmine.Spy;
+  let router: any;
+  let webApiService: any;
+  let mockLocalStorageGetItem: any;
   let queryParamMapSubject: BehaviorSubject<ParamMap>;
   let cookieService: CookieService;
 
   beforeEach(() => {
-    mockLocalStorageGetItem = jasmine
-      .createSpy('getItem')
-      .and.returnValue(null);
+    mockLocalStorageGetItem = vi.fn().mockReturnValue(null);
 
     queryParamMapSubject = new BehaviorSubject<ParamMap>(
       convertToParamMap({ code: 'test-auth-code', state: 'valid-state' }),
     );
 
-    router = jasmine.createSpyObj('Router', ['navigate']);
-    webApiService = jasmine.createSpyObj('WebApiService', ['fetchAccessToken']);
+    router = { navigate: vi.fn() };
+    webApiService = { fetchAccessToken: vi.fn() };
 
     TestBed.configureTestingModule({
       imports: [CallbackPageComponent],
@@ -57,11 +55,11 @@ describe('CallbackPageComponent', () => {
     }).compileComponents();
 
     store = TestBed.inject(MockStore);
-    spyOn(store, 'dispatch');
+    vi.spyOn(store, 'dispatch');
     fixture = TestBed.createComponent(CallbackPageComponent);
 
     cookieService = TestBed.inject(CookieService);
-    spyOn(cookieService, 'delete').and.callThrough();
+    vi.spyOn(cookieService, 'delete');
   });
 
   afterEach(() => {
@@ -70,7 +68,7 @@ describe('CallbackPageComponent', () => {
 
   it('should fetch token and navigate to redirect path on success', () => {
     const mockToken = 'mockToken';
-    webApiService.fetchAccessToken.and.returnValue(
+    webApiService.fetchAccessToken.mockReturnValue(
       of(toSuccess({ token: mockToken })),
     );
 
@@ -90,11 +88,11 @@ describe('CallbackPageComponent', () => {
 
   it('should navigate to custom redirect path if set in localStorage', () => {
     const mockToken = 'mockToken';
-    webApiService.fetchAccessToken.and.returnValue(
+    webApiService.fetchAccessToken.mockReturnValue(
       of(toSuccess({ token: mockToken })),
     );
     cookieService.set('oauth_state', 'valid-state');
-    mockLocalStorageGetItem.and.callFake((key: string) => {
+    mockLocalStorageGetItem.mockImplementation((key: string) => {
       if (key === 'auth_redirect_path') {
         return '/custom/path';
       }
@@ -107,8 +105,8 @@ describe('CallbackPageComponent', () => {
   });
 
   it('should not navigate or dispatch if token fetch has failed', () => {
-    webApiService.fetchAccessToken.and.returnValue(
-      of(toFailure<TokenResponse>(new Error('error'))),
+    webApiService.fetchAccessToken.mockReturnValue(
+      of(toFailure(new Error('error'))),
     );
     cookieService.set('oauth_state', 'valid-state');
 

@@ -2,7 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { Actions } from '@ngrx/effects';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { Store } from '@ngrx/store';
-import { of } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
+import { vi } from 'vitest';
 
 import * as themeActions from '../theme.actions';
 import { ThemeEffects } from '../theme.effects';
@@ -10,80 +11,88 @@ import { ThemeEffects } from '../theme.effects';
 describe('ThemeEffects', () => {
   let actions$: Actions;
   let effects: ThemeEffects;
-  let store: jasmine.SpyObj<Store>;
+  let store: any;
 
   beforeEach(() => {
-    const storeSpy = jasmine.createSpyObj('Store', ['select']);
+    store = {
+      select: vi.fn(),
+    };
 
     TestBed.configureTestingModule({
       providers: [
         ThemeEffects,
         provideMockActions(() => actions$),
-        { provide: Store, useValue: storeSpy },
+        { provide: Store, useValue: store },
       ],
     });
 
     effects = TestBed.inject(ThemeEffects);
-    store = TestBed.inject(Store) as jasmine.SpyObj<Store>;
   });
 
   describe('loadSavedTheme$', () => {
-    it('should load saved theme from localStorage and dispatch setTheme action', (done) => {
+    it('should load saved theme from localStorage and dispatch setTheme action', async () => {
       const savedTheme = 'dark';
-      spyOn(localStorage, 'getItem').and.returnValue(savedTheme);
+      vi.stubGlobal('localStorage', {
+        getItem: vi.fn().mockReturnValue(savedTheme),
+        setItem: vi.fn(),
+      });
       const action = themeActions.loadSavedTheme();
       const expectedAction = themeActions.setTheme({ isDark: true });
 
       actions$ = of(action);
 
-      effects.loadSavedTheme$.subscribe((resultAction) => {
-        expect(resultAction).toEqual(expectedAction);
-        done();
-      });
+      const resultAction = await firstValueFrom(effects.loadSavedTheme$);
+      expect(resultAction).toEqual(expectedAction);
     });
 
-    it('should set saved theme to "light" if there is none from localStorage and dispatch setTheme action', (done) => {
+    it('should set saved theme to "light" if there is none from localStorage and dispatch setTheme action', async () => {
+      vi.stubGlobal('localStorage', {
+        getItem: vi.fn().mockReturnValue(null),
+        setItem: vi.fn(),
+      });
       const action = themeActions.loadSavedTheme();
       const expectedAction = themeActions.setTheme({ isDark: false });
 
       actions$ = of(action);
 
-      effects.loadSavedTheme$.subscribe((resultAction) => {
-        expect(resultAction).toEqual(expectedAction);
-        done();
-      });
+      const resultAction = await firstValueFrom(effects.loadSavedTheme$);
+      expect(resultAction).toEqual(expectedAction);
     });
   });
 
   describe('applyTheme$', () => {
-    it('should set dark theme in document and localStorage when isDark is true', (done) => {
+    it('should set dark theme in document and localStorage when isDark is true', async () => {
       const action = themeActions.setTheme({ isDark: true });
       actions$ = of(action);
-      store.select.and.returnValue(of(true));
+      store.select.mockReturnValue(of(true));
 
-      const setAttributeSpy = spyOn(document.documentElement, 'setAttribute');
-      const setItemSpy = spyOn(localStorage, 'setItem');
-
-      effects.applyTheme$.subscribe(() => {
-        expect(setAttributeSpy).toHaveBeenCalledWith('data-theme', 'dark');
-        expect(setItemSpy).toHaveBeenCalledWith('theme', 'dark');
-        done();
+      const setAttributeSpy = vi.spyOn(document.documentElement, 'setAttribute');
+      const setItemSpy = vi.fn();
+      vi.stubGlobal('localStorage', {
+        setItem: setItemSpy,
+        getItem: vi.fn(),
       });
+
+      await firstValueFrom(effects.applyTheme$);
+      expect(setAttributeSpy).toHaveBeenCalledWith('data-theme', 'dark');
+      expect(setItemSpy).toHaveBeenCalledWith('theme', 'dark');
     });
 
-    it('should set light theme in document and localStorage when isDark is false', (done) => {
+    it('should set light theme in document and localStorage when isDark is false', async () => {
       const action = themeActions.toggleTheme();
       actions$ = of(action);
-      store.select.and.returnValue(of(false));
+      store.select.mockReturnValue(of(false));
 
-      const setAttributeSpy = spyOn(document.documentElement, 'setAttribute');
-      const setItemSpy = spyOn(localStorage, 'setItem');
-
-      effects.applyTheme$.subscribe(() => {
-        expect(setAttributeSpy).toHaveBeenCalledWith('data-theme', 'light');
-        expect(setItemSpy).toHaveBeenCalledWith('theme', 'light');
-        done();
+      const setAttributeSpy = vi.spyOn(document.documentElement, 'setAttribute');
+      const setItemSpy = vi.fn();
+      vi.stubGlobal('localStorage', {
+        setItem: setItemSpy,
+        getItem: vi.fn(),
       });
+
+      await firstValueFrom(effects.applyTheme$);
+      expect(setAttributeSpy).toHaveBeenCalledWith('data-theme', 'light');
+      expect(setItemSpy).toHaveBeenCalledWith('theme', 'light');
     });
   });
 });
