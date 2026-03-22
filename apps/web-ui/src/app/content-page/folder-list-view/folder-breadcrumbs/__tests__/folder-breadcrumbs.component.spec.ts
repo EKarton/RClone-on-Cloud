@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-
-import { FolderBreadcrumbsComponent } from '../folder-breadcrumbs.component';
 import { of } from 'rxjs';
+
 import { REMOTE_PATH$ } from '../../folder-list-view.tokens';
+import { FolderBreadcrumbsComponent } from '../folder-breadcrumbs.component';
 
 describe('FolderBreadcrumbsComponent', () => {
   it('should render component when remote path has nested path', async () => {

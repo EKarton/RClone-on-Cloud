@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { provideMockStore } from '@ngrx/store/testing';
-import { of } from 'rxjs';
 import { Buffer } from 'buffer';
+import { of } from 'rxjs';
 
 import { authState } from '../../../../auth/store';
 import {
