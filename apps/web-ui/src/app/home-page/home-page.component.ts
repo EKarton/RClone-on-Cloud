@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, inject, signal } from '@angular/core';
+import { CookieService } from 'ngx-cookie-service';
 
 import { environment } from '../../environments/environment';
 import { WINDOW } from '../app.tokens';
 import { ThemeToggleButtonComponent } from '../themes/components/theme-toggle-button/theme-toggle-button.component';
-import { CookieService } from 'ngx-cookie-service';
 
 @Component({
   selector: 'app-home-page',

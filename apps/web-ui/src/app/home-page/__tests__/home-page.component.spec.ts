@@ -1,11 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideMockStore } from '@ngrx/store/testing';
+import { CookieService } from 'ngx-cookie-service';
 
 import { environment } from '../../../environments/environment';
 import { WINDOW } from '../../app.tokens';
 import { themeState } from '../../themes/store';
 import { HomePageComponent } from '../home-page.component';
-import { CookieService } from 'ngx-cookie-service';
 
 describe('HomePageComponent', () => {
   let component: HomePageComponent;

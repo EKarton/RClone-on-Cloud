@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { Map as ImmutableMap } from 'immutable';
+import { CookieService } from 'ngx-cookie-service';
 import { BehaviorSubject, of } from 'rxjs';
 
 import { WINDOW } from '../../../app.tokens';
@@ -9,7 +10,6 @@ import { toFailure, toSuccess } from '../../../shared/results/results';
 import { TokenResponse, WebApiService } from '../../services/webapi.service';
 import { authActions } from '../../store';
 import { CallbackPageComponent } from '../callback-page.component';
-import { CookieService } from 'ngx-cookie-service';
 
 describe('CallbackPageComponent', () => {
   let fixture: ComponentFixture<CallbackPageComponent>;

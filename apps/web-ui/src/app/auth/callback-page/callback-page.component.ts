@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
+import { CookieService } from 'ngx-cookie-service';
 import { filter, map, shareReplay, Subscription, switchMap } from 'rxjs';
 
 import { WINDOW } from '../../app.tokens';
@@ -10,7 +11,6 @@ import { IsPendingPipe } from '../../shared/results/pipes/is-pending.pipe';
 import { filterOnlySuccess } from '../../shared/results/rxjs/filterOnlySuccess';
 import { WebApiService } from '../services/webapi.service';
 import { authActions } from '../store';
-import { CookieService } from 'ngx-cookie-service';
 
 @Component({
   selector: 'app-callback-page',
