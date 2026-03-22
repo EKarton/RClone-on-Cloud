@@ -1,0 +1,72 @@
+##################################################################
+# A Github action used to check pull requests on Web UI
+# More info at https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions
+##################################################################
+
+name: Check pull request on Web UI
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web-ui/**"
+      - ".github/workflows/check-pull-request-web-ui.yaml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web-ui/**"
+      - ".github/workflows/check-pull-request-web-ui.yaml"
+
+jobs:
+  check-linting:
+    name: Check for linting errors in Web UI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies and run linting
+        run: |
+          cd ./apps/web-ui
+          npm ci
+          npm run lint
+
+  run-tests:
+    name: Runs all tests in Web UI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node JS
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+
+      - name: Install dependencies and run tests
+        run: |
+          cd ./apps/web-ui
+          npm ci
+          npm run test
+
+  build:
+    name: Builds the Web UI app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node JS
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+
+      - name: Install dependencies build the app
+        run: |
+          cd ./apps/web-ui
+          npm ci
+          npm run build
