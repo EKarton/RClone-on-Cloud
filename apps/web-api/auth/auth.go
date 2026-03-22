@@ -125,7 +125,19 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url := h.oauthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline)
+	challenge := r.URL.Query().Get("challenge")
+	if challenge == "" {
+		writeError(w, "missing challenge parameter", http.StatusBadRequest)
+		return
+	}
+
+	codeChallengeMethod := r.URL.Query().Get("code_challenge_method")
+	if codeChallengeMethod == "" {
+		writeError(w, "missing code_challenge_method parameter", http.StatusBadRequest)
+		return
+	}
+
+	url := h.oauthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.SetAuthURLParam("code_challenge", challenge), oauth2.SetAuthURLParam("code_challenge_method", codeChallengeMethod))
 	http.Redirect(w, r, url, http.StatusFound)
 }
 
