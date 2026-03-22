@@ -5,21 +5,19 @@
 
 ## Description
 
-This project is a web ui for RClone on Cloud. This web ui allows users to list and see their photos and videos on a web browser. This web ui will only read photos and videos and never modify anything in the database.
+This project is the Web UI for RClone on Cloud. This Angular frontend allows users to authenticate via Google OAuth2, list their configured rclone remotes, browse remote directories, and view files (like text, images, and PDFs) directly in the browser. It serves as a user-friendly frontend to interact with the RClone restricted API gateway.
 
 ## Getting Started
 
 ### Installation
 
-1. First, get the Gemini API key by following [this guide](./docs/generate_gemini_api_key.md)
-
-1. Next, install angular by running:
+1. First, install Angular CLI by running:
 
    ```bash
    npm install -g @angular/cli
    ```
 
-1. Then, install the project's dependencies by running:
+1. Next, install the project's dependencies by running:
 
    ```bash
    npm install
@@ -28,19 +26,14 @@ This project is a web ui for RClone on Cloud. This web ui allows users to list a
 1. Then, create a `.env` file to store your environment variables, like:
 
    ```text
-   NG_APP_LOGIN_URL=http://localhost:3000/auth/v1/google
+   NG_APP_LOGIN_URL=http://localhost:3000/auth/v1/google/login
    NG_APP_WEB_API_ENDPOINT=http://localhost:3000
-
-   NG_APP_GEMINI_API_KEY="YOUR_GEMINI_KEY"
-   NG_APP_GEMINI_MODEL="gemini-2.5-flash"
    ```
 
    where:
 
    - `NG_APP_LOGIN_URL`: is the login url of your [web-api](./../web-api)
    - `NG_APP_WEB_API_ENDPOINT`: is the domain of your [web-api](./../web-api)
-   - `NG_APP_GEMINI_API_KEY`: is the Gemini API key from the first step
-   - `NG_APP_GEMINI_MODEL`: is the Gemini model to use (ex: 'gemini-2.5-flash')
 
 1. Next, run:
 

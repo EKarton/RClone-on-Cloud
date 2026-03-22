@@ -5,7 +5,8 @@
 This repository is structured as a monorepo containing two core applications:
 
 1. **[Web API (`apps/web-api`)](./apps/web-api/README.md)**: The core REST API that exposes the secure rclone interface.
-2. **[CLI Client (`apps/cli`)](./apps/cli/README.md)**: A command-line companion tool to help synchronize, migrate, and manage your configurations between your local machine and your MongoDB database.
+2. **[Web UI (`apps/web-ui`)](./apps/web-ui/README.md)**: The Angular frontend that provides a user-friendly interface to browse remotes and view files.
+3. **[CLI Client (`apps/cli`)](./apps/cli/README.md)**: A command-line companion tool to help synchronize, migrate, and manage your configurations between your local machine and your MongoDB database.
 
 ---
 
@@ -32,7 +33,8 @@ RClone-on-Cloud solves this by:
 .
 ├── apps/
 │   ├── cli/       # Go 1.25 Cobra CLI (Migrate & Dump Configs to MongoDB)
-│   └── web-api/   # Go 1.25 REST API (Rclone RC Proxy, Google OAuth2, JWTs)
+│   ├── web-api/   # Go 1.25 REST API (Rclone RC Proxy, Google OAuth2, JWTs)
+│   └── web-ui/    # Angular Web UI (Frontend for browsing remotes and files)
 ├── .github/
 │   └── workflows/ # Automated CI/CD (Linting, Tests, Docker Builds)
 └── README.md
@@ -57,3 +59,4 @@ This repository enforces strict code quality and build verification through GitH
 To get started, head over to the documentation for each application:
 - 👉 **[CLI Documentation](./apps/cli/README.md)** (Use this to upload your local `rclone.conf` to your database)
 - 👉 **[Web API Documentation](./apps/web-api/README.md)** (Start here to deploy your server)
+- 👉 **[Web UI Documentation](./apps/web-ui/README.md)** (Learn how to run the frontend application)
