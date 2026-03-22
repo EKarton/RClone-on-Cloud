@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
-import { vi } from 'vitest';
+import { Mocked, vi } from 'vitest';
 
 import { toFailure, toPending, toSuccess } from '../../../shared/results/results';
 import { WebApiService } from '../../services/web-api/web-api.service';
@@ -11,7 +11,7 @@ import { FileViewerComponent } from '../file-viewer.component';
 import { FileViewerRequest } from '../file-viewer.request';
 
 describe('FileViewerComponent', () => {
-  let mockWebApiService: any;
+  let mockWebApiService: Mocked<WebApiService>;
   let mockStore: MockStore;
 
   beforeEach(async () => {
@@ -27,7 +27,7 @@ describe('FileViewerComponent', () => {
 
     mockWebApiService = {
       fetchFileContent: vi.fn(),
-    };
+    } as unknown as Mocked<WebApiService>;
 
     // Default: no file content request
     mockWebApiService.fetchFileContent.mockReturnValue(of(toPending<Blob>()));

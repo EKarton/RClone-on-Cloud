@@ -3,11 +3,11 @@ import { ActivatedRoute, convertToParamMap, ParamMap, Router } from '@angular/ro
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { CookieService } from 'ngx-cookie-service';
 import { BehaviorSubject, of } from 'rxjs';
-import { vi } from 'vitest';
+import { Mocked, vi } from 'vitest';
 
 import { WINDOW } from '../../../app.tokens';
 import { toFailure, toSuccess } from '../../../shared/results/results';
-import { WebApiService } from '../../services/webapi.service';
+import { TokenResponse, WebApiService } from '../../services/webapi.service';
 import { authActions } from '../../store';
 import { CallbackPageComponent } from '../callback-page.component';
 
@@ -15,7 +15,7 @@ describe('CallbackPageComponent', () => {
   let fixture: ComponentFixture<CallbackPageComponent>;
   let store: MockStore;
   let router: any;
-  let webApiService: any;
+  let webApiService: Mocked<WebApiService>;
   let mockLocalStorageGetItem: any;
   let queryParamMapSubject: BehaviorSubject<ParamMap>;
   let cookieService: CookieService;
@@ -28,7 +28,9 @@ describe('CallbackPageComponent', () => {
     );
 
     router = { navigate: vi.fn() };
-    webApiService = { fetchAccessToken: vi.fn() };
+    webApiService = {
+      fetchAccessToken: vi.fn(),
+    } as unknown as Mocked<WebApiService>;
 
     TestBed.configureTestingModule({
       imports: [CallbackPageComponent],
@@ -68,29 +70,21 @@ describe('CallbackPageComponent', () => {
 
   it('should fetch token and navigate to redirect path on success', () => {
     const mockToken = 'mockToken';
-    webApiService.fetchAccessToken.mockReturnValue(
-      of(toSuccess({ token: mockToken })),
-    );
+    webApiService.fetchAccessToken.mockReturnValue(of(toSuccess({ token: mockToken })));
 
     cookieService.set('oauth_state', 'valid-state');
 
     fixture.detectChanges(); // Trigger ngOnInit
 
-    expect(webApiService.fetchAccessToken).toHaveBeenCalledWith(
-      'test-auth-code',
-    );
-    expect(store.dispatch).toHaveBeenCalledWith(
-      authActions.setAuthToken({ authToken: mockToken }),
-    );
+    expect(webApiService.fetchAccessToken).toHaveBeenCalledWith('test-auth-code');
+    expect(store.dispatch).toHaveBeenCalledWith(authActions.setAuthToken({ authToken: mockToken }));
     expect(cookieService.delete).toHaveBeenCalledWith('oauth_state');
     expect(router.navigate).toHaveBeenCalledWith(['/remotes']);
   });
 
   it('should navigate to custom redirect path if set in localStorage', () => {
     const mockToken = 'mockToken';
-    webApiService.fetchAccessToken.mockReturnValue(
-      of(toSuccess({ token: mockToken })),
-    );
+    webApiService.fetchAccessToken.mockReturnValue(of(toSuccess({ token: mockToken })));
     cookieService.set('oauth_state', 'valid-state');
     mockLocalStorageGetItem.mockImplementation((key: string) => {
       if (key === 'auth_redirect_path') {
@@ -106,7 +100,7 @@ describe('CallbackPageComponent', () => {
 
   it('should not navigate or dispatch if token fetch has failed', () => {
     webApiService.fetchAccessToken.mockReturnValue(
-      of(toFailure(new Error('error'))),
+      of(toFailure<TokenResponse>(new Error('error'))),
     );
     cookieService.set('oauth_state', 'valid-state');
 

@@ -4,7 +4,7 @@ import { provideRouter, Router, RouterModule } from '@angular/router';
 import { provideMockStore } from '@ngrx/store/testing';
 import { Buffer } from 'buffer';
 import { of } from 'rxjs';
-import { vi } from 'vitest';
+import { Mocked, vi } from 'vitest';
 
 import { toPending } from '../../../shared/results/results';
 import { ListFolderResponse } from '../../services/web-api/types/list-folder';
@@ -12,15 +12,13 @@ import { WebApiService } from '../../services/web-api/web-api.service';
 import { FolderListViewComponent } from '../folder-list-view.component';
 
 describe('FolderListViewComponent', () => {
-  let webApiServiceSpy: any;
+  let webApiServiceSpy: Mocked<WebApiService>;
 
   beforeEach(async () => {
     webApiServiceSpy = {
       listFolder: vi.fn(),
-    };
-    webApiServiceSpy.listFolder.mockReturnValue(
-      of(toPending<ListFolderResponse>()),
-    );
+    } as unknown as Mocked<WebApiService>;
+    webApiServiceSpy.listFolder.mockReturnValue(of(toPending<ListFolderResponse>()));
 
     await TestBed.configureTestingModule({
       imports: [EmptyComponent],
@@ -49,9 +47,7 @@ describe('FolderListViewComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const h1 = fixture.nativeElement.querySelector(
-      '[data-testid="current-folder"]',
-    );
+    const h1 = fixture.nativeElement.querySelector('[data-testid="current-folder"]');
     expect(h1).toBeTruthy();
     expect(h1.textContent.trim()).toBe('dir');
   });
@@ -62,15 +58,9 @@ describe('FolderListViewComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(
-      fixture.nativeElement.querySelector('app-folder-sort-dropdown'),
-    ).toBeTruthy();
-    expect(
-      fixture.nativeElement.querySelector('app-folder-list-cards'),
-    ).toBeTruthy();
-    expect(
-      fixture.nativeElement.querySelector('app-folder-list-table'),
-    ).toBeFalsy();
+    expect(fixture.nativeElement.querySelector('app-folder-sort-dropdown')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-folder-list-cards')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-folder-list-table')).toBeFalsy();
   });
 
   it('should fetch listFolder from WebApiService using the remote and path from the tokens', async () => {
@@ -79,10 +69,7 @@ describe('FolderListViewComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(webApiServiceSpy.listFolder).toHaveBeenCalledWith(
-      'my-remote',
-      'my/nested/dir',
-    );
+    expect(webApiServiceSpy.listFolder).toHaveBeenCalledWith('my-remote', 'my/nested/dir');
   });
 });
 

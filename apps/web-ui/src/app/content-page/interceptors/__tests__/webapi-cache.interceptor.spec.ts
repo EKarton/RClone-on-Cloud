@@ -4,19 +4,16 @@ import {
   provideHttpClient,
   withInterceptors,
 } from '@angular/common/http';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { vi } from 'vitest';
+import { Mocked, vi } from 'vitest';
 
 import { environment } from '../../../../environments/environment';
 import { HttpCacheService } from '../http-cache.service';
 import { webApiHttpCacheInterceptor } from '../webapi-cache.interceptor';
 
 describe('webApiHttpCacheInterceptor', () => {
-  let mockCacheService: any;
+  let mockCacheService: Mocked<HttpCacheService>;
   let httpClient: HttpClient;
   let httpMock: HttpTestingController;
 
@@ -24,7 +21,7 @@ describe('webApiHttpCacheInterceptor', () => {
     mockCacheService = {
       get: vi.fn(),
       set: vi.fn(),
-    };
+    } as unknown as Mocked<HttpCacheService>;
 
     TestBed.configureTestingModule({
       providers: [
@@ -53,9 +50,7 @@ describe('webApiHttpCacheInterceptor', () => {
     const promise = new Promise<void>((resolve) => {
       httpClient.get(environment.webApiEndpoint).subscribe((res) => {
         expect(res).toEqual('My data');
-        expect(mockCacheService.get).toHaveBeenCalledWith(
-          environment.webApiEndpoint,
-        );
+        expect(mockCacheService.get).toHaveBeenCalledWith(environment.webApiEndpoint);
         resolve();
       });
     });
@@ -69,9 +64,7 @@ describe('webApiHttpCacheInterceptor', () => {
     const promise = new Promise<void>((resolve) => {
       httpClient.get(environment.webApiEndpoint).subscribe((res) => {
         expect(res).toEqual('My data');
-        expect(mockCacheService.get).toHaveBeenCalledWith(
-          environment.webApiEndpoint,
-        );
+        expect(mockCacheService.get).toHaveBeenCalledWith(environment.webApiEndpoint);
         expect(mockCacheService.set).toHaveBeenCalledWith(
           environment.webApiEndpoint,
           expect.any(HttpResponse),

@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
-import { vi } from 'vitest';
+import { Mocked, vi } from 'vitest';
 
 import { toFailure, toPending, toSuccess } from '../../../../shared/results/results';
 import { ListRemoteUsageResponse } from '../../../services/web-api/types/list-remote-usage';
@@ -10,12 +10,12 @@ import { WebApiService } from '../../../services/web-api/web-api.service';
 import { RemoteCardComponent } from '../remote-card.component';
 
 describe('RemoteCardComponent', () => {
-  let webApiService: any;
+  let webApiService: Mocked<WebApiService>;
 
   beforeEach(() => {
     webApiService = {
       listRemoteUsage: vi.fn(),
-    };
+    } as unknown as Mocked<WebApiService>;
 
     TestBed.configureTestingModule({
       imports: [RemoteCardComponent],
