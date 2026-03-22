@@ -1,12 +1,10 @@
-<div class="mb-6 flex items-center justify-between">
-  <!-- <h1 class="text-2xl font-bold">{{ currentFolderName() }}</h1> -->
-  <app-folder-breadcrumbs />
-  <div class="flex items-center gap-2">
-    @if (filesListViewOption() === ListViewOptions.LIST) {
-      <app-folder-sort-dropdown [(sortBy)]="filesSortBy" />
-    }
-    <app-folder-display-dropdown [(listViewOption)]="filesListViewOption" />
-  </div>
+<app-folder-breadcrumbs />
+
+<div class="mb-6 flex items-center justify-end gap-2">
+  @if (filesListViewOption() === ListViewOptions.LIST) {
+    <app-folder-sort-dropdown [(sortBy)]="filesSortBy" />
+  }
+  <app-folder-display-dropdown [(listViewOption)]="filesListViewOption" />
 </div>
 <div class="mb-4xl">
   @if (filesListViewOption() === ListViewOptions.TABLE) {

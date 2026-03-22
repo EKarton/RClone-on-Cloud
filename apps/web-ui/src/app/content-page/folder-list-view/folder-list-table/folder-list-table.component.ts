@@ -134,13 +134,9 @@ export class FolderListTableComponent {
         isDir: item.isDir,
         onClick: () => {
           if (item.isDir) {
-            const newPath = remotePath.path
-              ? `${remotePath.path}/${item.path}`
-              : item.path;
-
             this.router.navigate([
               '/folders',
-              Buffer.from(`${remotePath.remote}:${newPath}`)
+              Buffer.from(`${remotePath.remote}:${item.path}`)
                 .toString('base64')
                 .replace(/=/g, ''),
             ]);

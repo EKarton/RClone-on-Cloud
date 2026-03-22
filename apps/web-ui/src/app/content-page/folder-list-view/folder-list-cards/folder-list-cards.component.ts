@@ -36,7 +36,7 @@ export class FolderListCardsComponent {
 
   readonly itemsResult: Signal<Result<Item[]>> = toSignal(
     this.remotePath$.pipe(
-      switchMap(({ remote, path }) => {
+      switchMap(({ remote }) => {
         return this.contentsResult$.pipe(
           mapResultRxJs((contents) => {
             return contents.items.map((item) => {
@@ -46,11 +46,9 @@ export class FolderListCardsComponent {
                 isDir: item.isDir,
                 onClick: () => {
                   if (item.isDir) {
-                    const newPath = path ? `${path}/${item.name}` : item.name;
-
                     this.router.navigate([
                       '/folders',
-                      Buffer.from(`${remote}:${newPath}`)
+                      Buffer.from(`${remote}:${item.path}`)
                         .toString('base64')
                         .replace(/=/g, ''),
                     ]);
