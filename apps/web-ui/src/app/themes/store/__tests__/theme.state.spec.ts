@@ -1,9 +1,4 @@
-import {
-  initialState,
-  selectIsDarkMode,
-  selectThemeState,
-  ThemeState,
-} from '../theme.state';
+import { initialState, selectIsDarkMode, selectThemeState, ThemeState } from '../theme.state';
 
 describe('Theme Selectors', () => {
   describe('selectThemeState', () => {

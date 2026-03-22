@@ -1,17 +1,9 @@
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { environment } from '../../../../environments/environment';
-import {
-  hasFailed,
-  Result,
-  toPending,
-  toSuccess,
-} from '../../../shared/results/results';
+import { hasFailed, Result, toPending, toSuccess } from '../../../shared/results/results';
 import { TokenResponse, WebApiService } from '../webapi.service';
 
 describe('WebApiService', () => {
@@ -21,11 +13,7 @@ describe('WebApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        WebApiService,
-      ],
+      providers: [provideHttpClient(), provideHttpClientTesting(), WebApiService],
     });
 
     service = TestBed.inject(WebApiService);
@@ -51,9 +39,7 @@ describe('WebApiService', () => {
       emissions.push(response);
     });
 
-    const req = httpMock.expectOne(
-      `${environment.webApiEndpoint}/auth/v1/google/callback`,
-    );
+    const req = httpMock.expectOne(`${environment.webApiEndpoint}/auth/v1/google/callback`);
 
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ code: mockCode });
@@ -73,9 +59,7 @@ describe('WebApiService', () => {
       },
     });
 
-    const req = httpMock.expectOne(
-      `${environment.webApiEndpoint}/auth/v1/google/callback`,
-    );
+    const req = httpMock.expectOne(`${environment.webApiEndpoint}/auth/v1/google/callback`);
 
     req.flush('Server error', {
       status: 500,
@@ -86,8 +70,6 @@ describe('WebApiService', () => {
     expect(emissions[0]).toEqual(toPending());
     expect(hasFailed(emissions[1])).toBe(true);
     expect(emissions[1].error).toBeInstanceOf(HttpErrorResponse);
-    expect((emissions[1].error as HttpErrorResponse).error).toBe(
-      'Server error',
-    );
+    expect((emissions[1].error as HttpErrorResponse).error).toBe('Server error');
   });
 });

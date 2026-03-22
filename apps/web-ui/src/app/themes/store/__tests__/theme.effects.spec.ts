@@ -1,32 +1,26 @@
 import { TestBed } from '@angular/core/testing';
 import { Actions } from '@ngrx/effects';
 import { provideMockActions } from '@ngrx/effects/testing';
-import { Store } from '@ngrx/store';
 import { firstValueFrom, of } from 'rxjs';
 import { vi } from 'vitest';
 
 import * as themeActions from '../theme.actions';
 import { ThemeEffects } from '../theme.effects';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import { themeState } from '..';
 
 describe('ThemeEffects', () => {
   let actions$: Actions;
   let effects: ThemeEffects;
-  let store: any;
+  let store: MockStore;
 
   beforeEach(() => {
-    store = {
-      select: vi.fn(),
-    };
-
     TestBed.configureTestingModule({
-      providers: [
-        ThemeEffects,
-        provideMockActions(() => actions$),
-        { provide: Store, useValue: store },
-      ],
+      providers: [ThemeEffects, provideMockActions(() => actions$), provideMockStore()],
     });
 
     effects = TestBed.inject(ThemeEffects);
+    store = TestBed.inject(MockStore);
   });
 
   describe('loadSavedTheme$', () => {
@@ -64,7 +58,7 @@ describe('ThemeEffects', () => {
     it('should set dark theme in document and localStorage when isDark is true', async () => {
       const action = themeActions.setTheme({ isDark: true });
       actions$ = of(action);
-      store.select.mockReturnValue(of(true));
+      store.overrideSelector(themeState.selectIsDarkMode, true);
 
       const setAttributeSpy = vi.spyOn(document.documentElement, 'setAttribute');
       const setItemSpy = vi.fn();
@@ -81,7 +75,7 @@ describe('ThemeEffects', () => {
     it('should set light theme in document and localStorage when isDark is false', async () => {
       const action = themeActions.toggleTheme();
       actions$ = of(action);
-      store.select.mockReturnValue(of(false));
+      store.overrideSelector(themeState.selectIsDarkMode, false);
 
       const setAttributeSpy = vi.spyOn(document.documentElement, 'setAttribute');
       const setItemSpy = vi.fn();

@@ -17,25 +17,20 @@ describe('filterOnlySuccess', () => {
   });
 
   it('should emit nothing if there are no successful results', async () => {
-    const source$ = of(
-      toPending<number>(),
-      toFailure<number>(new Error('Error')),
-    );
+    const source$ = of(toPending<number>(), toFailure<number>(new Error('Error')));
 
-    const result = await firstValueFrom(
-      source$.pipe(filterOnlySuccess(), toArray()),
-      { defaultValue: [] },
-    );
+    const result = await firstValueFrom(source$.pipe(filterOnlySuccess(), toArray()), {
+      defaultValue: [],
+    });
     expect(result).toEqual([]);
   });
 
   it('should handle an empty observable', async () => {
     const source$ = of<Result<number>>();
 
-    const result = await firstValueFrom(
-      source$.pipe(filterOnlySuccess(), toArray()),
-      { defaultValue: [] },
-    );
+    const result = await firstValueFrom(source$.pipe(filterOnlySuccess(), toArray()), {
+      defaultValue: [],
+    });
     expect(result).toEqual([]);
   });
 
@@ -45,10 +40,7 @@ describe('filterOnlySuccess', () => {
       name: string;
     }
     const complexData: ComplexData = { id: 1, name: 'Test' };
-    const source$ = of(
-      toSuccess(complexData),
-      toFailure<ComplexData>(new Error('Error')),
-    );
+    const source$ = of(toSuccess(complexData), toFailure<ComplexData>(new Error('Error')));
 
     const result = await firstValueFrom(source$.pipe(filterOnlySuccess(), toArray()));
     expect(result).toEqual([complexData]);

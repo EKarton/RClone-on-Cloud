@@ -3,7 +3,7 @@ import { ActivatedRoute, convertToParamMap, ParamMap, Router } from '@angular/ro
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { CookieService } from 'ngx-cookie-service';
 import { BehaviorSubject, of } from 'rxjs';
-import { Mocked, vi } from 'vitest';
+import { Mock, Mocked, vi } from 'vitest';
 
 import { WINDOW } from '../../../app.tokens';
 import { toFailure, toSuccess } from '../../../shared/results/results';
@@ -14,9 +14,9 @@ import { CallbackPageComponent } from '../callback-page.component';
 describe('CallbackPageComponent', () => {
   let fixture: ComponentFixture<CallbackPageComponent>;
   let store: MockStore;
-  let router: any;
+  let router: Mocked<Router>;
   let webApiService: Mocked<WebApiService>;
-  let mockLocalStorageGetItem: any;
+  let mockLocalStorageGetItem: Mock;
   let queryParamMapSubject: BehaviorSubject<ParamMap>;
   let cookieService: CookieService;
 
@@ -27,7 +27,7 @@ describe('CallbackPageComponent', () => {
       convertToParamMap({ code: 'test-auth-code', state: 'valid-state' }),
     );
 
-    router = { navigate: vi.fn() };
+    router = { navigate: vi.fn() } as unknown as Mocked<Router>;
     webApiService = {
       fetchAccessToken: vi.fn(),
     } as unknown as Mocked<WebApiService>;

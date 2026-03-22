@@ -26,17 +26,14 @@ describe('FolderBreadcrumbsComponent', () => {
     expect(component).toBeTruthy();
 
     // Assert component has the right text
-    const links: HTMLElement[] = Array.from(
-      fixture.nativeElement.querySelectorAll('a'),
-    );
+    const links: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('a'));
     expect(links.length).toEqual(4);
     expect(links[0].textContent).toEqual('Home');
     expect(links[1].textContent).toEqual('remote1');
     expect(links[2].textContent).toEqual('path1');
     expect(links[3].textContent).toEqual('path2');
     expect(
-      fixture.nativeElement.querySelector('[data-testid="breadcrumb-text"]')
-        .textContent,
+      fixture.nativeElement.querySelector('[data-testid="breadcrumb-text"]').textContent,
     ).toEqual('path3');
   });
 
@@ -60,14 +57,11 @@ describe('FolderBreadcrumbsComponent', () => {
     expect(component).toBeTruthy();
 
     // Assert component has the right text
-    const links: HTMLElement[] = Array.from(
-      fixture.nativeElement.querySelectorAll('a'),
-    );
+    const links: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('a'));
     expect(links.length).toEqual(1);
     expect(links[0].textContent).toEqual('Home');
     expect(
-      fixture.nativeElement.querySelector('[data-testid="breadcrumb-text"]')
-        .textContent,
+      fixture.nativeElement.querySelector('[data-testid="breadcrumb-text"]').textContent,
     ).toEqual('remote1');
   });
 
@@ -91,15 +85,12 @@ describe('FolderBreadcrumbsComponent', () => {
     expect(component).toBeTruthy();
 
     // Assert component has the right text
-    const links: HTMLElement[] = Array.from(
-      fixture.nativeElement.querySelectorAll('a'),
-    );
+    const links: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('a'));
     expect(links.length).toEqual(2);
     expect(links[0].textContent).toEqual('Home');
     expect(links[1].textContent).toEqual('remote1');
     expect(
-      fixture.nativeElement.querySelector('[data-testid="breadcrumb-text"]')
-        .textContent,
+      fixture.nativeElement.querySelector('[data-testid="breadcrumb-text"]').textContent,
     ).toEqual('path1');
   });
 });

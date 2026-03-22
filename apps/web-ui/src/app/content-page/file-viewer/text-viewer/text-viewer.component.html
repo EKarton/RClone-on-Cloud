@@ -4,10 +4,8 @@
   @if (textContent() === null) {
     <span class="loading loading-spinner loading-md"></span>
   } @else {
-    <pre
-      class="text-sm font-mono whitespace-pre-wrap break-words"
-      data-testid="text-viewer"
-      >{{ textContent() }}</pre
-    >
+    <pre class="text-sm font-mono whitespace-pre-wrap break-words" data-testid="text-viewer">{{
+      textContent()
+    }}</pre>
   }
 </div>

@@ -52,9 +52,7 @@ export class FolderListCardsComponent {
                   if (item.isDir) {
                     this.router.navigate([
                       '/folders',
-                      Buffer.from(`${remote}:${item.path}`)
-                        .toString('base64')
-                        .replace(/=/g, ''),
+                      Buffer.from(`${remote}:${item.path}`).toString('base64').replace(/=/g, ''),
                     ]);
                   } else {
                     this.store.dispatch(

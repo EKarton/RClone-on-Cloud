@@ -24,9 +24,7 @@ export class FileViewerStore extends ComponentStore<FileViewerState> {
     super(INITIAL_STATE);
   }
 
-  readonly fileContentResult = this.selectSignal(
-    (state) => state.fileContentResult,
-  );
+  readonly fileContentResult = this.selectSignal((state) => state.fileContentResult);
 
   private readonly setFileContentResult = this.updater(
     (state: FileViewerState, response: Result<Blob>): FileViewerState => ({

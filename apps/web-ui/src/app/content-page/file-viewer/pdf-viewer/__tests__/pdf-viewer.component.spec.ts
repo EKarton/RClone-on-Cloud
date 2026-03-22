@@ -16,9 +16,7 @@ describe('PdfViewerComponent', () => {
     fixture.componentRef.setInput('blobUrl', 'blob:http://localhost/test-pdf');
     fixture.detectChanges();
 
-    const iframe = fixture.nativeElement.querySelector(
-      '[data-testid="pdf-viewer"]',
-    );
+    const iframe = fixture.nativeElement.querySelector('[data-testid="pdf-viewer"]');
     expect(iframe).toBeTruthy();
     expect(iframe.tagName).toBe('IFRAME');
     expect(iframe.src).toContain('blob:http://localhost/test-pdf');
@@ -35,9 +33,7 @@ describe('PdfViewerComponent', () => {
     fixture.componentRef.setInput('blobUrl', 'blob:http://localhost/second');
     fixture.detectChanges();
 
-    const iframe = fixture.nativeElement.querySelector(
-      '[data-testid="pdf-viewer"]',
-    );
+    const iframe = fixture.nativeElement.querySelector('[data-testid="pdf-viewer"]');
     expect(iframe.src).toContain('blob:http://localhost/second');
   });
 });

@@ -1,9 +1,7 @@
 @if (itemsResult() | isPending) {
   <div data-testid="item-skeleton" class="skeleton w-32 h-16 rounded-md"></div>
 } @else if (itemsResult() | hasFailed) {
-  <span data-testid="item-error">
-    Error: {{ itemsResult().error!.message }}
-  </span>
+  <span data-testid="item-error"> Error: {{ itemsResult().error!.message }} </span>
 } @else {
   <div class="flex flex-wrap gap-4">
     @for (item of itemsResult().data!; track item.name) {

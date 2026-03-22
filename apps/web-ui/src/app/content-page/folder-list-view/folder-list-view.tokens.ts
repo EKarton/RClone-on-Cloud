@@ -8,9 +8,7 @@ export interface RemotePath {
   path: string | undefined;
 }
 
-export const REMOTE_PATH$ = new InjectionToken<Observable<RemotePath>>(
-  'REMOTE_PATH',
-);
+export const REMOTE_PATH$ = new InjectionToken<Observable<RemotePath>>('REMOTE_PATH');
 
 export const REMOTE_PATH$_PROVIDER: FactoryProvider = {
   provide: REMOTE_PATH$,

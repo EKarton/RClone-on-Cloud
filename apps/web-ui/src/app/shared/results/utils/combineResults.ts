@@ -1,9 +1,6 @@
 import { Result, toFailure, toPending } from '../results';
 
-export function combineResults<T, U>(
-  results: Result<T>[],
-  mapper: (value: T[]) => U,
-): Result<U> {
+export function combineResults<T, U>(results: Result<T>[], mapper: (value: T[]) => U): Result<U> {
   const someError = results.find((result) => result.error)?.error;
   if (someError) {
     return toFailure<U>(someError);

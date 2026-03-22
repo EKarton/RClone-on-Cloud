@@ -5,10 +5,7 @@
 <div class="mb-4xl">
   @if (remotesResult$ | async; as remotesResult) {
     @if (remotesResult | isPending) {
-      <div
-        data-testid="remote-skeleton"
-        class="skeleton w-32 h-16 rounded-md"
-      ></div>
+      <div data-testid="remote-skeleton" class="skeleton w-32 h-16 rounded-md"></div>
     } @else if (remotesResult | hasFailed) {
       <span data-testid="remotes-error" class="text-error">
         Error: {{ remotesResult.error!.message }}

@@ -1,14 +1,7 @@
-import {
-  HttpClient,
-  provideHttpClient,
-  withInterceptors,
-} from '@angular/common/http';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { vi } from 'vitest';
+import { Mock, vi } from 'vitest';
 
 import { environment } from '../../../../environments/environment';
 import { WINDOW } from '../../../app.tokens';
@@ -18,7 +11,7 @@ describe('webApiAuthRequestInterceptor', () => {
   let httpClient: HttpClient;
   let httpMock: HttpTestingController;
   let windowMock: {
-    localStorage: { setItem: any };
+    localStorage: { setItem: Mock };
     location: { href: string; pathname: string };
   };
 
@@ -66,9 +59,7 @@ describe('webApiAuthRequestInterceptor', () => {
       });
     });
 
-    httpMock
-      .expectOne(testUrl)
-      .flush('', { status: 401, statusText: 'Unauthorized' });
+    httpMock.expectOne(testUrl).flush('', { status: 401, statusText: 'Unauthorized' });
 
     await promise;
   });
@@ -83,9 +74,7 @@ describe('webApiAuthRequestInterceptor', () => {
       },
     });
 
-    httpMock
-      .expectOne(testUrl)
-      .flush('', { status: 401, statusText: 'Unauthorized' });
+    httpMock.expectOne(testUrl).flush('', { status: 401, statusText: 'Unauthorized' });
   });
 
   it('should pass through non-401 errors', () => {
@@ -98,9 +87,7 @@ describe('webApiAuthRequestInterceptor', () => {
       },
     });
 
-    httpMock
-      .expectOne(testUrl)
-      .flush('', { status: 500, statusText: 'Internal Server Error' });
+    httpMock.expectOne(testUrl).flush('', { status: 500, statusText: 'Internal Server Error' });
   });
 
   it('should pass through successful requests', () => {

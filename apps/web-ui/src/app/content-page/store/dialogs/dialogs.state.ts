@@ -17,8 +17,7 @@ export const initialState: DialogState = {
 export const FEATURE_KEY = 'Dialog';
 
 /** Returns the entire state of the dialog store */
-export const selectDialogState =
-  createFeatureSelector<DialogState>(FEATURE_KEY);
+export const selectDialogState = createFeatureSelector<DialogState>(FEATURE_KEY);
 
 /** Returns the request for a particular dialog type if that dialog type is the top most dialog */
 export const selectTopDialogRequest = <T extends BaseDialogRequest>(
@@ -26,8 +25,7 @@ export const selectTopDialogRequest = <T extends BaseDialogRequest>(
   ctor: new (...args: any[]) => T,
 ) =>
   createSelector(selectDialogState, (state) =>
-    state.requests.length > 0 &&
-    state.requests[state.requests.length - 1] instanceof ctor
+    state.requests.length > 0 && state.requests[state.requests.length - 1] instanceof ctor
       ? (state.requests[state.requests.length - 1] as T)
       : null,
   );

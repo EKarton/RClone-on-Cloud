@@ -10,22 +10,16 @@
   @if (usageResult$ | async; as usageResult) {
     <div class="text-xs">
       @if (usageResult | isPending) {
-        <div
-          data-testid="remote-space-skeleton"
-          class="skeleton w-64 h-4 rounded-md"
-        ></div>
+        <div data-testid="remote-space-skeleton" class="skeleton w-64 h-4 rounded-md"></div>
       } @else if (usageResult | hasFailed) {
-        <span data-testid="remote-space-error">
-          Unable to get space information
-        </span>
+        <span data-testid="remote-space-error"> Unable to get space information </span>
       } @else {
         <span data-testid="remote-space-info">
           @let usage = usageResult.data;
 
           @if (usage?.used !== undefined) {
             @if (usage?.total !== undefined) {
-              {{ usage!.used! | prettyBytes }} /
-              {{ usage!.total! | prettyBytes }} used,
+              {{ usage!.used! | prettyBytes }} / {{ usage!.total! | prettyBytes }} used,
             } @else {
               {{ usage!.used! | prettyBytes }} used,
             }

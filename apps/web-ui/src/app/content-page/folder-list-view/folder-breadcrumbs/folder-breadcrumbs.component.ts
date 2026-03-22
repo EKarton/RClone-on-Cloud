@@ -1,12 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  ElementRef,
-  inject,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { Component, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { Buffer } from 'buffer';
 import { map, Observable, Subscription } from 'rxjs';
@@ -32,54 +25,53 @@ export class FolderBreadcrumbsComponent implements OnInit, OnDestroy {
 
   private readonly subscriptions = new Subscription();
 
-  readonly breadcrumbItems$: Observable<BreadcrumbItem[]> =
-    this.remotePath$.pipe(
-      map((remotePath) => {
-        const breadcrumbs: BreadcrumbItem[] = [
-          {
-            id: 'home',
-            text: 'Home',
-            routerLink: '/remotes',
-          },
-        ];
+  readonly breadcrumbItems$: Observable<BreadcrumbItem[]> = this.remotePath$.pipe(
+    map((remotePath) => {
+      const breadcrumbs: BreadcrumbItem[] = [
+        {
+          id: 'home',
+          text: 'Home',
+          routerLink: '/remotes',
+        },
+      ];
 
-        const folders = remotePath.path?.split('/') ?? [];
+      const folders = remotePath.path?.split('/') ?? [];
+
+      breadcrumbs.push({
+        id: remotePath.remote,
+        text: remotePath.remote,
+        routerLink:
+          folders.length > 0
+            ? `/folders/${Buffer.from(`${remotePath.remote}:`).toString('base64').replace(/=/g, '')}`
+            : undefined,
+      });
+
+      const pastFolderNames = folders.slice(0, folders.length - 1);
+      const curFolderName = folders[folders.length - 1];
+      let prevPath: string | null = null;
+
+      for (const folder of pastFolderNames) {
+        const curLink: string = prevPath ? `${prevPath}/${folder}` : folder;
 
         breadcrumbs.push({
-          id: remotePath.remote,
-          text: remotePath.remote,
-          routerLink:
-            folders.length > 0
-              ? `/folders/${Buffer.from(`${remotePath.remote}:`).toString('base64').replace(/=/g, '')}`
-              : undefined,
+          id: `${remotePath.remote}:${curLink}`,
+          text: folder,
+          routerLink: `/folders/${Buffer.from(`${remotePath.remote}:${curLink}`).toString('base64').replace(/=/g, '')}`,
         });
+        prevPath = curLink;
+      }
 
-        const pastFolderNames = folders.slice(0, folders.length - 1);
-        const curFolderName = folders[folders.length - 1];
-        let prevPath: string | null = null;
+      if (curFolderName) {
+        breadcrumbs.push({
+          id: `${remotePath.remote}:${prevPath}/${curFolderName}`,
+          text: curFolderName,
+          routerLink: undefined,
+        });
+      }
 
-        for (const folder of pastFolderNames) {
-          const curLink: string = prevPath ? `${prevPath}/${folder}` : folder;
-
-          breadcrumbs.push({
-            id: `${remotePath.remote}:${curLink}`,
-            text: folder,
-            routerLink: `/folders/${Buffer.from(`${remotePath.remote}:${curLink}`).toString('base64').replace(/=/g, '')}`,
-          });
-          prevPath = curLink;
-        }
-
-        if (curFolderName) {
-          breadcrumbs.push({
-            id: `${remotePath.remote}:${prevPath}/${curFolderName}`,
-            text: curFolderName,
-            routerLink: undefined,
-          });
-        }
-
-        return breadcrumbs;
-      }),
-    );
+      return breadcrumbs;
+    }),
+  );
 
   ngOnInit(): void {
     this.subscriptions.add(

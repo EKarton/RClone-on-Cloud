@@ -14,7 +14,4 @@ export const FEATURE_KEY = 'Theme';
 
 export const selectThemeState = createFeatureSelector<ThemeState>(FEATURE_KEY);
 
-export const selectIsDarkMode = createSelector(
-  selectThemeState,
-  (state) => state.isDarkMode,
-);
+export const selectIsDarkMode = createSelector(selectThemeState, (state) => state.isDarkMode);

@@ -53,9 +53,7 @@ describe('FolderSortDropdownComponent', () => {
     descRadio.click();
     fixture.detectChanges();
 
-    expect(component.sortBy().direction).toBe(
-      ListAlbumsSortDirection.DESCENDING,
-    );
+    expect(component.sortBy().direction).toBe(ListAlbumsSortDirection.DESCENDING);
     expect(descRadio.checked).toBe(true);
     expect(getSortAscendingRadioButton().checked).toBe(false);
   });
@@ -68,9 +66,7 @@ describe('FolderSortDropdownComponent', () => {
     ascRadio.click();
     fixture.detectChanges();
 
-    expect(component.sortBy().direction).toBe(
-      ListAlbumsSortDirection.ASCENDING,
-    );
+    expect(component.sortBy().direction).toBe(ListAlbumsSortDirection.ASCENDING);
     expect(ascRadio.checked).toBe(true);
     expect(getSortDescendingRadioButton().checked).toBe(false);
   });

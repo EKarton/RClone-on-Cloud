@@ -7,17 +7,13 @@
       @for (breadcrumb of breadcrumbItems; track breadcrumb.id) {
         <li>
           @if (breadcrumb.routerLink) {
-            <a
-              data-testid="breadcrumb-link"
-              [routerLink]="breadcrumb.routerLink"
-              >{{ breadcrumb.text }}</a
-            >
+            <a data-testid="breadcrumb-link" [routerLink]="breadcrumb.routerLink">{{
+              breadcrumb.text
+            }}</a>
           } @else {
-            <span
-              data-testid="breadcrumb-text"
-              class="pointer-events-none cursor-default"
-              >{{ breadcrumb.text }}</span
-            >
+            <span data-testid="breadcrumb-text" class="pointer-events-none cursor-default">{{
+              breadcrumb.text
+            }}</span>
           }
         </li>
       }

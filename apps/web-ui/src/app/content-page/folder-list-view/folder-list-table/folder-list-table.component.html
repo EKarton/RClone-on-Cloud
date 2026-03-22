@@ -2,10 +2,7 @@
   <table class="table">
     <thead>
       <tr>
-        <th
-          (click)="toggleSort('name')"
-          class="cursor-pointer hover:bg-base-200 select-none"
-        >
+        <th (click)="toggleSort('name')" class="cursor-pointer hover:bg-base-200 select-none">
           <div class="flex items-center gap-1">
             Name
             @if (sortConfig()?.field === 'name') {
@@ -68,10 +65,7 @@
             }
           </div>
         </th>
-        <th
-          (click)="toggleSort('size')"
-          class="cursor-pointer hover:bg-base-200 select-none"
-        >
+        <th (click)="toggleSort('size')" class="cursor-pointer hover:bg-base-200 select-none">
           <div class="flex items-center gap-1">
             Size
             @if (sortConfig()?.field === 'size') {
@@ -101,10 +95,7 @@
             }
           </div>
         </th>
-        <th
-          (click)="toggleSort('mimeType')"
-          class="cursor-pointer hover:bg-base-200 select-none"
-        >
+        <th (click)="toggleSort('mimeType')" class="cursor-pointer hover:bg-base-200 select-none">
           <div class="flex items-center gap-1">
             Type
             @if (sortConfig()?.field === 'mimeType') {

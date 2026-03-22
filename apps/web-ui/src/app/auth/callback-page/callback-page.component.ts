@@ -53,8 +53,7 @@ export class CallbackPageComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.authTokenResult$.pipe(filterOnlySuccess()).subscribe(({ token }) => {
         this.store.dispatch(authActions.setAuthToken({ authToken: token }));
-        const redirectPath =
-          this.window.localStorage.getItem('auth_redirect_path') ?? '/remotes';
+        const redirectPath = this.window.localStorage.getItem('auth_redirect_path') ?? '/remotes';
 
         this.router.navigate([redirectPath]);
       }),

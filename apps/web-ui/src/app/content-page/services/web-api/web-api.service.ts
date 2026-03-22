@@ -18,10 +18,7 @@ export class WebApiService {
   private readonly store = inject(Store);
 
   /** Lists the contents of a folder */
-  listFolder(
-    remote: string,
-    path: string,
-  ): Observable<Result<ListFolderResponse>> {
+  listFolder(remote: string, path: string): Observable<Result<ListFolderResponse>> {
     const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/list`;
     const requestBody = {
       fs: `${remote}:`,

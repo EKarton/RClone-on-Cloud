@@ -13,8 +13,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    loadChildren: () =>
-      import('./content-page/content-page.routes').then((m) => m.routes),
+    loadChildren: () => import('./content-page/content-page.routes').then((m) => m.routes),
   },
   { path: '404', component: NotFoundPageComponent },
   { path: '**', redirectTo: '404' },

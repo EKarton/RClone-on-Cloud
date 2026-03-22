@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideMockStore } from '@ngrx/store/testing';
 import { CookieService } from 'ngx-cookie-service';
-import { vi } from 'vitest';
+import { Mock, vi } from 'vitest';
 
 import { environment } from '../../../environments/environment';
 import { WINDOW } from '../../app.tokens';
@@ -12,7 +12,7 @@ describe('HomePageComponent', () => {
   let component: HomePageComponent;
   let fixture: ComponentFixture<HomePageComponent>;
   let mockWindow: {
-    localStorage: { removeItem: any; setItem: any };
+    localStorage: { removeItem: Mock; setItem: Mock };
     pageYOffset: number;
     location: { href: string; pathname: string };
     document: { cookie: string };
@@ -110,19 +110,13 @@ describe('HomePageComponent', () => {
   });
 
   it('should clear auth redirect local storage, generate state, and redirect to login URL with state on handleLoginClick', () => {
-    vi.spyOn(crypto, 'randomUUID').mockReturnValue(
-      '123e4567-e89b-12d3-a456-426614174000',
-    );
-    const button = fixture.nativeElement.querySelector(
-      '[data-test-id="login-button"]',
-    );
+    vi.spyOn(crypto, 'randomUUID').mockReturnValue('123e4567-e89b-12d3-a456-426614174000');
+    const button = fixture.nativeElement.querySelector('[data-test-id="login-button"]');
     button.click();
 
     const expectedHref = `${environment.loginUrl}?select_account=true&state=123e4567-e89b-12d3-a456-426614174000`;
     expect(mockWindow.location.href).toBe(expectedHref);
-    expect(mockWindow.localStorage.removeItem).toHaveBeenCalledWith(
-      'auth_redirect_path',
-    );
+    expect(mockWindow.localStorage.removeItem).toHaveBeenCalledWith('auth_redirect_path');
     expect(cookieService.set).toHaveBeenCalled();
   });
 });

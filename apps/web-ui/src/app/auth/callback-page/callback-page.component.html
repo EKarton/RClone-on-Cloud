@@ -4,8 +4,7 @@
       <h2 class="card-title">
         @if (authTokenResult$ | async; as authTokenResult) {
           @if (authTokenResult | isPending) {
-            <span class="loading loading-spinner loading-lg"></span> Logging
-            in...
+            <span class="loading loading-spinner loading-lg"></span> Logging in...
           } @else if (authTokenResult | hasFailed) {
             <span>Error: {{ authTokenResult.error!.message }}</span>
           } @else {

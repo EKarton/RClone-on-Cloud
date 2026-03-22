@@ -20,9 +20,7 @@ describe('Auth Actions', () => {
       });
       const action = loadAuthResult({ result });
 
-      expect(action.type).toBe(
-        '[Auth] Saves results of getting auth details of a user',
-      );
+      expect(action.type).toBe('[Auth] Saves results of getting auth details of a user');
       expect(action.result).toEqual(result);
     });
   });

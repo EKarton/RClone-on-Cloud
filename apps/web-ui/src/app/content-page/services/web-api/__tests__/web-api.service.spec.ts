@@ -1,22 +1,12 @@
 import { provideHttpClient } from '@angular/common/http';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideMockStore } from '@ngrx/store/testing';
 
 import { environment } from '../../../../../environments/environment';
 import { authState } from '../../../../auth/store';
-import {
-  Result,
-  toPending,
-  toSuccess,
-} from '../../../../shared/results/results';
-import {
-  ListFolderResponse,
-  RawListFolderResponse,
-} from '../types/list-folder';
+import { Result, toPending, toSuccess } from '../../../../shared/results/results';
+import { ListFolderResponse, RawListFolderResponse } from '../types/list-folder';
 import { ListRemoteUsageResponse } from '../types/list-remote-usage';
 import { ListRemotesResponse } from '../types/list-remotes';
 import { WebApiService } from '../web-api.service';
@@ -64,9 +54,7 @@ describe('WebApiService', () => {
       );
 
       expect(req.request.method).toBe('POST');
-      expect(req.request.headers.get('Authorization')).toEqual(
-        'Bearer mockAccessToken',
-      );
+      expect(req.request.headers.get('Authorization')).toEqual('Bearer mockAccessToken');
       req.flush(mockResponse);
 
       expect(emissions).toEqual([toPending(), toSuccess(mockResponse)]);
@@ -121,14 +109,10 @@ describe('WebApiService', () => {
         emissions.push(response);
       });
 
-      const req = httpMock.expectOne(
-        `${environment.webApiEndpoint}/api/v1/rclone/operations/list`,
-      );
+      const req = httpMock.expectOne(`${environment.webApiEndpoint}/api/v1/rclone/operations/list`);
 
       expect(req.request.method).toBe('POST');
-      expect(req.request.headers.get('Authorization')).toEqual(
-        'Bearer mockAccessToken',
-      );
+      expect(req.request.headers.get('Authorization')).toEqual('Bearer mockAccessToken');
       expect(req.request.body).toEqual({
         fs: 'my-remote:',
         remote: 'my-path',
@@ -160,9 +144,7 @@ describe('WebApiService', () => {
       );
 
       expect(req.request.method).toBe('POST');
-      expect(req.request.headers.get('Authorization')).toEqual(
-        'Bearer mockAccessToken',
-      );
+      expect(req.request.headers.get('Authorization')).toEqual('Bearer mockAccessToken');
       expect(req.request.body).toEqual({ fs: 'my-remote:' });
 
       req.flush(mockResponse);
@@ -176,20 +158,16 @@ describe('WebApiService', () => {
       const mockBlob = new Blob(['File Content'], { type: 'text/plain' });
 
       const emissions: Result<Blob>[] = [];
-      service
-        .fetchFileContent('my-remote', 'my-dir', 'my-file.txt')
-        .subscribe((response) => {
-          emissions.push(response);
-        });
+      service.fetchFileContent('my-remote', 'my-dir', 'my-file.txt').subscribe((response) => {
+        emissions.push(response);
+      });
 
       const req = httpMock.expectOne(
         `${environment.webApiEndpoint}/api/v1/rclone/[my-remote:]my-dir/my-file.txt`,
       );
 
       expect(req.request.method).toBe('GET');
-      expect(req.request.headers.get('Authorization')).toEqual(
-        'Bearer mockAccessToken',
-      );
+      expect(req.request.headers.get('Authorization')).toEqual('Bearer mockAccessToken');
       expect(req.request.responseType).toBe('blob');
 
       req.flush(mockBlob);
@@ -201,20 +179,16 @@ describe('WebApiService', () => {
       const mockBlob = new Blob(['File Content'], { type: 'text/plain' });
 
       const emissions: Result<Blob>[] = [];
-      service
-        .fetchFileContent('my-remote', undefined, 'my-file.txt')
-        .subscribe((response) => {
-          emissions.push(response);
-        });
+      service.fetchFileContent('my-remote', undefined, 'my-file.txt').subscribe((response) => {
+        emissions.push(response);
+      });
 
       const req = httpMock.expectOne(
         `${environment.webApiEndpoint}/api/v1/rclone/[my-remote:]my-file.txt`,
       );
 
       expect(req.request.method).toBe('GET');
-      expect(req.request.headers.get('Authorization')).toEqual(
-        'Bearer mockAccessToken',
-      );
+      expect(req.request.headers.get('Authorization')).toEqual('Bearer mockAccessToken');
       expect(req.request.responseType).toBe('blob');
 
       req.flush(mockBlob);

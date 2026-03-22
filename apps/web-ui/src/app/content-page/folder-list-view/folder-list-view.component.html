@@ -16,9 +16,6 @@
   @if (filesListViewOption() === ListViewOptions.TABLE) {
     <app-folder-list-table [contentsResult]="contentsResult()" />
   } @else {
-    <app-folder-list-cards
-      [sortBy]="filesSortBy()"
-      [contentsResult]="contentsResult()"
-    />
+    <app-folder-list-cards [sortBy]="filesSortBy()" [contentsResult]="contentsResult()" />
   }
 </div>

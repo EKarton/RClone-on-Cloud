@@ -3,10 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Buffer } from 'buffer';
 import { of } from 'rxjs';
 
-import {
-  REMOTE_PATH$,
-  REMOTE_PATH$_PROVIDER,
-} from '../folder-list-view.tokens';
+import { REMOTE_PATH$, REMOTE_PATH$_PROVIDER } from '../folder-list-view.tokens';
 
 describe('REMOTE_PATH$ Token', () => {
   it('should throw error if no remotePath is provided', async () => {

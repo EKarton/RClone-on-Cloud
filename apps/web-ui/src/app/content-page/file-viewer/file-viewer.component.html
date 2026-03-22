@@ -2,9 +2,7 @@
   @let fileDetails = fileDetailsResult();
 
   <!-- Top bar -->
-  <div
-    class="flex justify-between items-center w-full absolute top-0 left-0 px-4 py-3 z-10"
-  >
+  <div class="flex justify-between items-center w-full absolute top-0 left-0 px-4 py-3 z-10">
     <div class="text-sm font-medium truncate max-w-[60%]">
       @if (fileDetails | hasSucceeded) {
         <span data-testid="file-viewer-filename">
@@ -53,11 +51,7 @@
           stroke="currentColor"
           class="size-5"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M6 18 18 6M6 6l12 12"
-          />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
         </svg>
       </button>
     </div>
@@ -70,10 +64,7 @@
     @if (fileDetails | isPending) {
       <span class="loading loading-spinner loading-lg"></span>
     } @else if (fileDetails | hasFailed) {
-      <div
-        class="bg-base-200 rounded-lg p-6 text-error"
-        data-testid="file-viewer-error"
-      >
+      <div class="bg-base-200 rounded-lg p-6 text-error" data-testid="file-viewer-error">
         Error loading file: {{ fileDetails.error!.message }}
       </div>
     } @else {

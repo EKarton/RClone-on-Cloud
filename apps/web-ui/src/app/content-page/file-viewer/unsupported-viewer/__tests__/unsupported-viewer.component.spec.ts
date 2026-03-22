@@ -17,9 +17,7 @@ describe('UnsupportedViewerComponent', () => {
     fixture.componentRef.setInput('blobUrl', 'blob:http://localhost/test');
     fixture.detectChanges();
 
-    const message = fixture.nativeElement.querySelector(
-      '[data-testid="unsupported-viewer"]',
-    );
+    const message = fixture.nativeElement.querySelector('[data-testid="unsupported-viewer"]');
     expect(message).toBeTruthy();
     expect(message.textContent).toContain('This file type cannot be previewed');
   });

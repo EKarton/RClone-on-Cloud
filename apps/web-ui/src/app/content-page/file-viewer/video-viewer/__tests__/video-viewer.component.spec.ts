@@ -13,15 +13,10 @@ describe('VideoViewerComponent', () => {
 
   it('should render a video element with the provided blobUrl', () => {
     fixture = TestBed.createComponent(VideoViewerComponent);
-    fixture.componentRef.setInput(
-      'blobUrl',
-      'blob:http://localhost/test-video',
-    );
+    fixture.componentRef.setInput('blobUrl', 'blob:http://localhost/test-video');
     fixture.detectChanges();
 
-    const video = fixture.nativeElement.querySelector(
-      '[data-testid="video-viewer"]',
-    );
+    const video = fixture.nativeElement.querySelector('[data-testid="video-viewer"]');
     expect(video).toBeTruthy();
     expect(video.src).toBe('blob:http://localhost/test-video');
     expect(video.controls).toBe(true);

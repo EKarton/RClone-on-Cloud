@@ -1,18 +1,9 @@
-import {
-  hasFailed,
-  isPending,
-  Result,
-  toFailure,
-  toPending,
-  toSuccess,
-} from '../../results'; // adjust the import path as needed
+import { hasFailed, isPending, Result, toFailure, toPending, toSuccess } from '../../results'; // adjust the import path as needed
 import { mapResultt } from '../mapResultt'; // adjust the import path as needed
 
 describe('mapResultt', () => {
-  const successMapper = (value: number): Result<string> =>
-    toSuccess(value.toString());
-  const failureMapper = (): Result<string> =>
-    toFailure(new Error('Mapper error'));
+  const successMapper = (value: number): Result<string> => toSuccess(value.toString());
+  const failureMapper = (): Result<string> => toFailure(new Error('Mapper error'));
   const pendingMapper = (): Result<string> => toPending();
 
   it('should return pending when input is pending', () => {
@@ -49,8 +40,7 @@ describe('mapResultt', () => {
   });
 
   it('should work with complex input types', () => {
-    const complexMapper = (value: { x: number; y: string }): Result<number> =>
-      toSuccess(value.x);
+    const complexMapper = (value: { x: number; y: string }): Result<number> => toSuccess(value.x);
     const result: Result<{ x: number; y: string }> = toSuccess({
       x: 5,
       y: 'test',

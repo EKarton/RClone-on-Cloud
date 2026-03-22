@@ -1,9 +1,6 @@
 import { hasFailed, isPending, Result, toFailure, toPending } from '../results';
 
-export function mapResultt<T, U>(
-  result: Result<T>,
-  mapper: (value: T) => Result<U>,
-): Result<U> {
+export function mapResultt<T, U>(result: Result<T>, mapper: (value: T) => Result<U>): Result<U> {
   if (isPending(result)) {
     return toPending<U>();
   }

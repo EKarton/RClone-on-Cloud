@@ -1,9 +1,4 @@
-import {
-  AuthState,
-  buildInitialState,
-  selectAuthState,
-  selectAuthToken,
-} from '../auth.state';
+import { AuthState, buildInitialState, selectAuthState, selectAuthToken } from '../auth.state';
 
 describe('Auth Selectors', () => {
   let initialState: AuthState;

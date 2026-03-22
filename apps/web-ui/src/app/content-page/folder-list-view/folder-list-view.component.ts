@@ -1,11 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  inject,
-  Signal,
-  signal,
-  WritableSignal,
-} from '@angular/core';
+import { Component, inject, Signal, signal, WritableSignal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterModule } from '@angular/router';
 import { map, switchMap } from 'rxjs/operators';
@@ -54,23 +48,17 @@ export class FolderListViewComponent {
     direction: ListAlbumsSortDirection.ASCENDING,
   });
 
-  filesListViewOption: WritableSignal<ListViewOptions> = signal(
-    ListViewOptions.LIST,
-  );
+  filesListViewOption: WritableSignal<ListViewOptions> = signal(ListViewOptions.LIST);
 
   readonly contentsResult: Signal<Result<ListFolderResponse>> = toSignal(
     this.remotePath$.pipe(
-      switchMap(({ remote, path }) =>
-        this.webApiService.listFolder(remote, path ?? ''),
-      ),
+      switchMap(({ remote, path }) => this.webApiService.listFolder(remote, path ?? '')),
     ),
     { initialValue: toPending<ListFolderResponse>() },
   );
 
   readonly currentFolder = toSignal(
-    this.remotePath$.pipe(
-      map(({ remote, path }) => path?.split('/').pop() ?? remote),
-    ),
+    this.remotePath$.pipe(map(({ remote, path }) => path?.split('/').pop() ?? remote)),
     { initialValue: '' },
   );
 }

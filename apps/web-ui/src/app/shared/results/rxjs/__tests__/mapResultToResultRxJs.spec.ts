@@ -4,10 +4,8 @@ import { Result, toFailure, toPending, toSuccess } from '../../results';
 import { mapResultToResultRxJs } from '../mapResultToResultRxJs';
 
 describe('mapResultToResultRxJs', () => {
-  const successMapper = (value: number): Result<string> =>
-    toSuccess(value.toString());
-  const failureMapper = (): Result<string> =>
-    toFailure(new Error('Mapper error'));
+  const successMapper = (value: number): Result<string> => toSuccess(value.toString());
+  const failureMapper = (): Result<string> => toFailure(new Error('Mapper error'));
 
   it('should map successful results using the provided mapper', async () => {
     const source$ = of(toSuccess(1), toSuccess(2), toSuccess(3));

@@ -13,13 +13,7 @@ import { WebApiService } from '../../services/web-api/web-api.service';
 @Component({
   standalone: true,
   selector: 'app-remote-card',
-  imports: [
-    CommonModule,
-    RouterModule,
-    HasFailedPipe,
-    IsPendingPipe,
-    PrettyBytesPipe,
-  ],
+  imports: [CommonModule, RouterModule, HasFailedPipe, IsPendingPipe, PrettyBytesPipe],
   templateUrl: './remote-card.component.html',
 })
 export class RemoteCardComponent {

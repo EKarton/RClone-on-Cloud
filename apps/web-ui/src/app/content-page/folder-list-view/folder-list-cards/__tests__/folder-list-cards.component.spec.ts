@@ -6,11 +6,7 @@ import { Buffer } from 'buffer';
 import { BehaviorSubject } from 'rxjs';
 import { vi } from 'vitest';
 
-import {
-  toFailure,
-  toPending,
-  toSuccess,
-} from '../../../../shared/results/results';
+import { toFailure, toPending, toSuccess } from '../../../../shared/results/results';
 import { FileViewerRequest } from '../../../file-viewer/file-viewer.request';
 import { ListFolderResponse } from '../../../services/web-api/types/list-folder';
 import { dialogsActions } from '../../../store/dialogs';
@@ -51,22 +47,15 @@ describe('FolderListCardsComponent', () => {
     fixture.componentRef.setInput('contentsResult', toPending());
     fixture.detectChanges();
 
-    expect(
-      fixture.nativeElement.querySelector('[data-testid="item-skeleton"]'),
-    ).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('[data-testid="item-skeleton"]')).toBeTruthy();
   });
 
   it('should render error when content results failed', () => {
     fixture.componentRef.setInput('sortBy', 'name');
-    fixture.componentRef.setInput(
-      'contentsResult',
-      toFailure(new Error('test')),
-    );
+    fixture.componentRef.setInput('contentsResult', toFailure(new Error('test')));
     fixture.detectChanges();
 
-    expect(
-      fixture.nativeElement.querySelector('[data-testid="item-error"]'),
-    ).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('[data-testid="item-error"]')).toBeTruthy();
     expect(fixture.nativeElement.textContent).toContain('Error: test');
   });
 
@@ -89,15 +78,10 @@ describe('FolderListCardsComponent', () => {
     };
 
     fixture.componentRef.setInput('sortBy', 'name');
-    fixture.componentRef.setInput(
-      'contentsResult',
-      toSuccess(mockFolderResponse),
-    );
+    fixture.componentRef.setInput('contentsResult', toSuccess(mockFolderResponse));
     fixture.detectChanges();
 
-    const items = fixture.nativeElement.querySelectorAll(
-      '[data-testid="item"]',
-    );
+    const items = fixture.nativeElement.querySelectorAll('[data-testid="item"]');
     expect(items.length).toBe(2);
     expect(items[0].textContent).toContain('dir1');
     expect(items[1].textContent).toContain('file1.txt');
@@ -115,20 +99,13 @@ describe('FolderListCardsComponent', () => {
       ],
     };
     fixture.componentRef.setInput('sortBy', 'name');
-    fixture.componentRef.setInput(
-      'contentsResult',
-      toSuccess(mockFolderResponse),
-    );
+    fixture.componentRef.setInput('contentsResult', toSuccess(mockFolderResponse));
     fixture.detectChanges();
 
-    const items = fixture.nativeElement.querySelectorAll(
-      '[data-testid="item"]',
-    );
+    const items = fixture.nativeElement.querySelectorAll('[data-testid="item"]');
     items[0].click();
 
-    const expectedBase64 = Buffer.from('my-remote:dir1')
-      .toString('base64')
-      .replace(/=/g, '');
+    const expectedBase64 = Buffer.from('my-remote:dir1').toString('base64').replace(/=/g, '');
     expect(router.navigate).toHaveBeenCalledWith(['/folders', expectedBase64]);
   });
 
@@ -145,15 +122,10 @@ describe('FolderListCardsComponent', () => {
     };
 
     fixture.componentRef.setInput('sortBy', 'name');
-    fixture.componentRef.setInput(
-      'contentsResult',
-      toSuccess(mockFolderResponse),
-    );
+    fixture.componentRef.setInput('contentsResult', toSuccess(mockFolderResponse));
     fixture.detectChanges();
 
-    const items = fixture.nativeElement.querySelectorAll(
-      '[data-testid="item"]',
-    );
+    const items = fixture.nativeElement.querySelectorAll('[data-testid="item"]');
     items[0].click();
 
     const expectedRequest = new FileViewerRequest(

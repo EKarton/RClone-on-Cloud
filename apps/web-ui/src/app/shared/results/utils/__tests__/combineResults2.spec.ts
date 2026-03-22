@@ -65,8 +65,6 @@ describe('combineResults2', () => {
     const result2 = toSuccess('test');
 
     const combined = combineResults2(result1, result2, complexMapper);
-    expect(combined).toEqual(
-      toSuccess({ num: 5, str: 'test', combined: '5-test' }),
-    );
+    expect(combined).toEqual(toSuccess({ num: 5, str: 'test', combined: '5-test' }));
   });
 });

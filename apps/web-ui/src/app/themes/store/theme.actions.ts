@@ -7,7 +7,4 @@ export const loadSavedTheme = createAction('[Theme] Load saved theme');
 export const toggleTheme = createAction('[Theme] Toggle theme');
 
 /** An action that changes the theme to a set theme. */
-export const setTheme = createAction(
-  '[Theme] Set theme',
-  props<{ isDark: boolean }>(),
-);
+export const setTheme = createAction('[Theme] Set theme', props<{ isDark: boolean }>());

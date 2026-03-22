@@ -1,11 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  input,
-  Signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, Signal } from '@angular/core';
 import { computed, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterModule } from '@angular/router';
@@ -16,12 +10,7 @@ import prettyBytes from 'pretty-bytes';
 import { RangePipe } from '../../../shared/pipes/range.pipe';
 import { HasFailedPipe } from '../../../shared/results/pipes/has-failed.pipe';
 import { IsPendingPipe } from '../../../shared/results/pipes/is-pending.pipe';
-import {
-  hasSucceed,
-  Result,
-  toPending,
-  toSuccess,
-} from '../../../shared/results/results';
+import { hasSucceed, Result, toPending, toSuccess } from '../../../shared/results/results';
 import { FileViewerRequest } from '../../file-viewer/file-viewer.request';
 import { ListFolderResponse } from '../../services/web-api/types/list-folder';
 import { dialogsActions } from '../../store/dialogs';
@@ -47,13 +36,7 @@ interface Item {
 @Component({
   standalone: true,
   selector: 'app-folder-list-table',
-  imports: [
-    CommonModule,
-    RouterModule,
-    HasFailedPipe,
-    IsPendingPipe,
-    RangePipe,
-  ],
+  imports: [CommonModule, RouterModule, HasFailedPipe, IsPendingPipe, RangePipe],
   templateUrl: './folder-list-table.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -149,9 +132,7 @@ export class FolderListTableComponent {
           if (item.isDir) {
             this.router.navigate([
               '/folders',
-              Buffer.from(`${remotePath.remote}:${item.path}`)
-                .toString('base64')
-                .replace(/=/g, ''),
+              Buffer.from(`${remotePath.remote}:${item.path}`).toString('base64').replace(/=/g, ''),
             ]);
           } else {
             this.store.dispatch(

@@ -26,15 +26,7 @@ export class HomePageComponent {
     this.window.localStorage.removeItem('auth_redirect_path');
     const state = crypto.randomUUID();
 
-    this.cookieService.set(
-      'oauth_state',
-      state,
-      300,
-      '/',
-      undefined,
-      true,
-      'None',
-    );
+    this.cookieService.set('oauth_state', state, 300, '/', undefined, true, 'None');
     this.window.location.href = `${environment.loginUrl}?select_account=true&state=${state}`;
   }
 }

@@ -13,15 +13,10 @@ describe('AudioViewerComponent', () => {
 
   it('should render an audio element with the provided blobUrl', () => {
     fixture = TestBed.createComponent(AudioViewerComponent);
-    fixture.componentRef.setInput(
-      'blobUrl',
-      'blob:http://localhost/test-audio',
-    );
+    fixture.componentRef.setInput('blobUrl', 'blob:http://localhost/test-audio');
     fixture.detectChanges();
 
-    const audio = fixture.nativeElement.querySelector(
-      '[data-testid="audio-viewer"]',
-    );
+    const audio = fixture.nativeElement.querySelector('[data-testid="audio-viewer"]');
     expect(audio).toBeTruthy();
     expect(audio.src).toBe('blob:http://localhost/test-audio');
     expect(audio.controls).toBe(true);

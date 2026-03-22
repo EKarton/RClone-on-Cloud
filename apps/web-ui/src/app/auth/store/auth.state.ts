@@ -17,7 +17,4 @@ export const FEATURE_KEY = 'Auth';
 export const selectAuthState = createFeatureSelector<AuthState>(FEATURE_KEY);
 
 /** Returns the auth token value as a string. */
-export const selectAuthToken = createSelector(
-  selectAuthState,
-  (state) => state.authToken,
-);
+export const selectAuthToken = createSelector(selectAuthState, (state) => state.authToken);

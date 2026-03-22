@@ -29,9 +29,7 @@ describe('TextViewerComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const pre = fixture.nativeElement.querySelector(
-      '[data-testid="text-viewer"]',
-    );
+    const pre = fixture.nativeElement.querySelector('[data-testid="text-viewer"]');
     expect(pre).toBeTruthy();
     expect(pre.textContent).toContain('Hello World');
   });
