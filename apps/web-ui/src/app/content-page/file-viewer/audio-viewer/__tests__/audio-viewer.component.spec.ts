@@ -13,7 +13,10 @@ describe('AudioViewerComponent', () => {
 
   it('should render an audio element with the provided blobUrl', () => {
     fixture = TestBed.createComponent(AudioViewerComponent);
-    fixture.componentRef.setInput('blobUrl', 'blob:http://localhost/test-audio');
+    fixture.componentRef.setInput(
+      'blobUrl',
+      'blob:http://localhost/test-audio',
+    );
     fixture.detectChanges();
 
     const audio = fixture.nativeElement.querySelector(

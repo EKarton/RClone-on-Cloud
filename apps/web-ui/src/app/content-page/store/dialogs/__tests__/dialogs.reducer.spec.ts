@@ -5,7 +5,12 @@ import { DialogState, initialState } from '../dialogs.state';
 
 describe('Dialogs Reducer', () => {
   it('should handle openDialog action with a dialog request', () => {
-    const request = new FileViewerRequest('remote', 'path', 'file.txt', 'text/plain');
+    const request = new FileViewerRequest(
+      'remote',
+      'path',
+      'file.txt',
+      'text/plain',
+    );
 
     const action = openDialog({ request });
     const state = dialogReducer(initialState, action);
@@ -20,7 +25,9 @@ describe('Dialogs Reducer', () => {
   it('should handle closeDialog action', () => {
     const initialStateWithRequest: DialogState = {
       ...initialState,
-      requests: [new FileViewerRequest('remote', 'path', 'file.txt', 'text/plain')],
+      requests: [
+        new FileViewerRequest('remote', 'path', 'file.txt', 'text/plain'),
+      ],
     };
 
     const action = closeDialog();

@@ -13,7 +13,10 @@ describe('ImageViewerComponent', () => {
 
   it('should render an img element with the provided blobUrl', () => {
     fixture = TestBed.createComponent(ImageViewerComponent);
-    fixture.componentRef.setInput('blobUrl', 'blob:http://localhost/test-image');
+    fixture.componentRef.setInput(
+      'blobUrl',
+      'blob:http://localhost/test-image',
+    );
     fixture.detectChanges();
 
     const img = fixture.nativeElement.querySelector(

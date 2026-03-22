@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, input, Signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterModule } from '@angular/router';
+import { Store } from '@ngrx/store';
 import { Buffer } from 'buffer';
 import { switchMap } from 'rxjs';
 
@@ -9,12 +10,11 @@ import { HasFailedPipe } from '../../../shared/results/pipes/has-failed.pipe';
 import { IsPendingPipe } from '../../../shared/results/pipes/is-pending.pipe';
 import { Result, toPending } from '../../../shared/results/results';
 import { mapResultRxJs } from '../../../shared/results/rxjs/mapResultRxJs';
+import { FileViewerRequest } from '../../file-viewer/file-viewer.request';
 import { ListAlbumsSortBy } from '../../services/web-api/types/list-albums';
 import { ListFolderResponse } from '../../services/web-api/types/list-folder';
-import { REMOTE_PATH$ } from '../folder-list-view.tokens';
-import { Store } from '@ngrx/store';
 import { dialogsActions } from '../../store/dialogs';
-import { FileViewerRequest } from '../../file-viewer/file-viewer.request';
+import { REMOTE_PATH$ } from '../folder-list-view.tokens';
 
 interface Item {
   name: string;

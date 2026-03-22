@@ -3,7 +3,12 @@ import { closeDialog, openDialog } from '../dialogs.actions';
 
 describe('Dialog Actions', () => {
   it('should create an action to open a new dialog', () => {
-    const request = new FileViewerRequest('remote', 'path', 'file.txt', 'text/plain');
+    const request = new FileViewerRequest(
+      'remote',
+      'path',
+      'file.txt',
+      'text/plain',
+    );
 
     const action = openDialog({ request });
 

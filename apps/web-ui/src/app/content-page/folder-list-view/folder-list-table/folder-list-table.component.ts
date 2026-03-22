@@ -9,6 +9,7 @@ import {
 import { computed, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterModule } from '@angular/router';
+import { Store } from '@ngrx/store';
 import { Buffer } from 'buffer';
 import prettyBytes from 'pretty-bytes';
 
@@ -21,11 +22,10 @@ import {
   toPending,
   toSuccess,
 } from '../../../shared/results/results';
-import { ListFolderResponse } from '../../services/web-api/types/list-folder';
-import { REMOTE_PATH$ } from '../folder-list-view.tokens';
 import { FileViewerRequest } from '../../file-viewer/file-viewer.request';
+import { ListFolderResponse } from '../../services/web-api/types/list-folder';
 import { dialogsActions } from '../../store/dialogs';
-import { Store } from '@ngrx/store';
+import { REMOTE_PATH$ } from '../folder-list-view.tokens';
 
 export type SortField = 'name' | 'lastModified' | 'size' | 'mimeType';
 export type SortDirection = 'asc' | 'desc';

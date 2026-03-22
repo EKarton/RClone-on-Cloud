@@ -1,21 +1,17 @@
-import {
-  ComponentFixture,
-  TestBed,
-  fakeAsync,
-  tick,
-} from '@angular/core/testing';
-import { provideMockStore, MockStore } from '@ngrx/store/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
 
 import {
+  toFailure,
   toPending,
   toSuccess,
-  toFailure,
 } from '../../../shared/results/results';
 import { WebApiService } from '../../services/web-api/web-api.service';
+import { dialogsState } from '../../store/dialogs';
+import { DialogState, FEATURE_KEY } from '../../store/dialogs/dialogs.state';
 import { FileViewerComponent } from '../file-viewer.component';
 import { FileViewerRequest } from '../file-viewer.request';
-import { selectTopDialogRequest } from '../../store/dialogs/dialogs.state';
 
 describe('FileViewerComponent', () => {
   let mockWebApiService: jasmine.SpyObj<WebApiService>;
@@ -33,12 +29,9 @@ describe('FileViewerComponent', () => {
       imports: [FileViewerComponent],
       providers: [
         provideMockStore({
-          selectors: [
-            {
-              selector: selectTopDialogRequest(FileViewerRequest),
-              value: null,
-            },
-          ],
+          initialState: {
+            [FEATURE_KEY]: { requests: [] } as DialogState,
+          },
         }),
         { provide: WebApiService, useValue: mockWebApiService },
       ],
@@ -54,12 +47,14 @@ describe('FileViewerComponent', () => {
   });
 
   it('should show loading spinner when file is loading', () => {
-    // Set a request so the component starts loading
-    mockStore.overrideSelector(
-      selectTopDialogRequest(FileViewerRequest),
-      new FileViewerRequest('remote', 'path', 'file.txt', 'text/plain'),
-    );
     mockWebApiService.fetchFileContent.and.returnValue(of(toPending<Blob>()));
+    mockStore.setState({
+      [dialogsState.FEATURE_KEY]: {
+        requests: [
+          new FileViewerRequest('remote', 'path', 'file.txt', 'text/plain'),
+        ],
+      },
+    });
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -77,13 +72,14 @@ describe('FileViewerComponent', () => {
       'text/plain',
     );
 
-    mockStore.overrideSelector(
-      selectTopDialogRequest(FileViewerRequest),
-      request,
-    );
     mockWebApiService.fetchFileContent.and.returnValue(
       of(toFailure<Blob>(new Error('Network error'))),
     );
+    mockStore.setState({
+      [dialogsState.FEATURE_KEY]: {
+        requests: [request],
+      },
+    });
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -106,12 +102,13 @@ describe('FileViewerComponent', () => {
       'image/jpeg',
     );
 
-    mockStore.overrideSelector(
-      selectTopDialogRequest(FileViewerRequest),
-      request,
-    );
     const blob = new Blob(['image data'], { type: 'image/jpeg' });
     mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockStore.setState({
+      [dialogsState.FEATURE_KEY]: {
+        requests: [request],
+      },
+    });
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -133,12 +130,13 @@ describe('FileViewerComponent', () => {
       'video/mp4',
     );
 
-    mockStore.overrideSelector(
-      selectTopDialogRequest(FileViewerRequest),
-      request,
-    );
     const blob = new Blob(['video data'], { type: 'video/mp4' });
     mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockStore.setState({
+      [dialogsState.FEATURE_KEY]: {
+        requests: [request],
+      },
+    });
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -160,12 +158,13 @@ describe('FileViewerComponent', () => {
       'audio/mpeg',
     );
 
-    mockStore.overrideSelector(
-      selectTopDialogRequest(FileViewerRequest),
-      request,
-    );
     const blob = new Blob(['audio data'], { type: 'audio/mpeg' });
     mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockStore.setState({
+      [dialogsState.FEATURE_KEY]: {
+        requests: [request],
+      },
+    });
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -187,12 +186,13 @@ describe('FileViewerComponent', () => {
       'application/pdf',
     );
 
-    mockStore.overrideSelector(
-      selectTopDialogRequest(FileViewerRequest),
-      request,
-    );
     const blob = new Blob(['pdf data'], { type: 'application/pdf' });
     mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockStore.setState({
+      [dialogsState.FEATURE_KEY]: {
+        requests: [request],
+      },
+    });
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -214,12 +214,13 @@ describe('FileViewerComponent', () => {
       'text/plain',
     );
 
-    mockStore.overrideSelector(
-      selectTopDialogRequest(FileViewerRequest),
-      request,
-    );
     const blob = new Blob(['Hello World'], { type: 'text/plain' });
     mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockStore.setState({
+      [dialogsState.FEATURE_KEY]: {
+        requests: [request],
+      },
+    });
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -227,9 +228,6 @@ describe('FileViewerComponent', () => {
     tick();
     fixture.detectChanges();
 
-    const textViewer = fixture.nativeElement.querySelector(
-      '[data-testid="text-viewer"]',
-    );
     // text-viewer initially shows a spinner, then shows content
     // After tick(), blob.text() should resolve
     expect(fixture.nativeElement.querySelector('app-text-viewer')).toBeTruthy();
@@ -243,12 +241,13 @@ describe('FileViewerComponent', () => {
       'application/json',
     );
 
-    mockStore.overrideSelector(
-      selectTopDialogRequest(FileViewerRequest),
-      request,
-    );
     const blob = new Blob(['{}'], { type: 'application/json' });
     mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockStore.setState({
+      [dialogsState.FEATURE_KEY]: {
+        requests: [request],
+      },
+    });
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -267,12 +266,13 @@ describe('FileViewerComponent', () => {
       'application/zip',
     );
 
-    mockStore.overrideSelector(
-      selectTopDialogRequest(FileViewerRequest),
-      request,
-    );
     const blob = new Blob(['zip data'], { type: 'application/zip' });
     mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockStore.setState({
+      [dialogsState.FEATURE_KEY]: {
+        requests: [request],
+      },
+    });
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -294,12 +294,13 @@ describe('FileViewerComponent', () => {
       'image/jpeg',
     );
 
-    mockStore.overrideSelector(
-      selectTopDialogRequest(FileViewerRequest),
-      request,
-    );
     const blob = new Blob(['data'], { type: 'image/jpeg' });
     mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockStore.setState({
+      [dialogsState.FEATURE_KEY]: {
+        requests: [request],
+      },
+    });
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -328,12 +329,13 @@ describe('FileViewerComponent', () => {
       'image/jpeg',
     );
 
-    mockStore.overrideSelector(
-      selectTopDialogRequest(FileViewerRequest),
-      request,
-    );
     const blob = new Blob(['data'], { type: 'image/jpeg' });
     mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockStore.setState({
+      [dialogsState.FEATURE_KEY]: {
+        requests: [request],
+      },
+    });
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -359,12 +361,13 @@ describe('FileViewerComponent', () => {
       'text/plain',
     );
 
-    mockStore.overrideSelector(
-      selectTopDialogRequest(FileViewerRequest),
-      request,
-    );
     const blob = new Blob(['content'], { type: 'text/plain' });
     mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
+    mockStore.setState({
+      [dialogsState.FEATURE_KEY]: {
+        requests: [request],
+      },
+    });
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);

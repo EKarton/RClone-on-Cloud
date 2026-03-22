@@ -29,10 +29,7 @@ export class FileViewerStore extends ComponentStore<FileViewerState> {
   );
 
   private readonly setFileContentResult = this.updater(
-    (
-      state: FileViewerState,
-      response: Result<Blob>,
-    ): FileViewerState => ({
+    (state: FileViewerState, response: Result<Blob>): FileViewerState => ({
       ...state,
       fileContentResult: response,
     }),
@@ -49,9 +46,7 @@ export class FileViewerStore extends ComponentStore<FileViewerState> {
 
         return this.webApiService
           .fetchFileContent(remote, dirPath, fileName)
-          .pipe(
-            tap((result) => this.setFileContentResult(result)),
-          );
+          .pipe(tap((result) => this.setFileContentResult(result)));
       }),
     ),
   );
