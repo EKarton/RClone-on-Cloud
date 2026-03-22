@@ -1,4 +1,9 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import {
+  ComponentFixture,
+  TestBed,
+  fakeAsync,
+  tick,
+} from '@angular/core/testing';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
 
@@ -22,7 +27,7 @@ describe('FileViewerComponent', () => {
     ]);
 
     // Default: no file content request
-    mockWebApiService.fetchFileContent.and.returnValue(of(toPending()));
+    mockWebApiService.fetchFileContent.and.returnValue(of(toPending<Blob>()));
 
     await TestBed.configureTestingModule({
       imports: [FileViewerComponent],
@@ -54,7 +59,7 @@ describe('FileViewerComponent', () => {
       selectTopDialogRequest(FileViewerRequest),
       new FileViewerRequest('remote', 'path', 'file.txt', 'text/plain'),
     );
-    mockWebApiService.fetchFileContent.and.returnValue(of(toPending()));
+    mockWebApiService.fetchFileContent.and.returnValue(of(toPending<Blob>()));
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -77,7 +82,7 @@ describe('FileViewerComponent', () => {
       request,
     );
     mockWebApiService.fetchFileContent.and.returnValue(
-      of(toFailure(new Error('Network error'))),
+      of(toFailure<Blob>(new Error('Network error'))),
     );
     mockStore.refreshState();
 
@@ -106,9 +111,7 @@ describe('FileViewerComponent', () => {
       request,
     );
     const blob = new Blob(['image data'], { type: 'image/jpeg' });
-    mockWebApiService.fetchFileContent.and.returnValue(
-      of(toSuccess(blob)),
-    );
+    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -135,9 +138,7 @@ describe('FileViewerComponent', () => {
       request,
     );
     const blob = new Blob(['video data'], { type: 'video/mp4' });
-    mockWebApiService.fetchFileContent.and.returnValue(
-      of(toSuccess(blob)),
-    );
+    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -164,9 +165,7 @@ describe('FileViewerComponent', () => {
       request,
     );
     const blob = new Blob(['audio data'], { type: 'audio/mpeg' });
-    mockWebApiService.fetchFileContent.and.returnValue(
-      of(toSuccess(blob)),
-    );
+    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -193,9 +192,7 @@ describe('FileViewerComponent', () => {
       request,
     );
     const blob = new Blob(['pdf data'], { type: 'application/pdf' });
-    mockWebApiService.fetchFileContent.and.returnValue(
-      of(toSuccess(blob)),
-    );
+    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -222,9 +219,7 @@ describe('FileViewerComponent', () => {
       request,
     );
     const blob = new Blob(['Hello World'], { type: 'text/plain' });
-    mockWebApiService.fetchFileContent.and.returnValue(
-      of(toSuccess(blob)),
-    );
+    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -237,9 +232,7 @@ describe('FileViewerComponent', () => {
     );
     // text-viewer initially shows a spinner, then shows content
     // After tick(), blob.text() should resolve
-    expect(
-      fixture.nativeElement.querySelector('app-text-viewer'),
-    ).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-text-viewer')).toBeTruthy();
   }));
 
   it('should show text viewer for application/json mimeType', fakeAsync(() => {
@@ -255,9 +248,7 @@ describe('FileViewerComponent', () => {
       request,
     );
     const blob = new Blob(['{}'], { type: 'application/json' });
-    mockWebApiService.fetchFileContent.and.returnValue(
-      of(toSuccess(blob)),
-    );
+    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -265,9 +256,7 @@ describe('FileViewerComponent', () => {
     tick();
     fixture.detectChanges();
 
-    expect(
-      fixture.nativeElement.querySelector('app-text-viewer'),
-    ).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-text-viewer')).toBeTruthy();
   }));
 
   it('should show unsupported viewer for unknown mimeType', fakeAsync(() => {
@@ -283,9 +272,7 @@ describe('FileViewerComponent', () => {
       request,
     );
     const blob = new Blob(['zip data'], { type: 'application/zip' });
-    mockWebApiService.fetchFileContent.and.returnValue(
-      of(toSuccess(blob)),
-    );
+    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -312,9 +299,7 @@ describe('FileViewerComponent', () => {
       request,
     );
     const blob = new Blob(['data'], { type: 'image/jpeg' });
-    mockWebApiService.fetchFileContent.and.returnValue(
-      of(toSuccess(blob)),
-    );
+    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -348,9 +333,7 @@ describe('FileViewerComponent', () => {
       request,
     );
     const blob = new Blob(['data'], { type: 'image/jpeg' });
-    mockWebApiService.fetchFileContent.and.returnValue(
-      of(toSuccess(blob)),
-    );
+    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);
@@ -381,9 +364,7 @@ describe('FileViewerComponent', () => {
       request,
     );
     const blob = new Blob(['content'], { type: 'text/plain' });
-    mockWebApiService.fetchFileContent.and.returnValue(
-      of(toSuccess(blob)),
-    );
+    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
     mockStore.refreshState();
 
     const fixture = TestBed.createComponent(FileViewerComponent);

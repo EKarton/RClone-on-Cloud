@@ -31,9 +31,7 @@ describe('FileViewerStore', () => {
 
   it('should load file content successfully', fakeAsync(() => {
     const blob = new Blob(['content'], { type: 'text/plain' });
-    mockWebApiService.fetchFileContent.and.returnValue(
-      of(toSuccess(blob)),
-    );
+    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
 
     store.loadFile({
       remote: 'myremote',
@@ -54,7 +52,7 @@ describe('FileViewerStore', () => {
   it('should handle file content load failure', fakeAsync(() => {
     const error = new Error('Network error');
     mockWebApiService.fetchFileContent.and.returnValue(
-      of(toFailure(error)),
+      of(toFailure<Blob>(error)),
     );
 
     store.loadFile({
@@ -75,9 +73,7 @@ describe('FileViewerStore', () => {
 
   it('should reset to pending when loading a new file', fakeAsync(() => {
     const blob = new Blob(['content'], { type: 'text/plain' });
-    mockWebApiService.fetchFileContent.and.returnValue(
-      of(toSuccess(blob)),
-    );
+    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob)));
 
     store.loadFile({
       remote: 'myremote',
@@ -90,9 +86,7 @@ describe('FileViewerStore', () => {
 
     // Load a second file — store should reset to pending during load
     const blob2 = new Blob(['other content'], { type: 'text/plain' });
-    mockWebApiService.fetchFileContent.and.returnValue(
-      of(toSuccess(blob2)),
-    );
+    mockWebApiService.fetchFileContent.and.returnValue(of(toSuccess(blob2)));
 
     store.loadFile({
       remote: 'myremote',
