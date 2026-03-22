@@ -1,6 +1,6 @@
 import { map, of, throwError } from 'rxjs';
 
-import { Result, toFailure, toSuccess } from '../../results';
+import { Result, toFailure, toPending, toSuccess } from '../../results';
 import { toResult } from '../toResult';
 
 describe('toResult', () => {
@@ -11,7 +11,12 @@ describe('toResult', () => {
     source$.pipe(toResult()).subscribe({
       next: (value) => result.push(value),
       complete: () => {
-        expect(result).toEqual([toSuccess(1), toSuccess(2), toSuccess(3)]);
+        expect(result).toEqual([
+          toPending(),
+          toSuccess(1),
+          toSuccess(2),
+          toSuccess(3),
+        ]);
         done();
       },
     });
@@ -24,7 +29,10 @@ describe('toResult', () => {
     source$.pipe(toResult()).subscribe({
       next: (value) => result.push(value),
       complete: () => {
-        expect(result).toEqual([toFailure<number>(new Error('Test error'))]);
+        expect(result).toEqual([
+          toPending(),
+          toFailure<number>(new Error('Test error')),
+        ]);
         done();
       },
     });
@@ -37,7 +45,7 @@ describe('toResult', () => {
     source$.pipe(toResult()).subscribe({
       next: (value) => result.push(value),
       complete: () => {
-        expect(result).toEqual([]); // Should emit nothing
+        expect(result).toEqual([toPending()]);
         done();
       },
     });
@@ -57,8 +65,8 @@ describe('toResult', () => {
     source$.pipe(toResult()).subscribe({
       next: (value) => result.push(value),
       complete: () => {
-        expect(result.length).toEqual(2);
         expect(result).toEqual([
+          toPending(),
           toSuccess(1),
           toFailure<number>(new Error('Error on value 2')),
         ]);

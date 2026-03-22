@@ -1,10 +1,8 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 
 import { TextViewerComponent } from '../text-viewer.component';
 
 describe('TextViewerComponent', () => {
-  let fixture: ComponentFixture<TextViewerComponent>;
-
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TextViewerComponent],
@@ -12,7 +10,7 @@ describe('TextViewerComponent', () => {
   });
 
   it('should show loading spinner initially', () => {
-    fixture = TestBed.createComponent(TextViewerComponent);
+    const fixture = TestBed.createComponent(TextViewerComponent);
     const blob = new Blob(['Hello World'], { type: 'text/plain' });
     fixture.componentRef.setInput('blob', blob);
     fixture.detectChanges();
@@ -22,11 +20,12 @@ describe('TextViewerComponent', () => {
   });
 
   it('should display text content after blob is read', async () => {
-    fixture = TestBed.createComponent(TextViewerComponent);
+    const fixture = TestBed.createComponent(TextViewerComponent);
     const blob = new Blob(['Hello World'], { type: 'text/plain' });
+    spyOn(blob, 'text').and.returnValue(Promise.resolve('Hello World'));
     fixture.componentRef.setInput('blob', blob);
     fixture.detectChanges();
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await fixture.whenStable();
     fixture.detectChanges();
 
     const pre = fixture.nativeElement.querySelector(

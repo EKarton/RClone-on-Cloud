@@ -6,7 +6,12 @@ import {
 import { TestBed } from '@angular/core/testing';
 
 import { environment } from '../../../../environments/environment';
-import { hasFailed, toSuccess } from '../../../shared/results/results';
+import {
+  hasFailed,
+  Result,
+  toPending,
+  toSuccess,
+} from '../../../shared/results/results';
 import { TokenResponse, WebApiService } from '../webapi.service';
 
 describe('WebApiService', () => {
@@ -41,8 +46,9 @@ describe('WebApiService', () => {
       token: 'mockAccessToken',
     };
 
+    const emissions: Result<TokenResponse>[] = [];
     service.fetchAccessToken(mockCode).subscribe((response) => {
-      expect(response).toEqual(toSuccess(mockResponse));
+      emissions.push(response);
     });
 
     const req = httpMock.expectOne(
@@ -53,18 +59,17 @@ describe('WebApiService', () => {
     expect(req.request.body).toEqual({ code: mockCode });
 
     req.flush(mockResponse);
+
+    expect(emissions).toEqual([toPending(), toSuccess(mockResponse)]);
   });
 
   it('should handle error response', () => {
     const mockCode = 'test-auth-code';
 
+    const emissions: Result<TokenResponse>[] = [];
     service.fetchAccessToken(mockCode).subscribe({
       next: (response) => {
-        expect(hasFailed(response)).toBeTrue();
-        expect(response.error).toBeInstanceOf(HttpErrorResponse);
-        expect((response.error as HttpErrorResponse).error).toBe(
-          'Server error',
-        );
+        emissions.push(response);
       },
     });
 
@@ -76,5 +81,13 @@ describe('WebApiService', () => {
       status: 500,
       statusText: 'Internal Server Error',
     });
+
+    expect(emissions.length).toBe(2);
+    expect(emissions[0]).toEqual(toPending());
+    expect(hasFailed(emissions[1])).toBeTrue();
+    expect(emissions[1].error).toBeInstanceOf(HttpErrorResponse);
+    expect((emissions[1].error as HttpErrorResponse).error).toBe(
+      'Server error',
+    );
   });
 });

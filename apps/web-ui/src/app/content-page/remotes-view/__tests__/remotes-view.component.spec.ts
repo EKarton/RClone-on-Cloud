@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
 
@@ -22,6 +23,7 @@ describe('RemotesViewComponent', () => {
       providers: [
         { provide: WebApiService, useValue: webApiService },
         provideMockStore(),
+        provideRouter([]),
       ],
     }).compileComponents();
   });
