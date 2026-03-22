@@ -11,8 +11,8 @@ import { MediaItemDetailsApiResponse } from '../../services/web-api/types/media-
 import { MediaItem } from '../../services/web-api/types/media-item';
 import { WebApiService } from '../../services/web-api/web-api.service';
 import { dialogsActions, dialogsState } from '../../store/dialogs';
-import { MediaViewerComponent } from '../media-viewer.component';
-import { MediaViewerRequest } from '../media-viewer.request';
+import { MediaViewerComponent } from '../file-viewer.component';
+import { MediaViewerRequest } from '../file-viewer.request';
 
 const MEDIA_ITEM_IMAGE: MediaItem = {
   id: 'mediaItem1',

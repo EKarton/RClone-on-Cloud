@@ -1,4 +1,4 @@
-import { MediaViewerRequest } from '../../../media-viewer/media-viewer.request';
+import { MediaViewerRequest } from '../../../file-viewer/file-viewer.request';
 import { closeDialog, openDialog } from '../dialogs.actions';
 
 describe('Dialog Actions', () => {

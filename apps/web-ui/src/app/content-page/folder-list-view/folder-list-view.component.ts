@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterModule } from '@angular/router';
-import { switchMap } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 
 import { Result, toPending } from '../../shared/results/results';
 import {
@@ -65,5 +65,12 @@ export class FolderListViewComponent {
       ),
     ),
     { initialValue: toPending<ListFolderResponse>() },
+  );
+
+  readonly currentFolder = toSignal(
+    this.remotePath$.pipe(
+      map(({ remote, path }) => path?.split('/').pop() ?? remote),
+    ),
+    { initialValue: '' },
   );
 }

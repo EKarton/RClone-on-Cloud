@@ -12,21 +12,21 @@ import { MediaItemDetailsApiResponse } from '../services/web-api/types/media-ite
 import { MediaItem } from '../services/web-api/types/media-item';
 import { WebApiService } from '../services/web-api/web-api.service';
 
-/** The state definition for {@code MediaViewerStore} */
-export interface MediaViewerState {
+/** The state definition for {@code FileViewerStore} */
+export interface FileViewerState {
   mediaItemResult: Result<MediaItem>;
   gMediaItemResult: Result<GPhotosMediaItem>;
 }
 
-/** The initial state for the {@code MediaViewerStore} */
-export const INITIAL_STATE: MediaViewerState = {
+/** The initial state for the {@code FileViewerStore} */
+export const INITIAL_STATE: FileViewerState = {
   mediaItemResult: toPending(),
   gMediaItemResult: toPending(),
 };
 
-/** A component store for the {@code MediaViewerComponent} */
+/** A component store for the {@code FileViewerComponent} */
 @Injectable()
-export class MediaViewerStore extends ComponentStore<MediaViewerState> {
+export class FileViewerStore extends ComponentStore<FileViewerState> {
   private readonly store = inject(Store);
   private readonly webApiService = inject(WebApiService);
 
@@ -42,16 +42,16 @@ export class MediaViewerStore extends ComponentStore<MediaViewerState> {
   );
 
   private readonly clearStates = this.updater(
-    (): MediaViewerState => ({
+    (): FileViewerState => ({
       ...INITIAL_STATE,
     }),
   );
 
   private readonly setMediaItemResult = this.updater(
     (
-      state: MediaViewerState,
+      state: FileViewerState,
       response: Result<MediaItemDetailsApiResponse>,
-    ): MediaViewerState => ({
+    ): FileViewerState => ({
       ...state,
       mediaItemResult: response,
     }),
@@ -59,9 +59,9 @@ export class MediaViewerStore extends ComponentStore<MediaViewerState> {
 
   private readonly setGMediaItemResult = this.updater(
     (
-      state: MediaViewerState,
+      state: FileViewerState,
       response: Result<GetGPhotosMediaItemDetailsResponse>,
-    ): MediaViewerState => ({
+    ): FileViewerState => ({
       ...state,
       gMediaItemResult: response,
     }),

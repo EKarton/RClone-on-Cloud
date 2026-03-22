@@ -9,7 +9,7 @@ import { GPhotosMediaItem } from '../../services/web-api/types/gphotos-media-ite
 import { MediaItemDetailsApiResponse } from '../../services/web-api/types/media-item';
 import { MediaItem } from '../../services/web-api/types/media-item';
 import { WebApiService } from '../../services/web-api/web-api.service';
-import { INITIAL_STATE, MediaViewerStore } from '../media-viewer.store';
+import { INITIAL_STATE, MediaViewerStore } from '../file-viewer.store';
 
 describe('MediaViewerStore', () => {
   let store: MediaViewerStore;

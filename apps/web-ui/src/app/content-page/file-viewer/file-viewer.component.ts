@@ -20,8 +20,8 @@ import { Result } from '../../shared/results/results';
 import { combineResults2 } from '../../shared/results/utils/combineResults2';
 import { GPhotosMediaItem } from '../services/web-api/types/gphotos-media-item';
 import { dialogsActions, dialogsState } from '../store/dialogs';
-import { MediaViewerRequest } from './media-viewer.request';
-import { MediaViewerStore } from './media-viewer.store';
+import { FileViewerStore } from './file-viewer.store';
+import { FileViewerRequest } from './file-viewer.request';
 
 /** The details to display to the UI. */
 interface MediaDetails {
@@ -36,21 +36,21 @@ interface MediaDetails {
 }
 
 @Component({
-  selector: 'app-content-media-viewer',
+  selector: 'app-file-viewer',
   imports: [CommonModule, IsPendingPipe, HasFailedPipe, HasSucceededPipe],
-  templateUrl: './media-viewer.component.html',
-  providers: [MediaViewerStore],
+  templateUrl: './file-viewer.component.html',
+  providers: [FileViewerStore],
 })
-export class MediaViewerComponent implements AfterViewInit, OnDestroy {
+export class FileViewerComponent implements AfterViewInit, OnDestroy {
   private readonly store = inject(Store);
   private readonly navigator = inject(NAVIGATOR);
   private readonly subscription = new Subscription();
-  private readonly mediaViewerStore = inject(MediaViewerStore);
+  private readonly mediaViewerStore = inject(FileViewerStore);
 
   @ViewChild('modal') myModal?: ElementRef;
 
   private readonly request$ = this.store.select(
-    dialogsState.selectTopDialogRequest(MediaViewerRequest),
+    dialogsState.selectTopDialogRequest(FileViewerRequest),
   );
 
   readonly isShareSupported = !!this.navigator.share;
