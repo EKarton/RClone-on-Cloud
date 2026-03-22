@@ -2,11 +2,12 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "schematicCollections": ["angular-eslint"]
   },
   "newProjectRoot": "projects",
   "projects": {
-    "my-angular-app": {
+    "rclone-on-cloud-web-ui": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -24,9 +25,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ]
+            "styles": ["src/styles.css"]
           },
           "configurations": {
             "production": {
@@ -56,16 +55,22 @@
           "builder": "@ngx-env/builder:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "my-angular-app:build:production"
+              "buildTarget": "rclone-on-cloud-web-ui:build:production"
             },
             "development": {
-              "buildTarget": "my-angular-app:build:development"
+              "buildTarget": "rclone-on-cloud-web-ui:build:development"
             }
           },
           "defaultConfiguration": "development"
         },
         "test": {
           "builder": "@angular/build:unit-test"
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+          }
         }
       }
     }

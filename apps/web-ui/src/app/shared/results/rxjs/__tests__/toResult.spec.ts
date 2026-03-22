@@ -1,6 +1,6 @@
 import { firstValueFrom, map, of, throwError, toArray } from 'rxjs';
 
-import { Result, toFailure, toPending, toSuccess } from '../../results';
+import { toFailure, toPending, toSuccess } from '../../results';
 import { toResult } from '../toResult';
 
 describe('toResult', () => {
@@ -8,22 +8,14 @@ describe('toResult', () => {
     const source$ = of(1, 2, 3);
 
     const result = await firstValueFrom(source$.pipe(toResult(), toArray()));
-    expect(result).toEqual([
-      toPending(),
-      toSuccess(1),
-      toSuccess(2),
-      toSuccess(3),
-    ]);
+    expect(result).toEqual([toPending(), toSuccess(1), toSuccess(2), toSuccess(3)]);
   });
 
   it('should handle errors and return a failure Result', async () => {
     const source$ = throwError(() => new Error('Test error'));
 
     const result = await firstValueFrom(source$.pipe(toResult(), toArray()));
-    expect(result).toEqual([
-      toPending(),
-      toFailure<number>(new Error('Test error')),
-    ]);
+    expect(result).toEqual([toPending(), toFailure<number>(new Error('Test error'))]);
   });
 
   it('should handle empty observables', async () => {

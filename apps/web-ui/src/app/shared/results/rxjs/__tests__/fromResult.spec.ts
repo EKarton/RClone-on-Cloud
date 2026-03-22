@@ -1,15 +1,11 @@
-import { firstValueFrom, of, tap, toArray } from 'rxjs';
+import { firstValueFrom, of, toArray } from 'rxjs';
 
 import { Result, toFailure, toPending, toSuccess } from '../../results';
 import { fromResult } from '../fromResult';
 
 describe('fromResult', () => {
   it('should emit data from successful Result values', async () => {
-    const results: Result<number>[] = [
-      toSuccess(1),
-      toSuccess(2),
-      toSuccess(3),
-    ];
+    const results: Result<number>[] = [toSuccess(1), toSuccess(2), toSuccess(3)];
     const source$ = of(...results);
 
     const emitted = await firstValueFrom(source$.pipe(fromResult(), toArray()));
@@ -21,19 +17,16 @@ describe('fromResult', () => {
     const results: Result<number>[] = [toFailure(error)];
     const source$ = of(...results);
 
-    await expect(firstValueFrom(source$.pipe(fromResult()))).rejects.toThrow(
-      error,
-    );
+    await expect(firstValueFrom(source$.pipe(fromResult()))).rejects.toThrow(error);
   });
 
   it('should ignore pending Result values (no emission)', async () => {
     const results: Result<number>[] = [toPending()];
     const source$ = of(...results);
 
-    const emitted = await firstValueFrom(
-      source$.pipe(fromResult(), toArray()),
-      { defaultValue: [] },
-    );
+    const emitted = await firstValueFrom(source$.pipe(fromResult(), toArray()), {
+      defaultValue: [],
+    });
     expect(emitted).toEqual([]);
   });
 
@@ -66,10 +59,9 @@ describe('fromResult', () => {
   it('should complete without emission on empty source', async () => {
     const source$ = of<Result<number>>();
 
-    const emitted = await firstValueFrom(
-      source$.pipe(fromResult(), toArray()),
-      { defaultValue: [] },
-    );
+    const emitted = await firstValueFrom(source$.pipe(fromResult(), toArray()), {
+      defaultValue: [],
+    });
     expect(emitted).toEqual([]);
   });
 });

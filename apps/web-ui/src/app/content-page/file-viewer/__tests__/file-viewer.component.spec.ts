@@ -1,13 +1,9 @@
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
 
-import {
-  toFailure,
-  toPending,
-  toSuccess,
-} from '../../../shared/results/results';
+import { toFailure, toPending, toSuccess } from '../../../shared/results/results';
 import { WebApiService } from '../../services/web-api/web-api.service';
 import { dialogsState } from '../../store/dialogs';
 import { DialogState, FEATURE_KEY } from '../../store/dialogs/dialogs.state';
@@ -51,9 +47,7 @@ describe('FileViewerComponent', () => {
     mockWebApiService.fetchFileContent.mockReturnValue(of(toPending<Blob>()));
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: {
-        requests: [
-          new FileViewerRequest('remote', 'path', 'file.txt', 'text/plain'),
-        ],
+        requests: [new FileViewerRequest('remote', 'path', 'file.txt', 'text/plain')],
       },
     });
     mockStore.refreshState();
@@ -65,13 +59,8 @@ describe('FileViewerComponent', () => {
     expect(spinner).toBeTruthy();
   });
 
-  it('should show error when file loading fails', fakeAsync(() => {
-    const request = new FileViewerRequest(
-      'remote',
-      'path',
-      'file.txt',
-      'text/plain',
-    );
+  it('should show error when file loading fails', async () => {
+    const request = new FileViewerRequest('remote', 'path', 'file.txt', 'text/plain');
 
     mockWebApiService.fetchFileContent.mockReturnValue(
       of(toFailure<Blob>(new Error('Network error'))),
@@ -85,23 +74,16 @@ describe('FileViewerComponent', () => {
 
     const fixture = TestBed.createComponent(FileViewerComponent);
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
-    const errorEl = fixture.nativeElement.querySelector(
-      '[data-testid="file-viewer-error"]',
-    );
+    const errorEl = fixture.nativeElement.querySelector('[data-testid="file-viewer-error"]');
     expect(errorEl).toBeTruthy();
     expect(errorEl.textContent).toContain('Network error');
-  }));
+  });
 
-  it('should show image viewer for image/* mimeType', fakeAsync(() => {
-    const request = new FileViewerRequest(
-      'remote',
-      'path',
-      'photo.jpg',
-      'image/jpeg',
-    );
+  it('should show image viewer for image/* mimeType', async () => {
+    const request = new FileViewerRequest('remote', 'path', 'photo.jpg', 'image/jpeg');
 
     const blob = new Blob(['image data'], { type: 'image/jpeg' });
     mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
@@ -114,22 +96,15 @@ describe('FileViewerComponent', () => {
 
     const fixture = TestBed.createComponent(FileViewerComponent);
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
-    const imageViewer = fixture.nativeElement.querySelector(
-      '[data-testid="image-viewer"]',
-    );
+    const imageViewer = fixture.nativeElement.querySelector('[data-testid="image-viewer"]');
     expect(imageViewer).toBeTruthy();
-  }));
+  });
 
-  it('should show video viewer for video/* mimeType', fakeAsync(() => {
-    const request = new FileViewerRequest(
-      'remote',
-      'path',
-      'movie.mp4',
-      'video/mp4',
-    );
+  it('should show video viewer for video/* mimeType', async () => {
+    const request = new FileViewerRequest('remote', 'path', 'movie.mp4', 'video/mp4');
 
     const blob = new Blob(['video data'], { type: 'video/mp4' });
     mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
@@ -142,22 +117,16 @@ describe('FileViewerComponent', () => {
 
     const fixture = TestBed.createComponent(FileViewerComponent);
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
+    fixture.detectChanges();
     fixture.detectChanges();
 
-    const videoViewer = fixture.nativeElement.querySelector(
-      '[data-testid="video-viewer"]',
-    );
+    const videoViewer = fixture.nativeElement.querySelector('[data-testid="video-viewer"]');
     expect(videoViewer).toBeTruthy();
-  }));
+  });
 
-  it('should show audio viewer for audio/* mimeType', fakeAsync(() => {
-    const request = new FileViewerRequest(
-      'remote',
-      'path',
-      'song.mp3',
-      'audio/mpeg',
-    );
+  it('should show audio viewer for audio/* mimeType', async () => {
+    const request = new FileViewerRequest('remote', 'path', 'song.mp3', 'audio/mpeg');
 
     const blob = new Blob(['audio data'], { type: 'audio/mpeg' });
     mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
@@ -170,22 +139,15 @@ describe('FileViewerComponent', () => {
 
     const fixture = TestBed.createComponent(FileViewerComponent);
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
-    const audioViewer = fixture.nativeElement.querySelector(
-      '[data-testid="audio-viewer"]',
-    );
+    const audioViewer = fixture.nativeElement.querySelector('[data-testid="audio-viewer"]');
     expect(audioViewer).toBeTruthy();
-  }));
+  });
 
-  it('should show pdf viewer for application/pdf mimeType', fakeAsync(() => {
-    const request = new FileViewerRequest(
-      'remote',
-      'path',
-      'doc.pdf',
-      'application/pdf',
-    );
+  it('should show pdf viewer for application/pdf mimeType', async () => {
+    const request = new FileViewerRequest('remote', 'path', 'doc.pdf', 'application/pdf');
 
     const blob = new Blob(['pdf data'], { type: 'application/pdf' });
     mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
@@ -198,22 +160,15 @@ describe('FileViewerComponent', () => {
 
     const fixture = TestBed.createComponent(FileViewerComponent);
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
-    const pdfViewer = fixture.nativeElement.querySelector(
-      '[data-testid="pdf-viewer"]',
-    );
+    const pdfViewer = fixture.nativeElement.querySelector('[data-testid="pdf-viewer"]');
     expect(pdfViewer).toBeTruthy();
-  }));
+  });
 
-  it('should show text viewer for text/* mimeType', fakeAsync(() => {
-    const request = new FileViewerRequest(
-      'remote',
-      'path',
-      'readme.txt',
-      'text/plain',
-    );
+  it('should show text viewer for text/* mimeType', async () => {
+    const request = new FileViewerRequest('remote', 'path', 'readme.txt', 'text/plain');
 
     const blob = new Blob(['Hello World'], { type: 'text/plain' });
     mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
@@ -226,21 +181,16 @@ describe('FileViewerComponent', () => {
 
     const fixture = TestBed.createComponent(FileViewerComponent);
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     // text-viewer initially shows a spinner, then shows content
     // After tick(), blob.text() should resolve
     expect(fixture.nativeElement.querySelector('app-text-viewer')).toBeTruthy();
-  }));
+  });
 
-  it('should show text viewer for application/json mimeType', fakeAsync(() => {
-    const request = new FileViewerRequest(
-      'remote',
-      'path',
-      'data.json',
-      'application/json',
-    );
+  it('should show text viewer for application/json mimeType', async () => {
+    const request = new FileViewerRequest('remote', 'path', 'data.json', 'application/json');
 
     const blob = new Blob(['{}'], { type: 'application/json' });
     mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
@@ -253,19 +203,14 @@ describe('FileViewerComponent', () => {
 
     const fixture = TestBed.createComponent(FileViewerComponent);
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('app-text-viewer')).toBeTruthy();
-  }));
+  });
 
-  it('should show unsupported viewer for unknown mimeType', fakeAsync(() => {
-    const request = new FileViewerRequest(
-      'remote',
-      'path',
-      'archive.zip',
-      'application/zip',
-    );
+  it('should show unsupported viewer for unknown mimeType', async () => {
+    const request = new FileViewerRequest('remote', 'path', 'archive.zip', 'application/zip');
 
     const blob = new Blob(['zip data'], { type: 'application/zip' });
     mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
@@ -278,22 +223,15 @@ describe('FileViewerComponent', () => {
 
     const fixture = TestBed.createComponent(FileViewerComponent);
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
-    const unsupported = fixture.nativeElement.querySelector(
-      '[data-testid="unsupported-viewer"]',
-    );
+    const unsupported = fixture.nativeElement.querySelector('[data-testid="unsupported-viewer"]');
     expect(unsupported).toBeTruthy();
-  }));
+  });
 
-  it('should show filename and download button when loaded', fakeAsync(() => {
-    const request = new FileViewerRequest(
-      'remote',
-      'path',
-      'photo.jpg',
-      'image/jpeg',
-    );
+  it('should show filename and download button when loaded', async () => {
+    const request = new FileViewerRequest('remote', 'path', 'photo.jpg', 'image/jpeg');
 
     const blob = new Blob(['data'], { type: 'image/jpeg' });
     mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
@@ -306,12 +244,10 @@ describe('FileViewerComponent', () => {
 
     const fixture = TestBed.createComponent(FileViewerComponent);
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
-    const filename = fixture.nativeElement.querySelector(
-      '[data-testid="file-viewer-filename"]',
-    );
+    const filename = fixture.nativeElement.querySelector('[data-testid="file-viewer-filename"]');
     expect(filename).toBeTruthy();
     expect(filename.textContent).toContain('photo.jpg');
 
@@ -320,15 +256,10 @@ describe('FileViewerComponent', () => {
     );
     expect(downloadBtn).toBeTruthy();
     expect(downloadBtn.download).toBe('photo.jpg');
-  }));
+  });
 
-  it('should dispatch closeDialog when close button is clicked', fakeAsync(() => {
-    const request = new FileViewerRequest(
-      'remote',
-      'path',
-      'photo.jpg',
-      'image/jpeg',
-    );
+  it('should dispatch closeDialog when close button is clicked', async () => {
+    const request = new FileViewerRequest('remote', 'path', 'photo.jpg', 'image/jpeg');
 
     const blob = new Blob(['data'], { type: 'image/jpeg' });
     mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
@@ -341,7 +272,7 @@ describe('FileViewerComponent', () => {
 
     const fixture = TestBed.createComponent(FileViewerComponent);
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     vi.spyOn(mockStore, 'dispatch');
@@ -352,15 +283,10 @@ describe('FileViewerComponent', () => {
     closeBtn.click();
 
     expect(mockStore.dispatch).toHaveBeenCalled();
-  }));
+  });
 
-  it('should call fetchFileContent when request changes', fakeAsync(() => {
-    const request = new FileViewerRequest(
-      'myremote',
-      'docs',
-      'file.txt',
-      'text/plain',
-    );
+  it('should call fetchFileContent when request changes', async () => {
+    const request = new FileViewerRequest('myremote', 'docs', 'file.txt', 'text/plain');
 
     const blob = new Blob(['content'], { type: 'text/plain' });
     mockWebApiService.fetchFileContent.mockReturnValue(of(toSuccess(blob)));
@@ -373,12 +299,9 @@ describe('FileViewerComponent', () => {
 
     const fixture = TestBed.createComponent(FileViewerComponent);
     fixture.detectChanges();
-    tick();
+    await fixture.whenStable();
+    fixture.detectChanges();
 
-    expect(mockWebApiService.fetchFileContent).toHaveBeenCalledWith(
-      'myremote',
-      'docs',
-      'file.txt',
-    );
-  }));
+    expect(mockWebApiService.fetchFileContent).toHaveBeenCalledWith('myremote', 'docs', 'file.txt');
+  });
 });

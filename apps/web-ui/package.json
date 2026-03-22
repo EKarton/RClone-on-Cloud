@@ -1,6 +1,6 @@
 {
-  "name": "my-angular-app",
-  "version": "0.0.0",
+  "name": "rclone-on-cloud-web-ui",
+  "version": "1.0.0",
   "scripts": {
     "ng": "ng",
     "dev": "ng serve",
@@ -9,8 +9,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "NG_APP_ENV=test ng test --watch=false --coverage",
     "test:in": "NG_APP_ENV=test ng test --watch=false --coverage --include",
-    "lint": "ng lint && npx stylelint 'src/**/*.scss' && prettier --check \"src/**/*.{ts,html,scss}\"",
-    "lint:fix": "ng lint --fix && npx stylelint 'src/**/*.scss' --fix && prettier --write \"src/**/*.{ts,html,scss}\""
+    "lint": "ng lint && prettier --check \"src/**/*.{ts,html}\"",
+    "lint:fix": "ng lint --fix && prettier --write \"src/**/*.{ts,html}\""
   },
   "private": true,
   "packageManager": "npm@11.11.0",
@@ -41,14 +41,18 @@
     "@angular/build": "^21.2.3",
     "@angular/cli": "^21.2.3",
     "@angular/compiler-cli": "^21.2.0",
+    "@eslint/js": "^10.0.1",
     "@ngx-env/builder": "^21.0.1",
     "@tailwindcss/postcss": "^4.1.12",
     "@vitest/coverage-v8": "^4.1.0",
+    "angular-eslint": "21.3.1",
+    "eslint": "^10.0.3",
     "jsdom": "^28.0.0",
     "postcss": "^8.5.3",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.1.12",
     "typescript": "~5.9.2",
+    "typescript-eslint": "8.56.1",
     "vitest": "^4.0.8"
   }
 }

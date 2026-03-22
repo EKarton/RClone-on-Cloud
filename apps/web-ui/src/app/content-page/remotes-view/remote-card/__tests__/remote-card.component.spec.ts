@@ -4,11 +4,7 @@ import { provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
 
-import {
-  toFailure,
-  toPending,
-  toSuccess,
-} from '../../../../shared/results/results';
+import { toFailure, toPending, toSuccess } from '../../../../shared/results/results';
 import { ListRemoteUsageResponse } from '../../../services/web-api/types/list-remote-usage';
 import { WebApiService } from '../../../services/web-api/web-api.service';
 import { RemoteCardComponent } from '../remote-card.component';
@@ -32,17 +28,13 @@ describe('RemoteCardComponent', () => {
   });
 
   it('should display the remote name', () => {
-    webApiService.listRemoteUsage.mockReturnValue(
-      of(toPending<ListRemoteUsageResponse>()),
-    );
+    webApiService.listRemoteUsage.mockReturnValue(of(toPending<ListRemoteUsageResponse>()));
 
     const fixture = TestBed.createComponent(RemoteCardComponent);
     fixture.componentRef.setInput('remote', 'test-remote');
     fixture.detectChanges();
 
-    const remoteName = fixture.nativeElement.querySelector(
-      '[data-testid="remote-card-name"]',
-    );
+    const remoteName = fixture.nativeElement.querySelector('[data-testid="remote-card-name"]');
     expect(remoteName.textContent).toContain('test-remote');
   });
 
@@ -58,9 +50,7 @@ describe('RemoteCardComponent', () => {
     fixture.componentRef.setInput('remote', 'test-remote');
     fixture.detectChanges();
 
-    const spaceInfo = fixture.nativeElement.querySelector(
-      '[data-testid="remote-space-info"]',
-    );
+    const spaceInfo = fixture.nativeElement.querySelector('[data-testid="remote-space-info"]');
     expect(spaceInfo.textContent).toContain('1 MB / 10 MB used');
     expect(spaceInfo.textContent).toContain('500 kB in trash');
   });
@@ -76,9 +66,7 @@ describe('RemoteCardComponent', () => {
     fixture.componentRef.setInput('remote', 'test-remote');
     fixture.detectChanges();
 
-    const spaceInfo = fixture.nativeElement.querySelector(
-      '[data-testid="remote-space-info"]',
-    );
+    const spaceInfo = fixture.nativeElement.querySelector('[data-testid="remote-space-info"]');
     expect(spaceInfo.textContent).toContain('1 MB used');
     expect(spaceInfo.textContent).not.toContain('/');
     expect(spaceInfo.textContent).not.toContain('in trash');
@@ -94,25 +82,19 @@ describe('RemoteCardComponent', () => {
     fixture.componentRef.setInput('remote', 'test-remote');
     fixture.detectChanges();
 
-    const spaceInfo = fixture.nativeElement.querySelector(
-      '[data-testid="remote-space-info"]',
-    );
+    const spaceInfo = fixture.nativeElement.querySelector('[data-testid="remote-space-info"]');
     expect(spaceInfo.textContent).not.toContain('used');
     expect(spaceInfo.textContent).toContain('1 MB in trash');
   });
 
   it('should display a skeleton when loading usage info', () => {
-    webApiService.listRemoteUsage.mockReturnValue(
-      of(toPending<ListRemoteUsageResponse>()),
-    );
+    webApiService.listRemoteUsage.mockReturnValue(of(toPending<ListRemoteUsageResponse>()));
 
     const fixture = TestBed.createComponent(RemoteCardComponent);
     fixture.componentRef.setInput('remote', 'test-remote');
     fixture.detectChanges();
 
-    const skeleton = fixture.nativeElement.querySelector(
-      '[data-testid="remote-space-skeleton"]',
-    );
+    const skeleton = fixture.nativeElement.querySelector('[data-testid="remote-space-skeleton"]');
     expect(skeleton).toBeTruthy();
   });
 
@@ -125,11 +107,7 @@ describe('RemoteCardComponent', () => {
     fixture.componentRef.setInput('remote', 'test-remote');
     fixture.detectChanges();
 
-    const errorMessage = fixture.nativeElement.querySelector(
-      '[data-testid="remote-space-error"]',
-    );
-    expect(errorMessage.textContent).toContain(
-      'Unable to get space information',
-    );
+    const errorMessage = fixture.nativeElement.querySelector('[data-testid="remote-space-error"]');
+    expect(errorMessage.textContent).toContain('Unable to get space information');
   });
 });

@@ -1,6 +1,6 @@
 import { firstValueFrom, of, toArray } from 'rxjs';
 
-import { Result, toFailure, toPending, toSuccess } from '../../results';
+import { toFailure, toPending, toSuccess } from '../../results';
 import { switchMapResultToResultRxJs } from '../switchMapResultToResultRxJs';
 
 describe('switchMapResultToResultRxJs', () => {
