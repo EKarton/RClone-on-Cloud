@@ -43,8 +43,6 @@ export class FolderBreadcrumbsComponent implements OnInit, OnDestroy {
           },
         ];
 
-        console.log(remotePath.path);
-
         const folders = remotePath.path?.split('/') ?? [];
 
         breadcrumbs.push({
@@ -55,8 +53,6 @@ export class FolderBreadcrumbsComponent implements OnInit, OnDestroy {
               ? `/folders/${Buffer.from(`${remotePath.remote}:`).toString('base64').replace(/=/g, '')}`
               : undefined,
         });
-
-        console.log(remotePath.path, folders);
 
         const pastFolderNames = folders.slice(0, folders.length - 1);
         const curFolderName = folders[folders.length - 1];

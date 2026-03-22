@@ -15,7 +15,12 @@ import prettyBytes from 'pretty-bytes';
 import { RangePipe } from '../../../shared/pipes/range.pipe';
 import { HasFailedPipe } from '../../../shared/results/pipes/has-failed.pipe';
 import { IsPendingPipe } from '../../../shared/results/pipes/is-pending.pipe';
-import { hasSucceed, Result, toSuccess } from '../../../shared/results/results';
+import {
+  hasSucceed,
+  Result,
+  toPending,
+  toSuccess,
+} from '../../../shared/results/results';
 import { ListFolderResponse } from '../../services/web-api/types/list-folder';
 import { REMOTE_PATH$ } from '../folder-list-view.tokens';
 
@@ -62,7 +67,11 @@ export class FolderListTableComponent {
     const sort = this.sortConfig();
     const remotePath = this.remotePath();
 
-    if (!hasSucceed(result) || !remotePath) {
+    if (!remotePath) {
+      return toPending<Item[]>();
+    }
+
+    if (!hasSucceed(result)) {
       return result as unknown as Result<Item[]>;
     }
 
