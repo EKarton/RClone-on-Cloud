@@ -12,40 +12,51 @@ import {
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 
-import { NAVIGATOR } from '../../app.tokens';
 import { HasFailedPipe } from '../../shared/results/pipes/has-failed.pipe';
 import { HasSucceededPipe } from '../../shared/results/pipes/has-succeeded.pipe';
 import { IsPendingPipe } from '../../shared/results/pipes/is-pending.pipe';
-import { Result } from '../../shared/results/results';
-import { combineResults2 } from '../../shared/results/utils/combineResults2';
-import { GPhotosMediaItem } from '../services/web-api/types/gphotos-media-item';
+import { hasSucceed, Result, toSuccess } from '../../shared/results/results';
 import { dialogsActions, dialogsState } from '../store/dialogs';
-import { FileViewerStore } from './file-viewer.store';
+import { AudioViewerComponent } from './audio-viewer/audio-viewer.component';
 import { FileViewerRequest } from './file-viewer.request';
+import { FileViewerStore } from './file-viewer.store';
+import { ImageViewerComponent } from './image-viewer/image-viewer.component';
+import { PdfViewerComponent } from './pdf-viewer/pdf-viewer.component';
+import { TextViewerComponent } from './text-viewer/text-viewer.component';
+import { UnsupportedViewerComponent } from './unsupported-viewer/unsupported-viewer.component';
+import { VideoViewerComponent } from './video-viewer/video-viewer.component';
 
-/** The details to display to the UI. */
-interface MediaDetails {
-  url: string;
-  downloadUrl: string;
+/** Resolved file details for the template. */
+interface FileDetails {
+  blob: Blob;
+  blobUrl: string;
   mimeType: string;
-  imageAlt: string;
   fileName: string;
-  formattedDate: string;
-  locationName?: string;
-  locationUrl?: string;
 }
 
 @Component({
   selector: 'app-file-viewer',
-  imports: [CommonModule, IsPendingPipe, HasFailedPipe, HasSucceededPipe],
+  imports: [
+    CommonModule,
+    IsPendingPipe,
+    HasFailedPipe,
+    HasSucceededPipe,
+    ImageViewerComponent,
+    VideoViewerComponent,
+    AudioViewerComponent,
+    PdfViewerComponent,
+    TextViewerComponent,
+    UnsupportedViewerComponent,
+  ],
   templateUrl: './file-viewer.component.html',
   providers: [FileViewerStore],
 })
 export class FileViewerComponent implements AfterViewInit, OnDestroy {
   private readonly store = inject(Store);
-  private readonly navigator = inject(NAVIGATOR);
   private readonly subscription = new Subscription();
-  private readonly mediaViewerStore = inject(FileViewerStore);
+  private readonly fileViewerStore = inject(FileViewerStore);
+
+  private currentBlobUrl: string | null = null;
 
   @ViewChild('modal') myModal?: ElementRef;
 
@@ -53,62 +64,53 @@ export class FileViewerComponent implements AfterViewInit, OnDestroy {
     dialogsState.selectTopDialogRequest(FileViewerRequest),
   );
 
-  readonly isShareSupported = !!this.navigator.share;
+  /** The current request (for accessing mimeType and fileName in the template). */
+  currentRequest: FileViewerRequest | null = null;
 
-  readonly mediaDetailsResult: Signal<Result<MediaDetails>> = computed(() => {
-    return combineResults2(
-      this.mediaViewerStore.mediaItemResult(),
-      this.mediaViewerStore.gMediaItemResult(),
-      (mediaItem, gMediaItem) => {
-        return {
-          url: getUrl(gMediaItem),
-          downloadUrl: getDownloadUrl(gMediaItem),
-          mimeType: gMediaItem.mimeType,
-          imageAlt: `Image of ${mediaItem.fileName}`,
-          fileName: mediaItem.fileName,
-          formattedDate: mediaItem.dateTaken.toLocaleString(undefined, {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
-          locationName: mediaItem.location
-            ? `@ ${mediaItem.location?.latitude}, ${mediaItem.location?.longitude}`
-            : undefined,
-          locationUrl: mediaItem.location
-            ? `https://www.google.com/maps/place/${mediaItem.location?.latitude},${mediaItem.location?.longitude}`
-            : undefined,
-        };
-      },
-    );
+  readonly fileDetailsResult: Signal<Result<FileDetails>> = computed(() => {
+    const contentResult = this.fileViewerStore.fileContentResult();
+
+    if (!hasSucceed(contentResult) || !this.currentRequest) {
+      return contentResult as unknown as Result<FileDetails>;
+    }
+
+    // Revoke previous blob URL to prevent memory leaks
+    if (this.currentBlobUrl) {
+      URL.revokeObjectURL(this.currentBlobUrl);
+    }
+
+    const blob = contentResult.data!;
+    const blobUrl = URL.createObjectURL(blob);
+    this.currentBlobUrl = blobUrl;
+
+    return toSuccess<FileDetails>({
+      blob,
+      blobUrl,
+      mimeType: this.currentRequest.mimeType,
+      fileName: this.currentRequest.fileName,
+    });
   });
 
   constructor() {
     this.subscription.add(
       this.request$.subscribe((request) => {
+        this.currentRequest = request;
         if (request) {
-          this.mediaViewerStore.loadDetails(request.mediaItemId);
+          this.fileViewerStore.loadFile({
+            remote: request.remote,
+            dirPath: request.dirPath,
+            fileName: request.fileName,
+          });
         }
       }),
     );
   }
 
-  share(url: string, fileName: string) {
-    const shareData = {
-      title: fileName,
-      text: 'Photo from RClone on Cloud',
-      url,
-    };
-
-    if (this.navigator.canShare(shareData)) {
-      this.navigator.share(shareData);
-    } else {
-      console.error(`Data ${shareData} cannot be shared.`);
-    }
-  }
-
   closeDialog() {
+    if (this.currentBlobUrl) {
+      URL.revokeObjectURL(this.currentBlobUrl);
+      this.currentBlobUrl = null;
+    }
     this.store.dispatch(dialogsActions.closeDialog());
   }
 
@@ -125,22 +127,9 @@ export class FileViewerComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.currentBlobUrl) {
+      URL.revokeObjectURL(this.currentBlobUrl);
+    }
     this.subscription.unsubscribe();
   }
-}
-
-function getUrl(gMediaItem: GPhotosMediaItem): string {
-  if (gMediaItem.mimeType.startsWith('image')) {
-    return `${gMediaItem.baseUrl}=w${gMediaItem.mediaMetadata.width}-h${gMediaItem.mediaMetadata.height}`;
-  }
-
-  return `${gMediaItem.baseUrl}=dv`;
-}
-
-function getDownloadUrl(gMediaItem: GPhotosMediaItem): string {
-  if (gMediaItem.mimeType.startsWith('image')) {
-    return `${gMediaItem.baseUrl}=d`;
-  }
-
-  return `${gMediaItem.baseUrl}=dv`;
 }

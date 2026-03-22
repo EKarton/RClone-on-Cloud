@@ -23,6 +23,9 @@ import {
 } from '../../../shared/results/results';
 import { ListFolderResponse } from '../../services/web-api/types/list-folder';
 import { REMOTE_PATH$ } from '../folder-list-view.tokens';
+import { FileViewerRequest } from '../../file-viewer/file-viewer.request';
+import { dialogsActions } from '../../store/dialogs';
+import { Store } from '@ngrx/store';
 
 export type SortField = 'name' | 'lastModified' | 'size' | 'mimeType';
 export type SortDirection = 'asc' | 'desc';
@@ -61,6 +64,7 @@ export class FolderListTableComponent {
 
   private readonly remotePath = toSignal(inject(REMOTE_PATH$));
   private readonly router = inject(Router);
+  private readonly store = inject(Store);
 
   readonly itemsResult: Signal<Result<Item[]>> = computed(() => {
     const result = this.contentsResult();
@@ -149,6 +153,17 @@ export class FolderListTableComponent {
                 .toString('base64')
                 .replace(/=/g, ''),
             ]);
+          } else {
+            this.store.dispatch(
+              dialogsActions.openDialog({
+                request: new FileViewerRequest(
+                  remotePath.remote,
+                  remotePath.path,
+                  item.name,
+                  item.mimeType ?? '',
+                ),
+              }),
+            );
           }
         },
       };

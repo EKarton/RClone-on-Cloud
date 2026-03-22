@@ -12,6 +12,9 @@ import { mapResultRxJs } from '../../../shared/results/rxjs/mapResultRxJs';
 import { ListAlbumsSortBy } from '../../services/web-api/types/list-albums';
 import { ListFolderResponse } from '../../services/web-api/types/list-folder';
 import { REMOTE_PATH$ } from '../folder-list-view.tokens';
+import { Store } from '@ngrx/store';
+import { dialogsActions } from '../../store/dialogs';
+import { FileViewerRequest } from '../../file-viewer/file-viewer.request';
 
 interface Item {
   name: string;
@@ -33,10 +36,11 @@ export class FolderListCardsComponent {
   private readonly contentsResult$ = toObservable(this.contentsResult);
   private readonly remotePath$ = inject(REMOTE_PATH$);
   private readonly router = inject(Router);
+  private readonly store = inject(Store);
 
   readonly itemsResult: Signal<Result<Item[]>> = toSignal(
     this.remotePath$.pipe(
-      switchMap(({ remote }) => {
+      switchMap(({ remote, path }) => {
         return this.contentsResult$.pipe(
           mapResultRxJs((contents) => {
             return contents.items.map((item) => {
@@ -52,6 +56,17 @@ export class FolderListCardsComponent {
                         .toString('base64')
                         .replace(/=/g, ''),
                     ]);
+                  } else {
+                    this.store.dispatch(
+                      dialogsActions.openDialog({
+                        request: new FileViewerRequest(
+                          remote,
+                          path,
+                          item.name,
+                          item.mimeType ?? '',
+                        ),
+                      }),
+                    );
                   }
                 },
               };

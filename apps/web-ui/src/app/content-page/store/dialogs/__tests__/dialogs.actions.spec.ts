@@ -1,10 +1,9 @@
-import { MediaViewerRequest } from '../../../file-viewer/file-viewer.request';
+import { FileViewerRequest } from '../../../file-viewer/file-viewer.request';
 import { closeDialog, openDialog } from '../dialogs.actions';
 
 describe('Dialog Actions', () => {
   it('should create an action to open a new dialog', () => {
-    const mediaItemId = 'item123';
-    const request = new MediaViewerRequest(mediaItemId);
+    const request = new FileViewerRequest('remote', 'path', 'file.txt', 'text/plain');
 
     const action = openDialog({ request });
 

@@ -384,4 +384,26 @@ export class WebApiService {
       toResult(),
     );
   }
+
+  /** Fetches the raw content of a file as a Blob */
+  fetchFileContent(
+    remote: string,
+    dirPath: string | undefined,
+    fileName: string,
+  ): Observable<Result<Blob>> {
+    const filePath = dirPath ? `${dirPath}/${fileName}` : fileName;
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/[${remote}:]${filePath}`;
+    return this.store.select(authState.selectAuthToken).pipe(
+      take(1),
+      switchMap((authToken) =>
+        this.httpClient.get(url, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+          responseType: 'blob',
+        }),
+      ),
+      toResult(),
+    );
+  }
 }

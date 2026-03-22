@@ -1,0 +1,13 @@
+<div
+  class="bg-base-200 rounded-lg p-6 max-h-[calc(100vh-120px)] max-w-[90vw] min-w-[320px] overflow-auto"
+>
+  @if (textContent() === null) {
+    <span class="loading loading-spinner loading-md"></span>
+  } @else {
+    <pre
+      class="text-sm font-mono whitespace-pre-wrap break-words"
+      data-testid="text-viewer"
+      >{{ textContent() }}</pre
+    >
+  }
+</div>

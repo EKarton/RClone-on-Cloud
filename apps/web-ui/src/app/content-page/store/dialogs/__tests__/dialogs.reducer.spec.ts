@@ -1,11 +1,11 @@
-import { MediaViewerRequest } from '../../../file-viewer/file-viewer.request';
+import { FileViewerRequest } from '../../../file-viewer/file-viewer.request';
 import { closeDialog, openDialog } from '../dialogs.actions';
 import { dialogReducer } from '../dialogs.reducer';
 import { DialogState, initialState } from '../dialogs.state';
 
 describe('Dialogs Reducer', () => {
   it('should handle openDialog action with a dialog request', () => {
-    const request = new MediaViewerRequest('item123');
+    const request = new FileViewerRequest('remote', 'path', 'file.txt', 'text/plain');
 
     const action = openDialog({ request });
     const state = dialogReducer(initialState, action);
@@ -20,7 +20,7 @@ describe('Dialogs Reducer', () => {
   it('should handle closeDialog action', () => {
     const initialStateWithRequest: DialogState = {
       ...initialState,
-      requests: [new MediaViewerRequest('item123')],
+      requests: [new FileViewerRequest('remote', 'path', 'file.txt', 'text/plain')],
     };
 
     const action = closeDialog();
