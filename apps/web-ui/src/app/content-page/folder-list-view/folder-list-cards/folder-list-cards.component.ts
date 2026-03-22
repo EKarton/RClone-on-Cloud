@@ -1,16 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, input, Signal } from '@angular/core';
+import { Component, inject, input, Signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Buffer } from 'buffer';
 
 import { HasFailedPipe } from '../../../shared/results/pipes/has-failed.pipe';
 import { IsPendingPipe } from '../../../shared/results/pipes/is-pending.pipe';
 import { ListAlbumsSortBy } from '../../services/web-api/types/list-albums';
-import { hasSucceed, Result, toPending } from '../../../shared/results/results';
+import { Result, toPending } from '../../../shared/results/results';
 import { ListFolderResponse } from '../../services/web-api/types/list-folder';
-import { mapResult } from '../../../shared/results/utils/mapResult';
 import { REMOTE_PATH$ } from '../folder-list-view.tokens';
-import { combineLatest, switchMap } from 'rxjs';
+import { switchMap } from 'rxjs';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { mapResultRxJs } from '../../../shared/results/rxjs/mapResultRxJs';
 
