@@ -7,8 +7,6 @@ import {
   WritableSignal,
 } from '@angular/core';
 
-import { HasFailedPipe } from '../../shared/results/pipes/has-failed.pipe';
-import { IsPendingPipe } from '../../shared/results/pipes/is-pending.pipe';
 import { FolderBreadcrumbsComponent } from './folder-breadcrumbs/folder-breadcrumbs.component';
 import { REMOTE_PATH$, REMOTE_PATH$_PROVIDER } from './folder-list-view.tokens';
 import { RouterModule } from '@angular/router';
@@ -36,8 +34,6 @@ import { toSignal } from '@angular/core/rxjs-interop';
   imports: [
     CommonModule,
     RouterModule,
-    HasFailedPipe,
-    IsPendingPipe,
     FolderBreadcrumbsComponent,
     FolderDisplayDropdownComponent,
     FolderSortDropdownComponent,

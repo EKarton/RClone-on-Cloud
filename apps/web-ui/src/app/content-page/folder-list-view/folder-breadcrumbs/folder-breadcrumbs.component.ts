@@ -4,8 +4,6 @@ import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { map, Observable, Subscription } from 'rxjs';
 
-import { HasFailedPipe } from '../../../shared/results/pipes/has-failed.pipe';
-import { IsPendingPipe } from '../../../shared/results/pipes/is-pending.pipe';
 import { REMOTE_PATH$ } from '../folder-list-view.tokens';
 
 export interface BreadcrumbItem {
@@ -16,7 +14,7 @@ export interface BreadcrumbItem {
 
 @Component({
   selector: 'app-folder-breadcrumbs',
-  imports: [CommonModule, RouterModule, IsPendingPipe, HasFailedPipe],
+  imports: [CommonModule, RouterModule],
   templateUrl: './folder-breadcrumbs.component.html',
 })
 export class FolderBreadcrumbsComponent {
