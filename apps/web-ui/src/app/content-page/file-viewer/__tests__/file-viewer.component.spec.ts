@@ -15,6 +15,16 @@ describe('FileViewerComponent', () => {
   let mockStore: MockStore;
 
   beforeEach(async () => {
+    // Mock HTMLDialogElement.prototype.showModal and close (not implemented in JSDOM)
+    if (typeof HTMLDialogElement !== 'undefined') {
+      if (!HTMLDialogElement.prototype.showModal) {
+        HTMLDialogElement.prototype.showModal = vi.fn();
+      }
+      if (!HTMLDialogElement.prototype.close) {
+        HTMLDialogElement.prototype.close = vi.fn();
+      }
+    }
+
     mockWebApiService = {
       fetchFileContent: vi.fn(),
     };
