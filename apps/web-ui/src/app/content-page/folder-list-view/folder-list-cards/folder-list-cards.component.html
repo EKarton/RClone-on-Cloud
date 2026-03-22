@@ -1,36 +1,35 @@
-<!-- @if (albumsResult() | isPending) {
+@if (itemsResult() | isPending) {
   <div data-testid="album-skeleton" class="skeleton w-32 h-16 rounded-md"></div>
-} @else if (albumsResult() | hasFailed) {
+} @else if (itemsResult() | hasFailed) {
   <span data-testid="albums-error">
-    Error: {{ albumsResult().error!.message }}
+    Error: {{ itemsResult().error!.message }}
   </span>
 } @else {
   <div class="flex flex-wrap gap-4">
-    @for (album of albumsResult().data!; track album.id) {
+    @for (item of itemsResult().data!; track item.name) {
       <div
         data-testid="album"
         class="flex items-center gap-2 border border-opacity-50 rounded-md pl-5 pr-6 pt-3 pb-3 hover:bg-base-300 cursor-pointer hover:underline"
-        [routerLink]="['/albums', album.id]"
+        (click)="item.onClick()"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="1.5"
-          stroke="currentColor"
-          class="size-6"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
+        @if (item.isDir) {
+          <img
+            src="assets/shared/icons/folder.svg"
+            class="size-6"
+            alt="Folder"
           />
-        </svg>
+        } @else if (item.mimeType?.startsWith('image/')) {
+          <img src="assets/shared/icons/image.svg" class="size-6" alt="Image" />
+        } @else if (item.mimeType?.startsWith('video/')) {
+          <img src="assets/shared/icons/video.svg" class="size-6" alt="Video" />
+        } @else {
+          <img src="assets/shared/icons/file.svg" class="size-6" alt="File" />
+        }
 
         <div data-testid="album-card-name" class="text-sm">
-          {{ album.albumName }}
+          {{ item.name }}
         </div>
       </div>
     }
   </div>
-} -->
+}

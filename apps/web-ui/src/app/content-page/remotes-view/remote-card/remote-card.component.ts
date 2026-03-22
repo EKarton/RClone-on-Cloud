@@ -28,7 +28,7 @@ export class RemoteCardComponent {
   private readonly webApiService = inject(WebApiService);
 
   readonly foldersLink = computed(() => {
-    return `/folders/${Buffer.from(`${this.remote()}:`).toString('base64')}`;
+    return `/folders/${Buffer.from(`${this.remote()}:`).toString('base64').replace(/=/g, '')}`;
   });
 
   readonly usageResult$ = toObservable(this.remote).pipe(

@@ -39,6 +39,9 @@ import {
   VectorSearchMediaItemsRequest,
   VectorSearchMediaItemsResponse,
 } from './types/search-media-items-by-text';
+import { ListFolderResponse, RawListFolderResponse } from './types/list-folder';
+import { mapResult } from '../../../shared/results/utils/mapResult';
+import { mapResultRxJs } from '../../../shared/results/rxjs/mapResultRxJs';
 
 @Injectable({ providedIn: 'root' })
 export class WebApiService {
@@ -305,6 +308,42 @@ export class WebApiService {
       dateTaken: new Date(rawDoc.dateTaken),
       mimeType: rawDoc.mimeType,
     };
+  }
+
+  /** Lists the contents of a folder */
+  listFolder(
+    remote: string,
+    path: string,
+  ): Observable<Result<ListFolderResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/list`;
+    const requestBody = {
+      fs: `${remote}:`,
+      remote: path,
+      _config: {
+        UseListR: true,
+      },
+    };
+    return this.store.select(authState.selectAuthToken).pipe(
+      take(1),
+      switchMap((authToken) =>
+        this.httpClient.post<RawListFolderResponse>(url, requestBody, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }),
+      ),
+      toResult(),
+      mapResultRxJs((res) => ({
+        items: res.list.map((item) => ({
+          path: item.Path,
+          name: item.Name,
+          size: item.Size,
+          mimeType: item.MimeType,
+          modTime: item.ModTime ? new Date(item.ModTime) : undefined,
+          isDir: item.IsDir,
+        })),
+      })),
+    );
   }
 
   /** List the remote usage */

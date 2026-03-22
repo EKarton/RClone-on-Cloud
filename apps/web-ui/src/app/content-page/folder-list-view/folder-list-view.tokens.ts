@@ -39,22 +39,3 @@ export const REMOTE_PATH$_PROVIDER: FactoryProvider = {
   },
   deps: [ActivatedRoute],
 };
-
-export const REMOTE$ = new InjectionToken<Observable<string>>('REMOTE$');
-export const PATH$ = new InjectionToken<Observable<string | undefined>>(
-  'PATH$',
-);
-
-export const REMOTE$_PROVIDER: FactoryProvider = {
-  provide: REMOTE$,
-  useFactory: (remotePath$: Observable<RemotePath>) =>
-    remotePath$.pipe(map((remotePath) => remotePath.remote)),
-  deps: [REMOTE_PATH$],
-};
-
-export const PATH$_PROVIDER: FactoryProvider = {
-  provide: PATH$,
-  useFactory: (remotePath$: Observable<RemotePath>) =>
-    remotePath$.pipe(map((remotePath) => remotePath.path)),
-  deps: [REMOTE_PATH$],
-};

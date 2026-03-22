@@ -47,7 +47,7 @@ export class FolderBreadcrumbsComponent {
           text: remotePath.remote,
           routerLink:
             folders.length > 0
-              ? `/files/${Buffer.from(`${remotePath.remote}:/`).toString('base64')}`
+              ? `/folders/${Buffer.from(`${remotePath.remote}:`).toString('base64').replace(/=/g, '')}`
               : undefined,
         });
 
@@ -63,7 +63,7 @@ export class FolderBreadcrumbsComponent {
           breadcrumbs.push({
             id: `${remotePath.remote}:${curLink}`,
             text: folder,
-            routerLink: `/files/${Buffer.from(`${remotePath.remote}:${curLink}`).toString('base64')}`,
+            routerLink: `/folders/${Buffer.from(`${remotePath.remote}:${curLink}`).toString('base64').replace(/=/g, '')}`,
           });
           prevPath = curLink;
         }

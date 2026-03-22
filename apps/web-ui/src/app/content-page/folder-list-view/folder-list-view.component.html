@@ -8,8 +8,14 @@
 </div>
 <div class="mb-4xl">
   @if (filesListViewOption() === ListViewOptions.TABLE) {
-    <app-folder-list-table [sortBy]="filesSortBy()" />
+    <app-folder-list-table
+      [sortBy]="filesSortBy()"
+      [contentsResult]="contentsResult()"
+    />
   } @else {
-    <app-folder-list-cards [sortBy]="filesSortBy()" />
+    <app-folder-list-cards
+      [sortBy]="filesSortBy()"
+      [contentsResult]="contentsResult()"
+    />
   }
 </div>

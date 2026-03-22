@@ -1,14 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal, WritableSignal } from '@angular/core';
+import {
+  Component,
+  inject,
+  Signal,
+  signal,
+  WritableSignal,
+} from '@angular/core';
 
 import { HasFailedPipe } from '../../shared/results/pipes/has-failed.pipe';
 import { IsPendingPipe } from '../../shared/results/pipes/is-pending.pipe';
 import { FolderBreadcrumbsComponent } from './folder-breadcrumbs/folder-breadcrumbs.component';
-import {
-  PATH$_PROVIDER,
-  REMOTE$_PROVIDER,
-  REMOTE_PATH$_PROVIDER,
-} from './folder-list-view.tokens';
+import { REMOTE_PATH$, REMOTE_PATH$_PROVIDER } from './folder-list-view.tokens';
 import { RouterModule } from '@angular/router';
 import {
   ListAlbumsSortBy,
@@ -22,6 +24,11 @@ import {
 import { FolderListCardsComponent } from './folder-list-cards/folder-list-cards.component';
 import { FolderListTableComponent } from './folder-list-table/folder-list-table.component';
 import { FolderSortDropdownComponent } from './folder-sort-dropdown/folder-sort-dropdown.component';
+import { switchMap } from 'rxjs/operators';
+import { WebApiService } from '../services/web-api/web-api.service';
+import { Result, toPending } from '../../shared/results/results';
+import { ListFolderResponse } from '../services/web-api/types/list-folder';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   standalone: true,
@@ -38,9 +45,12 @@ import { FolderSortDropdownComponent } from './folder-sort-dropdown/folder-sort-
     FolderListTableComponent,
   ],
   templateUrl: './folder-list-view.component.html',
-  providers: [REMOTE_PATH$_PROVIDER, REMOTE$_PROVIDER, PATH$_PROVIDER],
+  providers: [REMOTE_PATH$_PROVIDER],
 })
 export class FolderListViewComponent {
+  private readonly remotePath$ = inject(REMOTE_PATH$);
+  private readonly webApiService = inject(WebApiService);
+
   readonly ListViewOptions = ListViewOptions;
 
   filesSortBy: WritableSignal<ListAlbumsSortBy> = signal({
@@ -50,5 +60,14 @@ export class FolderListViewComponent {
 
   filesListViewOption: WritableSignal<ListViewOptions> = signal(
     ListViewOptions.LIST,
+  );
+
+  readonly contentsResult: Signal<Result<ListFolderResponse>> = toSignal(
+    this.remotePath$.pipe(
+      switchMap(({ remote, path }) =>
+        this.webApiService.listFolder(remote, path ?? ''),
+      ),
+    ),
+    { initialValue: toPending<ListFolderResponse>() },
   );
 }
