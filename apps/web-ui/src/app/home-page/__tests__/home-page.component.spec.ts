@@ -5,21 +5,28 @@ import { environment } from '../../../environments/environment';
 import { WINDOW } from '../../app.tokens';
 import { themeState } from '../../themes/store';
 import { HomePageComponent } from '../home-page.component';
+import { CookieService } from 'ngx-cookie-service';
 
 describe('HomePageComponent', () => {
   let component: HomePageComponent;
   let fixture: ComponentFixture<HomePageComponent>;
   let mockWindow: {
-    localStorage: { removeItem: jasmine.Spy };
+    localStorage: { removeItem: jasmine.Spy; setItem: jasmine.Spy };
     pageYOffset: number;
     location: { href: string; pathname: string };
+    document: { cookie: string };
   };
+  let cookieService: CookieService;
 
   beforeEach(async () => {
     mockWindow = {
       location: { href: '', pathname: '' },
       pageYOffset: 0,
-      localStorage: { removeItem: jasmine.createSpy('removeItem') },
+      localStorage: {
+        removeItem: jasmine.createSpy('removeItem'),
+        setItem: jasmine.createSpy('setItem'),
+      },
+      document: { cookie: '' },
     };
 
     await TestBed.configureTestingModule({
@@ -34,12 +41,16 @@ describe('HomePageComponent', () => {
             [themeState.FEATURE_KEY]: themeState.initialState,
           },
         }),
+        CookieService,
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HomePageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+
+    cookieService = TestBed.inject(CookieService);
+    spyOn(cookieService, 'set');
   });
 
   it('should create component', () => {
@@ -97,16 +108,20 @@ describe('HomePageComponent', () => {
     expect(header.classList.contains('bg-base-200')).toBeFalse();
   });
 
-  it('should clear auth redirect local storage and redirect to login URL on handleLoginClick', () => {
+  it('should clear auth redirect local storage, generate state, and redirect to login URL with state on handleLoginClick', () => {
+    spyOn(crypto, 'randomUUID').and.returnValue(
+      '123e4567-e89b-12d3-a456-426614174000',
+    );
     const button = fixture.nativeElement.querySelector(
       '[data-test-id="login-button"]',
     );
     button.click();
 
-    const expectedHref = `${environment.loginUrl}?select_account=true`;
+    const expectedHref = `${environment.loginUrl}?select_account=true&state=123e4567-e89b-12d3-a456-426614174000`;
     expect(mockWindow.location.href).toBe(expectedHref);
     expect(mockWindow.localStorage.removeItem).toHaveBeenCalledWith(
       'auth_redirect_path',
     );
+    expect(cookieService.set).toHaveBeenCalled();
   });
 });

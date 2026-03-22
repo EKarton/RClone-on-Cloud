@@ -4,6 +4,7 @@ import { Component, HostListener, inject, signal } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { WINDOW } from '../app.tokens';
 import { ThemeToggleButtonComponent } from '../themes/components/theme-toggle-button/theme-toggle-button.component';
+import { CookieService } from 'ngx-cookie-service';
 
 @Component({
   selector: 'app-home-page',
@@ -12,6 +13,7 @@ import { ThemeToggleButtonComponent } from '../themes/components/theme-toggle-bu
 })
 export class HomePageComponent {
   private readonly window: Window = inject(WINDOW);
+  private readonly cookieService = inject(CookieService);
 
   readonly isScrolled = signal(false);
 
@@ -22,6 +24,17 @@ export class HomePageComponent {
 
   handleLoginClick() {
     this.window.localStorage.removeItem('auth_redirect_path');
-    this.window.location.href = `${environment.loginUrl}?select_account=true`;
+    const state = crypto.randomUUID();
+
+    this.cookieService.set(
+      'oauth_state',
+      state,
+      300,
+      '/',
+      undefined,
+      true,
+      'None',
+    );
+    this.window.location.href = `${environment.loginUrl}?select_account=true&state=${state}`;
   }
 }
