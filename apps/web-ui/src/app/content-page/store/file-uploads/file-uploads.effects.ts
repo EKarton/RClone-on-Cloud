@@ -17,25 +17,14 @@ export class FileUploadsEffects {
     return this.actions$.pipe(
       ofType(fileUploadsActions.uploadFile),
       switchMap(({ request }) => {
-        return this.webApiService
-          .uploadFileAsync(request.remote, request.dirPath, request.file)
-          .pipe(
-            filterOnlySuccess(),
-            switchMap((job) => {
-              return interval(1000).pipe(
-                startWith(0),
-                switchMap(() => this.webApiService.getJobStatus(job.jobid)),
-                takeWhile((status) => !status.error && !status.data?.finished, true),
-              );
-            }),
-            filter((result) => !isPending(result)),
-            map((statusResult) => {
-              return fileUploadsActions.setUploadFileResult({
-                request,
-                result: statusResult,
-              });
-            }),
-          );
+        return this.webApiService.uploadFile(request.remote, request.dirPath, request.file).pipe(
+          map((result) => {
+            return fileUploadsActions.setUploadFileResult({
+              request,
+              result,
+            });
+          }),
+        );
       }),
     );
   });

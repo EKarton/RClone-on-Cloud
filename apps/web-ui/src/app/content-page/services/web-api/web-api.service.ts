@@ -11,7 +11,6 @@ import { toResult } from '../../../shared/results/rxjs/toResult';
 import { ListFolderResponse, RawListFolderResponse } from './types/list-folder';
 import { ListRemoteUsageResponse } from './types/list-remote-usage';
 import { ListRemotesResponse } from './types/list-remotes';
-import { UploadFileResponse } from './types/upload-file';
 import { JobStatusResponse } from './types/get-job-status';
 
 @Injectable({ providedIn: 'root' })
@@ -39,16 +38,11 @@ export class WebApiService {
   }
 
   /** Uploads a file to a remote asynchronously */
-  uploadFileAsync(
-    remote: string,
-    dirPath: string,
-    file: File,
-  ): Observable<Result<UploadFileResponse>> {
+  uploadFile(remote: string, dirPath: string, file: File): Observable<Result<void>> {
     const url =
       `${environment.webApiEndpoint}/api/v1/rclone/operations/uploadfile` +
       `?fs=${encodeURIComponent(remote + ':')}` +
-      `&remote=${encodeURIComponent(dirPath)}` +
-      `&_async=true`;
+      `&remote=${encodeURIComponent(dirPath)}`;
 
     const formData = new FormData();
     formData.append('file', file);
@@ -56,7 +50,7 @@ export class WebApiService {
     return this.store.select(authState.selectAuthToken).pipe(
       take(1),
       switchMap((authToken) =>
-        this.httpClient.post<UploadFileResponse>(url, formData, {
+        this.httpClient.post<void>(url, formData, {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
