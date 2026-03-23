@@ -45,7 +45,8 @@ export class FolderListTableComponent {
 
   readonly sortConfig = signal<SortConfig | null>(null);
 
-  private readonly remotePath = toSignal(inject(REMOTE_PATH$));
+  private readonly remotePath$ = inject(REMOTE_PATH$);
+  private readonly remotePath = toSignal(this.remotePath$);
   private readonly router = inject(Router);
   private readonly store = inject(Store);
 

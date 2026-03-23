@@ -17,14 +17,16 @@ export class FileUploadsEffects {
     return this.actions$.pipe(
       ofType(fileUploadsActions.uploadFile),
       switchMap(({ request }) => {
-        return this.webApiService.uploadFile(request.remote, request.dirPath, request.file).pipe(
-          map((result) => {
-            return fileUploadsActions.setUploadFileResult({
-              request,
-              result,
-            });
-          }),
-        );
+        return this.webApiService
+          .uploadFile(request.remote, request.dirPath ?? '', request.file)
+          .pipe(
+            map((result) => {
+              return fileUploadsActions.setUploadFileResult({
+                request,
+                result,
+              });
+            }),
+          );
       }),
     );
   });

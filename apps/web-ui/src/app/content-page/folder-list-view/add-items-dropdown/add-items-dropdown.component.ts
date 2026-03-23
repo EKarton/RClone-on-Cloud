@@ -56,7 +56,7 @@ export class AddItemsDropdownComponent {
       fileUploadsActions.uploadFile({
         request: {
           remote: remotePath.remote,
-          dirPath: remotePath.path ?? '/',
+          dirPath: remotePath.path,
           file,
         },
       }),

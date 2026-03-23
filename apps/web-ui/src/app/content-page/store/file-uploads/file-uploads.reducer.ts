@@ -13,11 +13,14 @@ export const fileUploadsReducer = createReducer(
       fileName: request.file.name,
     };
 
+    const remoteDirPath = `${request.remote}:${request.dirPath ?? ''}`;
+    console.log('remoteDirPath', remoteDirPath);
+
     return {
       ...state,
       uploadingFilesToResult: state.uploadingFilesToResult.set(uploadingFile, result),
       remoteDirPathToUploadingFiles: state.remoteDirPathToUploadingFiles.update(
-        request.dirPath,
+        remoteDirPath,
         (files) => {
           if (!files) {
             return [uploadingFile];
