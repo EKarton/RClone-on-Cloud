@@ -4,6 +4,7 @@ import { catchError, EMPTY, throwError } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { WINDOW } from '../../app.tokens';
+import { Router } from '@angular/router';
 
 /**
  * An Angular request interceptor that automatically redirects the user to the login page
@@ -11,13 +12,14 @@ import { WINDOW } from '../../app.tokens';
  */
 export const webApiAuthRequestInterceptor: HttpInterceptorFn = (req, next) => {
   const window: Window = inject(WINDOW);
+  const router = inject(Router);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       if (req.url.startsWith(environment.webApiEndpoint)) {
         if (error.status == 401) {
           window.localStorage.setItem('auth_redirect_path', window.location.pathname);
-          window.location.href = `${environment.loginUrl}`;
+          router.navigate(['/auth/v1/google/login']);
 
           return EMPTY;
         }

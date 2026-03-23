@@ -6,6 +6,8 @@
   </h1>
 
   <div class="flex items-center">
+    <app-add-items-dropdown />
+
     @if (filesListViewOption() === ListViewOptions.LIST) {
       <app-folder-sort-dropdown [(sortBy)]="filesSortBy" />
     }

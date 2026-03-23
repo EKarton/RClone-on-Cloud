@@ -73,10 +73,11 @@ describe('CallbackPageComponent', () => {
     webApiService.fetchAccessToken.mockReturnValue(of(toSuccess({ token: mockToken })));
 
     cookieService.set('oauth_state', 'valid-state');
+    cookieService.set('oauth_verifier', 'test-verifier');
 
     fixture.detectChanges(); // Trigger ngOnInit
 
-    expect(webApiService.fetchAccessToken).toHaveBeenCalledWith('test-auth-code');
+    expect(webApiService.fetchAccessToken).toHaveBeenCalledWith('test-auth-code', 'test-verifier');
     expect(store.dispatch).toHaveBeenCalledWith(authActions.setAuthToken({ authToken: mockToken }));
     expect(cookieService.delete).toHaveBeenCalledWith('oauth_state');
     expect(router.navigate).toHaveBeenCalledWith(['/remotes']);
@@ -86,6 +87,7 @@ describe('CallbackPageComponent', () => {
     const mockToken = 'mockToken';
     webApiService.fetchAccessToken.mockReturnValue(of(toSuccess({ token: mockToken })));
     cookieService.set('oauth_state', 'valid-state');
+    cookieService.set('oauth_verifier', 'test-verifier');
     mockLocalStorageGetItem.mockImplementation((key: string) => {
       if (key === 'auth_redirect_path') {
         return '/custom/path';
@@ -103,6 +105,7 @@ describe('CallbackPageComponent', () => {
       of(toFailure<TokenResponse>(new Error('error'))),
     );
     cookieService.set('oauth_state', 'valid-state');
+    cookieService.set('oauth_verifier', 'test-verifier');
 
     fixture.detectChanges();
 

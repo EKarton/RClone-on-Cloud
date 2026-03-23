@@ -3,9 +3,11 @@ import { Routes } from '@angular/router';
 import { CallbackPageComponent } from './auth/callback-page/callback-page.component';
 import { HomePageComponent } from './home-page/home-page.component';
 import { NotFoundPageComponent } from './not-found-page/not-found-page.component';
+import { LoginPageComponent } from './auth/login-page/login-page.component';
 
 export const routes: Routes = [
   { path: '', component: HomePageComponent, pathMatch: 'full' },
+  { path: 'auth/v1/google/login', component: LoginPageComponent, pathMatch: 'full' },
   {
     path: 'auth/v1/google/callback',
     component: CallbackPageComponent,

@@ -21,6 +21,7 @@ import { FolderListCardsComponent } from './folder-list-cards/folder-list-cards.
 import { FolderListTableComponent } from './folder-list-table/folder-list-table.component';
 import { REMOTE_PATH$, REMOTE_PATH$_PROVIDER } from './folder-list-view.tokens';
 import { FolderSortDropdownComponent } from './folder-sort-dropdown/folder-sort-dropdown.component';
+import { AddItemsDropdownComponent } from './add-items-dropdown/add-items-dropdown.component';
 
 @Component({
   standalone: true,
@@ -33,6 +34,7 @@ import { FolderSortDropdownComponent } from './folder-sort-dropdown/folder-sort-
     FolderSortDropdownComponent,
     FolderListCardsComponent,
     FolderListTableComponent,
+    AddItemsDropdownComponent,
   ],
   templateUrl: './folder-list-view.component.html',
   providers: [REMOTE_PATH$_PROVIDER],

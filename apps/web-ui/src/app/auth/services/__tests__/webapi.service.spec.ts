@@ -30,19 +30,20 @@ describe('WebApiService', () => {
 
   it('should fetch access token', () => {
     const mockCode = 'test-auth-code';
+    const mockCodeVerifier = 'test-code-verifier';
     const mockResponse: TokenResponse = {
       token: 'mockAccessToken',
     };
 
     const emissions: Result<TokenResponse>[] = [];
-    service.fetchAccessToken(mockCode).subscribe((response) => {
+    service.fetchAccessToken(mockCode, mockCodeVerifier).subscribe((response) => {
       emissions.push(response);
     });
 
     const req = httpMock.expectOne(`${environment.webApiEndpoint}/auth/v1/google/callback`);
 
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ code: mockCode });
+    expect(req.request.body).toEqual({ code: mockCode, code_verifier: mockCodeVerifier });
 
     req.flush(mockResponse);
 
@@ -51,9 +52,10 @@ describe('WebApiService', () => {
 
   it('should handle error response', () => {
     const mockCode = 'test-auth-code';
+    const mockCodeVerifier = 'test-code-verifier';
 
     const emissions: Result<TokenResponse>[] = [];
-    service.fetchAccessToken(mockCode).subscribe({
+    service.fetchAccessToken(mockCode, mockCodeVerifier).subscribe({
       next: (response) => {
         emissions.push(response);
       },
