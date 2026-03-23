@@ -38,7 +38,8 @@ type ErrorResponse struct {
 
 // CallbackRequest is the JSON body for the callback request.
 type CallbackRequest struct {
-	Code string `json:"code"`
+	Code         string `json:"code"`
+	CodeVerifier string `json:"code_verifier"`
 }
 
 // --- Interfaces for testability ---
@@ -158,7 +159,7 @@ func (h *Handler) handleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oauthToken, err := h.exchanger.Exchange(r.Context(), code)
+	oauthToken, err := h.exchanger.Exchange(r.Context(), code, oauth2.VerifierOption(req.CodeVerifier))
 	if err != nil {
 		log.Printf("token exchange failed: %v", err)
 		writeError(w, "token exchange failed", http.StatusUnauthorized)

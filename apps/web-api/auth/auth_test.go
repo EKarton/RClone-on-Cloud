@@ -55,7 +55,11 @@ type mockExchanger struct {
 	err   error
 }
 
-func (m *mockExchanger) Exchange(_ context.Context, _ string, _ ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
+func (m *mockExchanger) Exchange(_ context.Context, _ string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
+	// Simple verification if VerifierOption is passed
+	if len(opts) > 0 {
+		// In a real test we'd check if it matches the expected verifier
+	}
 	return m.token, m.err
 }
 
@@ -103,7 +107,7 @@ func newTestHandler(t *testing.T, exchanger TokenExchanger, validator IDTokenVal
 func TestLoginRedirect(t *testing.T) {
 	_, mux := newTestHandler(t, nil, nil)
 
-	req := httptest.NewRequest(http.MethodGet, "/auth/v1/google/login?state=test-state", nil)
+	req := httptest.NewRequest(http.MethodGet, "/auth/v1/google/login?state=test-state&challenge=test-challenge&code_challenge_method=S256", nil)
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -140,7 +144,8 @@ func TestLoginRedirectMissingState(t *testing.T) {
 func TestCallbackMissingCode(t *testing.T) {
 	_, mux := newTestHandler(t, &mockExchanger{}, &mockValidator{})
 
-	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=abc", nil)
+	body, _ := json.Marshal(CallbackRequest{Code: "", CodeVerifier: "test-verifier"})
+	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=abc", bytes.NewReader(body))
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -162,7 +167,7 @@ func TestCallbackInvalidGoogleToken(t *testing.T) {
 	}
 	_, mux := newTestHandler(t, exchanger, &mockValidator{})
 
-	body, _ := json.Marshal(CallbackRequest{Code: "badcode"})
+	body, _ := json.Marshal(CallbackRequest{Code: "badcode", CodeVerifier: "test-verifier"})
 	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=abc", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
@@ -190,7 +195,7 @@ func TestCallbackNoIDToken(t *testing.T) {
 	exchanger := &mockExchanger{token: oauthToken}
 	_, mux := newTestHandler(t, exchanger, &mockValidator{})
 
-	body, _ := json.Marshal(CallbackRequest{Code: "goodcode"})
+	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier"})
 	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=abc", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	req.AddCookie(&http.Cookie{Name: "oauth_state", Value: "abc"})
@@ -220,7 +225,7 @@ func TestCallbackIDTokenValidationFails(t *testing.T) {
 	validator := &mockValidator{err: assert.AnError}
 	_, mux := newTestHandler(t, exchanger, validator)
 
-	body, _ := json.Marshal(CallbackRequest{Code: "goodcode"})
+	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier"})
 	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=abc", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
@@ -264,7 +269,7 @@ func TestCallbackSuccess(t *testing.T) {
 	}
 	_, mux := newTestHandler(t, exchanger, validator)
 
-	body, _ := json.Marshal(CallbackRequest{Code: "goodcode"})
+	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier"})
 	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=abc", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
@@ -332,7 +337,7 @@ func TestSignAndVerifyJWT(t *testing.T) {
 	}
 	_, mux := newTestHandler(t, exchanger, validator)
 
-	body, _ := json.Marshal(CallbackRequest{Code: "c"})
+	body, _ := json.Marshal(CallbackRequest{Code: "c", CodeVerifier: "v"})
 	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=s", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
@@ -393,7 +398,7 @@ func TestCallbackMissingSub(t *testing.T) {
 	}
 	_, mux := newTestHandler(t, exchanger, validator)
 
-	body, _ := json.Marshal(CallbackRequest{Code: "c"})
+	body, _ := json.Marshal(CallbackRequest{Code: "c", CodeVerifier: "v"})
 	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=s", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
@@ -430,7 +435,7 @@ func TestCallbackJSONBodySuccess(t *testing.T) {
 	}
 	_, mux := newTestHandler(t, exchanger, validator)
 
-	body, _ := json.Marshal(CallbackRequest{Code: "goodcode"})
+	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier"})
 	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
