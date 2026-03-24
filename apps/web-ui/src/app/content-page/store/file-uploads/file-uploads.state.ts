@@ -1,8 +1,7 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { Map as ImmutableMap } from 'immutable';
+import { Map as ImmutableMap, Set as ImmutableSet } from 'immutable';
 
 import { Result } from '../../../shared/results/results';
-import { JobStatusResponse } from '../../services/web-api/types/get-job-status';
 
 /** Represents a file upload request */
 export interface UploadFileRequest {
@@ -12,22 +11,26 @@ export interface UploadFileRequest {
 }
 
 /** Represents an uploading file */
-export interface UploadingFile {
+export type UploadingFile = {
   remote: string;
   dirPath: string | undefined;
   fileName: string;
-}
+};
+
+export type UploadingFileKey = string;
 
 /** The type defs of this NgRx store. */
 export interface FileUploadState {
-  uploadingFilesToResult: ImmutableMap<UploadingFile, Result<void>>;
-  remoteDirPathToUploadingFiles: ImmutableMap<string, UploadingFile[]>;
+  keyToUploadingFiles: ImmutableMap<UploadingFileKey, UploadingFile>;
+  keyToResult: ImmutableMap<UploadingFileKey, Result<void>>;
+  remoteDirPathToKeys: ImmutableMap<string, ImmutableSet<UploadingFileKey>>;
 }
 
 /** The initial state of the NgRx store. */
 export const initialState: FileUploadState = {
-  uploadingFilesToResult: ImmutableMap<UploadingFile, Result<void>>(),
-  remoteDirPathToUploadingFiles: ImmutableMap<string, UploadingFile[]>(),
+  keyToUploadingFiles: ImmutableMap<UploadingFileKey, UploadingFile>(),
+  keyToResult: ImmutableMap<UploadingFileKey, Result<void>>(),
+  remoteDirPathToKeys: ImmutableMap<string, ImmutableSet<UploadingFileKey>>(),
 };
 
 /** The feature key shared with the reducer. */
@@ -39,10 +42,25 @@ export const selectFileUploadState = createFeatureSelector<FileUploadState>(FEAT
 /** Returns all of the uploading files with their results in a specific remote directory */
 export const selectUploadingFilesInRemoteDirPath = (remoteDirPath: string) =>
   createSelector(selectFileUploadState, (state) =>
-    state.remoteDirPathToUploadingFiles.get(remoteDirPath, []).map((uploadingFile) => {
+    state.remoteDirPathToKeys.get(remoteDirPath, []).map((uploadingFileKey) => {
       return {
-        ...uploadingFile,
-        result: state.uploadingFilesToResult.get(uploadingFile)!,
+        key: uploadingFileKey,
+        ...state.keyToUploadingFiles.get(uploadingFileKey)!,
+        result: state.keyToResult.get(uploadingFileKey)!,
       };
     }),
   );
+
+/** Returns all of the uploading files with their results */
+export const selectAllUploadingFiles = createSelector(selectFileUploadState, (state) =>
+  state.keyToUploadingFiles
+    .entrySeq()
+    .map(([uploadingFileKey, uploadingFile]) => {
+      return {
+        key: uploadingFileKey,
+        ...uploadingFile,
+        result: state.keyToResult.get(uploadingFileKey)!,
+      };
+    })
+    .toList(),
+);
