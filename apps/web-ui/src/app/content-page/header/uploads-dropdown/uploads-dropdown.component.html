@@ -31,7 +31,7 @@
     <div class="flex flex-col gap-2">
       @for (uploadingFile of uploadingFiles$ | async; track uploadingFile.key) {
         @if (uploadingFile.result | hasSucceeded) {
-          <span class="flex items-center gap-2 text-success">
+          <span class="flex items-center gap-2 text-success pr-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
