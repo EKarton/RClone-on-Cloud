@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { fileUploadsState } from '../../store/file-uploads';
-import { map } from 'rxjs/operators';
+import { jobsState } from '../../store/jobs';
+import { filter, map } from 'rxjs/operators';
 import { HasSucceededPipe } from '../../../shared/results/pipes/has-succeeded.pipe';
 import { IsPendingPipe } from '../../../shared/results/pipes/is-pending.pipe';
 import { isPending } from '../../../shared/results/results';
@@ -16,9 +16,9 @@ import { isPending } from '../../../shared/results/results';
 export class UploadsDropdownComponent {
   private readonly store = inject(Store);
 
-  readonly uploadingFiles$ = this.store.select(fileUploadsState.selectAllUploadingFiles);
+  readonly jobs$ = this.store.select(jobsState.selectAllJobs);
 
-  readonly hasOngoingUploads$ = this.uploadingFiles$.pipe(
-    map((files) => files.some((file) => isPending(file.result))),
+  readonly hasOngoingJobs$ = this.jobs$.pipe(
+    map((jobs) => jobs.some((job) => isPending(job.result))),
   );
 }

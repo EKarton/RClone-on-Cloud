@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CookieService } from 'ngx-cookie-service';
 import { environment } from '../../../environments/environment';
 import { WINDOW } from '../../app.tokens';
@@ -11,7 +11,7 @@ import { generateCodeVerifier, generateCodeChallenge } from '../utils/pkce';
   templateUrl: './login-page.component.html',
   imports: [CommonModule],
 })
-export class LoginPageComponent {
+export class LoginPageComponent implements OnInit {
   private readonly window: Window = inject(WINDOW);
   private readonly cookieService = inject(CookieService);
 

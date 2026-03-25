@@ -9,6 +9,7 @@ import { Result, toPending, toSuccess } from '../../../../shared/results/results
 import { ListFolderResponse, RawListFolderResponse } from '../types/list-folder';
 import { ListRemoteUsageResponse } from '../types/list-remote-usage';
 import { ListRemotesResponse } from '../types/list-remotes';
+import { AsyncJobResponse } from '../types/async-job';
 import { WebApiService } from '../web-api.service';
 
 describe('WebApiService', () => {
@@ -194,6 +195,98 @@ describe('WebApiService', () => {
       req.flush(mockBlob);
 
       expect(emissions).toEqual([toPending(), toSuccess(mockBlob)]);
+    });
+  });
+
+  describe('deleteFileAsync', () => {
+    it('should make an async POST request to delete a file', () => {
+      const mockResponse = { jobid: 123 };
+      const emissions: Result<AsyncJobResponse>[] = [];
+      service.deleteFileAsync('my-remote', 'file1.txt').subscribe((response) => {
+        emissions.push(response);
+      });
+
+      const req = httpMock.expectOne(
+        `${environment.webApiEndpoint}/api/v1/rclone/operations/deletefile`,
+      );
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({
+        fs: 'my-remote:',
+        remote: 'file1.txt',
+        _async: true,
+      });
+
+      req.flush(mockResponse);
+      expect(emissions).toEqual([toPending(), toSuccess(mockResponse)]);
+    });
+  });
+
+  describe('deleteFolderAsync', () => {
+    it('should make an async POST request to purge a folder', () => {
+      const mockResponse = { jobid: 124 };
+      const emissions: Result<AsyncJobResponse>[] = [];
+      service.deleteFolderAsync('my-remote', 'folder1').subscribe((response) => {
+        emissions.push(response);
+      });
+
+      const req = httpMock.expectOne(
+        `${environment.webApiEndpoint}/api/v1/rclone/operations/purge`,
+      );
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({
+        fs: 'my-remote:',
+        remote: 'folder1',
+        _async: true,
+      });
+
+      req.flush(mockResponse);
+      expect(emissions).toEqual([toPending(), toSuccess(mockResponse)]);
+    });
+  });
+
+  describe('moveFileAsync', () => {
+    it('should move a file between remotes', () => {
+      const mockResponse = { jobid: 127 };
+      const emissions: Result<AsyncJobResponse>[] = [];
+      service
+        .moveFileAsync('remote1', 'file.txt', 'remote2', 'target.txt')
+        .subscribe((response) => {
+          emissions.push(response);
+        });
+
+      const req = httpMock.expectOne(
+        `${environment.webApiEndpoint}/api/v1/rclone/operations/movefile`,
+      );
+      expect(req.request.body).toEqual({
+        srcFs: 'remote1:',
+        srcRemote: 'file.txt',
+        dstFs: 'remote2:',
+        dstRemote: 'target.txt',
+        _async: true,
+      });
+
+      req.flush(mockResponse);
+      expect(emissions).toEqual([toPending(), toSuccess(mockResponse)]);
+    });
+  });
+
+  describe('moveFolderAsync', () => {
+    it('should move a folder between remotes', () => {
+      const mockResponse = { jobid: 128 };
+      const emissions: Result<AsyncJobResponse>[] = [];
+      service.moveFolderAsync('remote1', 'dir1', 'remote2', 'dir2').subscribe((response) => {
+        emissions.push(response);
+      });
+
+      const req = httpMock.expectOne(`${environment.webApiEndpoint}/api/v1/rclone/sync/move`);
+      expect(req.request.body).toEqual({
+        srcFs: 'remote1:dir1',
+        dstFs: 'remote2:dir2',
+        _async: true,
+      });
+
+      req.flush(mockResponse);
+      expect(emissions).toEqual([toPending(), toSuccess(mockResponse)]);
     });
   });
 });

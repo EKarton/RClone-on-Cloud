@@ -12,6 +12,7 @@ import { ListFolderResponse, RawListFolderResponse } from './types/list-folder';
 import { ListRemoteUsageResponse } from './types/list-remote-usage';
 import { ListRemotesResponse } from './types/list-remotes';
 import { JobStatusResponse } from './types/get-job-status';
+import { AsyncJobResponse } from './types/async-job';
 
 @Injectable({ providedIn: 'root' })
 export class WebApiService {
@@ -24,17 +25,7 @@ export class WebApiService {
     const requestBody = {
       jobid: jobId,
     };
-    return this.store.select(authState.selectAuthToken).pipe(
-      take(1),
-      switchMap((authToken) =>
-        this.httpClient.post<JobStatusResponse>(url, requestBody, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }),
-      ),
-      toResult(),
-    );
+    return this.post<JobStatusResponse>(url, requestBody);
   }
 
   /** Uploads a file to a remote asynchronously */
@@ -66,17 +57,7 @@ export class WebApiService {
       fs: `${remote}:`,
       remote: dirPath,
     };
-    return this.store.select(authState.selectAuthToken).pipe(
-      take(1),
-      switchMap((authToken) =>
-        this.httpClient.post<void>(url, requestBody, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }),
-      ),
-      toResult(),
-    );
+    return this.post<void>(url, requestBody);
   }
 
   /** Lists the contents of a folder */
@@ -89,16 +70,7 @@ export class WebApiService {
         UseListR: true,
       },
     };
-    return this.store.select(authState.selectAuthToken).pipe(
-      take(1),
-      switchMap((authToken) =>
-        this.httpClient.post<RawListFolderResponse>(url, requestBody, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }),
-      ),
-      toResult(),
+    return this.post<RawListFolderResponse>(url, requestBody).pipe(
       mapResultRxJs((res) => ({
         items: res.list.map((item) => ({
           path: item.Path,
@@ -115,41 +87,13 @@ export class WebApiService {
   /** List the remote usage */
   listRemoteUsage(remote: string): Observable<Result<ListRemoteUsageResponse>> {
     const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/about`;
-    return this.store.select(authState.selectAuthToken).pipe(
-      take(1),
-      switchMap((authToken) =>
-        this.httpClient.post<ListRemoteUsageResponse>(
-          url,
-          { fs: `${remote}:` },
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          },
-        ),
-      ),
-      toResult(),
-    );
+    return this.post<ListRemoteUsageResponse>(url, { fs: `${remote}:` });
   }
 
   /** Lists the rclone remotes available */
   listRemotes(): Observable<Result<ListRemotesResponse>> {
     const url = `${environment.webApiEndpoint}/api/v1/rclone/config/listremotes`;
-    return this.store.select(authState.selectAuthToken).pipe(
-      take(1),
-      switchMap((authToken) =>
-        this.httpClient.post<ListRemotesResponse>(
-          url,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          },
-        ),
-      ),
-      toResult(),
-    );
+    return this.post<ListRemotesResponse>(url, {});
   }
 
   /** Fetches the raw content of a file as a Blob */
@@ -168,6 +112,76 @@ export class WebApiService {
             Authorization: `Bearer ${authToken}`,
           },
           responseType: 'blob',
+        }),
+      ),
+      toResult(),
+    );
+  }
+
+  /** Deletes a file from a remote file path */
+  deleteFileAsync(remote: string, path: string): Observable<Result<AsyncJobResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/deletefile`;
+    const requestBody = {
+      fs: `${remote}:`,
+      remote: path,
+      _async: true,
+    };
+    return this.post<AsyncJobResponse>(url, requestBody);
+  }
+
+  /** Deletes a folder from a remote dir path */
+  deleteFolderAsync(remote: string, path: string): Observable<Result<AsyncJobResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/purge`;
+    const requestBody = {
+      fs: `${remote}:`,
+      remote: path,
+      _async: true,
+    };
+    return this.post<AsyncJobResponse>(url, requestBody);
+  }
+
+  /** Moves a file from a source remote file path to a target remote file path */
+  moveFileAsync(
+    fromRemote: string,
+    fromPath: string,
+    toRemote: string,
+    toPath: string,
+  ): Observable<Result<AsyncJobResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/movefile`;
+    const requestBody = {
+      srcFs: `${fromRemote}:`,
+      srcRemote: fromPath,
+      dstFs: `${toRemote}:`,
+      dstRemote: toPath,
+      _async: true,
+    };
+    return this.post<AsyncJobResponse>(url, requestBody);
+  }
+
+  /** Moves a folder from a source remote dir path to a target remote dir path */
+  moveFolderAsync(
+    fromRemote: string,
+    fromPath: string,
+    toRemote: string,
+    toPath: string,
+  ): Observable<Result<AsyncJobResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/sync/move`;
+    const requestBody = {
+      srcFs: `${fromRemote}:${fromPath}`,
+      dstFs: `${toRemote}:${toPath}`,
+      _async: true,
+    };
+    return this.post<AsyncJobResponse>(url, requestBody);
+  }
+
+  private post<T>(url: string, body: any): Observable<Result<T>> {
+    return this.store.select(authState.selectAuthToken).pipe(
+      take(1),
+      switchMap((authToken) =>
+        this.httpClient.post<T>(url, body, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
         }),
       ),
       toResult(),

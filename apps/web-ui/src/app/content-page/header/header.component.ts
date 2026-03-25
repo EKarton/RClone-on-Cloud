@@ -4,7 +4,7 @@ import { Component, inject } from '@angular/core';
 import { ThemeToggleButtonComponent } from '../../themes/components/theme-toggle-button/theme-toggle-button.component';
 import { UploadsDropdownComponent } from './uploads-dropdown/uploads-dropdown.component';
 import { Store } from '@ngrx/store';
-import { fileUploadsState } from '../store/file-uploads';
+import { jobsState } from '../store/jobs';
 
 @Component({
   standalone: true,
@@ -15,5 +15,5 @@ import { fileUploadsState } from '../store/file-uploads';
 export class HeaderComponent {
   private readonly store = inject(Store);
 
-  readonly uploadingFiles$ = this.store.select(fileUploadsState.selectAllUploadingFiles);
+  readonly jobs$ = this.store.select(jobsState.selectAllJobs);
 }

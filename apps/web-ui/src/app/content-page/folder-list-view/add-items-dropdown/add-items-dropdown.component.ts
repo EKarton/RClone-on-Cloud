@@ -7,7 +7,7 @@ import { hasFailed, hasSucceed } from '../../../shared/results/results';
 import { concatMap, from, map, switchMap, toArray } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { fileUploadsActions } from '../../store/file-uploads';
+import { jobsActions } from '../../store/jobs';
 
 @Component({
   standalone: true,
@@ -53,8 +53,9 @@ export class AddItemsDropdownComponent {
     }
 
     this.store.dispatch(
-      fileUploadsActions.uploadFile({
+      jobsActions.submitJob({
         request: {
+          kind: 'upload-file',
           remote: remotePath.remote,
           dirPath: remotePath.path,
           file,
@@ -83,8 +84,9 @@ export class AddItemsDropdownComponent {
       const targetDir = this.getTargetDirectory(relativePath);
 
       this.store.dispatch(
-        fileUploadsActions.uploadFile({
+        jobsActions.submitJob({
           request: {
+            kind: 'upload-file',
             remote: remotePath.remote,
             dirPath: this.joinRemotePath(remotePath.path ?? '', targetDir),
             file,

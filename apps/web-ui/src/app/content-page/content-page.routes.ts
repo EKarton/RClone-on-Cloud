@@ -5,9 +5,9 @@ import { ContentPageComponent } from './content-page.component';
 import { FolderListViewComponent } from './folder-list-view/folder-list-view.component';
 import { RemotesViewComponent } from './remotes-view/remotes-view.component';
 import { dialogFeature } from './store/dialogs/dialogs.reducer';
-import { fileUploadsFeature } from './store/file-uploads/file-uploads.reducer';
+import { jobsFeature } from './store/jobs/jobs.reducer';
 import { provideEffects } from '@ngrx/effects';
-import { FileUploadsEffects } from './store/file-uploads/file-uploads.effects';
+import { JobsEffects } from './store/jobs/jobs.effects';
 
 export const routes: Routes = [
   {
@@ -19,8 +19,8 @@ export const routes: Routes = [
     ],
     providers: [
       provideState(dialogFeature),
-      provideState(fileUploadsFeature),
-      provideEffects(FileUploadsEffects),
+      provideState(jobsFeature),
+      provideEffects(JobsEffects),
     ],
   },
 ];

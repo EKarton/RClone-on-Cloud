@@ -1,5 +1,5 @@
 import { hasFailed, isPending, Result, toFailure, toPending, toSuccess } from '../../results'; // adjust the import path as needed
-import { mapResultToResult } from '../mapResultt'; // adjust the import path as needed
+import { mapResultToResult } from '../mapResultToResult'; // adjust the import path as needed
 
 describe('mapResultt', () => {
   const successMapper = (value: number): Result<string> => toSuccess(value.toString());

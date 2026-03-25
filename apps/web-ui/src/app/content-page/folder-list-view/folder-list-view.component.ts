@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, Signal, signal, WritableSignal } from '@angular/core';
+import { Component, inject, Signal, signal, WritableSignal, OnInit, OnDestroy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterModule } from '@angular/router';
 import { filter, map, pairwise, scan, startWith, switchMap, tap } from 'rxjs/operators';
@@ -22,8 +22,8 @@ import { REMOTE_PATH$, REMOTE_PATH$_PROVIDER } from './folder-list-view.tokens';
 import { FolderSortDropdownComponent } from './folder-sort-dropdown/folder-sort-dropdown.component';
 import { AddItemsDropdownComponent } from './add-items-dropdown/add-items-dropdown.component';
 import { FolderListViewStore } from './folder-list-view.store';
-import { Subscription } from 'rxjs';
-import { fileUploadsState } from '../store/file-uploads';
+import { ConnectableObservable, Subscription } from 'rxjs';
+import { jobsState } from '../store/jobs';
 import { Store } from '@ngrx/store';
 
 @Component({
@@ -42,7 +42,7 @@ import { Store } from '@ngrx/store';
   templateUrl: './folder-list-view.component.html',
   providers: [REMOTE_PATH$_PROVIDER, FolderListViewStore],
 })
-export class FolderListViewComponent {
+export class FolderListViewComponent implements OnInit, OnDestroy {
   private readonly remotePath$ = inject(REMOTE_PATH$);
   private readonly folderListViewStore = inject(FolderListViewStore);
   private readonly globalStore = inject(Store);
@@ -78,37 +78,41 @@ export class FolderListViewComponent {
       this.remotePath$
         .pipe(
           switchMap((remotePath) => {
-            return this.globalStore
-              .select(
-                fileUploadsState.selectUploadingFilesInRemoteDirPath(
-                  `${remotePath.remote}:${remotePath.path ?? ''}`,
+            return this.globalStore.select(jobsState.selectAllJobs).pipe(
+              map((jobs) =>
+                jobs.filter(
+                  (job) =>
+                    job.kind === 'upload-file' &&
+                    `${job.remote}:${job.dirPath ?? ''}` ===
+                      `${remotePath.remote}:${remotePath.path ?? ''}`,
                 ),
-              )
-              .pipe(
-                scan(
-                  (state, uploadingFiles) => {
-                    let hasNewSuccess = false;
-                    const pendingFiles = new Set<string | number>(state.pendingFiles);
+              ),
+              scan(
+                (state, uploadingFiles) => {
+                  console.log('uploadingFiles', uploadingFiles);
+                  let hasNewSuccess = false;
+                  const pendingFiles = new Set<string | number>(state.pendingFiles);
 
-                    for (const file of uploadingFiles) {
-                      if (isPending(file.result)) {
-                        pendingFiles.add(file.key);
-                      } else if (hasSucceed(file.result) && pendingFiles.has(file.key)) {
-                        pendingFiles.delete(file.key);
-                        hasNewSuccess = true;
-                      }
+                  for (const file of uploadingFiles) {
+                    if (isPending(file.result)) {
+                      pendingFiles.add(file.key);
+                    } else if (hasSucceed(file.result) && pendingFiles.has(file.key)) {
+                      pendingFiles.delete(file.key);
+                      hasNewSuccess = true;
                     }
+                  }
 
-                    return { pendingFiles, hasNewSuccess };
-                  },
-                  { pendingFiles: new Set<string | number>(), hasNewSuccess: false },
-                ),
-                filter((state) => state.hasNewSuccess),
-                map(() => remotePath),
-              );
+                  return { pendingFiles, hasNewSuccess };
+                },
+                { pendingFiles: new Set<string | number>(), hasNewSuccess: false },
+              ),
+              filter((state) => state.hasNewSuccess),
+              map(() => remotePath),
+            );
           }),
         )
         .subscribe((remotePath) => {
+          console.log('Loading items again');
           this.folderListViewStore.loadItems({
             remote: remotePath.remote,
             dirPath: remotePath.path ?? '',
