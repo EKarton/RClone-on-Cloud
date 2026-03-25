@@ -45,7 +45,14 @@
       <div>
         <h1 class="text-3xl font-bold whitespace-nowrap">RClone on Cloud</h1>
         <p class="pt-2 pb-6 text-xl whitespace-nowrap">View your files better</p>
-        <a data-test-id="login-button" class="btn btn-primary" (click)="login()"> Login </a>
+        <button
+          data-test-id="login-button"
+          class="btn btn-primary"
+          (click)="login()"
+          (keydown.enter)="login()"
+        >
+          Login
+        </button>
       </div>
       <img
         src="/assets/home-page/images-list-view.png"

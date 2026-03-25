@@ -1,19 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { jobsState } from '../../store/jobs';
-import { filter, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { HasSucceededPipe } from '../../../shared/results/pipes/has-succeeded.pipe';
 import { IsPendingPipe } from '../../../shared/results/pipes/is-pending.pipe';
 import { isPending } from '../../../shared/results/results';
 
 @Component({
   standalone: true,
-  selector: 'app-uploads-dropdown',
+  selector: 'app-jobs-dropdown',
   imports: [CommonModule, HasSucceededPipe, IsPendingPipe],
-  templateUrl: './uploads-dropdown.component.html',
+  templateUrl: './jobs-dropdown.component.html',
 })
-export class UploadsDropdownComponent {
+export class JobsDropdownComponent {
   private readonly store = inject(Store);
 
   readonly jobs$ = this.store.select(jobsState.selectAllJobs);

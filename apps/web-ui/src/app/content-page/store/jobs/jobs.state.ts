@@ -1,5 +1,5 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { Map as ImmutableMap, Set as ImmutableSet } from 'immutable';
+import { Map as ImmutableMap } from 'immutable';
 
 import { Result } from '../../../shared/results/results';
 

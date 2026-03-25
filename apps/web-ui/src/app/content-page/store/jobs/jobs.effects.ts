@@ -15,7 +15,6 @@ import {
 import { WebApiService } from '../../services/web-api/web-api.service';
 import { JobRequest } from './jobs.state';
 import { AsyncJobResponse } from '../../services/web-api/types/async-job';
-import { mapResultRxJs } from '../../../shared/results/rxjs/mapResultRxJs';
 import { Store } from '@ngrx/store';
 import { jobsState } from '.';
 

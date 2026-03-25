@@ -4,7 +4,6 @@ import { REMOTE_PATH$ } from '../folder-list-view.tokens';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { WebApiService } from '../../services/web-api/web-api.service';
 import { hasFailed, hasSucceed } from '../../../shared/results/results';
-import { concatMap, from, map, switchMap, toArray } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { jobsActions } from '../../store/jobs';

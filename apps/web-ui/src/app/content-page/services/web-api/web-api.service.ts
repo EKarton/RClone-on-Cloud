@@ -174,7 +174,7 @@ export class WebApiService {
     return this.post<AsyncJobResponse>(url, requestBody);
   }
 
-  private post<T>(url: string, body: any): Observable<Result<T>> {
+  private post<T>(url: string, body: unknown): Observable<Result<T>> {
     return this.store.select(authState.selectAuthToken).pipe(
       take(1),
       switchMap((authToken) =>

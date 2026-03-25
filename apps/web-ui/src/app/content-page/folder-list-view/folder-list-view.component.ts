@@ -1,8 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, Signal, signal, WritableSignal, OnInit, OnDestroy } from '@angular/core';
+import {
+  Component,
+  inject,
+  Signal,
+  signal,
+  WritableSignal,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterModule } from '@angular/router';
-import { filter, map, pairwise, scan, startWith, switchMap, tap } from 'rxjs/operators';
+import { filter, map, scan, switchMap } from 'rxjs/operators';
 
 import { hasSucceed, isPending, Result } from '../../shared/results/results';
 import {
@@ -22,7 +30,7 @@ import { REMOTE_PATH$, REMOTE_PATH$_PROVIDER } from './folder-list-view.tokens';
 import { FolderSortDropdownComponent } from './folder-sort-dropdown/folder-sort-dropdown.component';
 import { AddItemsDropdownComponent } from './add-items-dropdown/add-items-dropdown.component';
 import { FolderListViewStore } from './folder-list-view.store';
-import { ConnectableObservable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { jobsState } from '../store/jobs';
 import { Store } from '@ngrx/store';
 
