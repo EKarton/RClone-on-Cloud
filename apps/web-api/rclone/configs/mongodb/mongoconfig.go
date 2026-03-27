@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"log"
 	"sort"
 	"strings"
 	"sync"
@@ -21,10 +22,11 @@ import (
 // MongoStorage implements rclone's config.Storage backed by MongoDB.
 // All config values are encrypted at rest with AES-256-GCM.
 type MongoStorage struct {
-	mu         sync.RWMutex
-	data       map[string]map[string]string // in-memory cache
-	collection *mongo.Collection
-	key        []byte // derived from SHA-256 hash of the input key string
+	mu          sync.RWMutex
+	data        map[string]map[string]string // in-memory cache
+	collection  *mongo.Collection
+	key         []byte // derived from SHA-256 hash of the input key string
+	cancelWatch context.CancelFunc
 }
 
 var _ config.Storage = (*MongoStorage)(nil)
@@ -289,4 +291,98 @@ func (s *MongoStorage) DeleteKey(section, key string) bool {
 		}
 	}
 	return ok
+}
+
+// StartWatching opens a MongoDB Change Stream on the collection and spawns a
+// background goroutine that propagates external changes (insert, update,
+// replace, delete) into the in-memory cache. Change Streams require the
+// MongoDB deployment to be a replica set or sharded cluster.
+func (s *MongoStorage) StartWatching(ctx context.Context) error {
+	opts := options.ChangeStream().SetFullDocument(options.UpdateLookup)
+	cs, err := s.collection.Watch(ctx, mongo.Pipeline{}, opts)
+	if err != nil {
+		return fmt.Errorf("start watching: %w", err)
+	}
+
+	watchCtx, cancel := context.WithCancel(ctx)
+	s.cancelWatch = cancel
+
+	go s.processChangeStream(watchCtx, cs)
+	return nil
+}
+
+// StopWatching cancels the background Change Stream watcher. It is safe
+// to call even if StartWatching was never called.
+func (s *MongoStorage) StopWatching() {
+	if s.cancelWatch != nil {
+		s.cancelWatch()
+		s.cancelWatch = nil
+	}
+}
+
+// processChangeStream loops on the Change Stream cursor and applies each
+// event to the in-memory cache.
+func (s *MongoStorage) processChangeStream(ctx context.Context, cs *mongo.ChangeStream) {
+	defer func() { _ = cs.Close(ctx) }()
+
+	for cs.Next(ctx) {
+		var event struct {
+			OperationType string `bson:"operationType"`
+			DocumentKey   struct {
+				ID string `bson:"_id"`
+			} `bson:"documentKey"`
+			FullDocument bson.M `bson:"fullDocument"`
+		}
+		if err := cs.Decode(&event); err != nil {
+			log.Printf("change stream: decode: %v", err)
+			continue
+		}
+
+		switch event.OperationType {
+		case "insert", "update", "replace":
+			s.applyFullDocument(event.DocumentKey.ID, event.FullDocument)
+		case "delete":
+			s.mu.Lock()
+			delete(s.data, event.DocumentKey.ID)
+			s.mu.Unlock()
+		}
+	}
+	// cs.Next returns false when the context is cancelled or an error occurs.
+	if err := cs.Err(); err != nil && ctx.Err() == nil {
+		log.Printf("change stream: cursor: %v", err)
+	}
+}
+
+// applyFullDocument decrypts each field in the full BSON document and
+// replaces the corresponding section in the in-memory cache.
+func (s *MongoStorage) applyFullDocument(id string, doc bson.M) {
+	if id == "" || doc == nil {
+		return
+	}
+
+	section := make(map[string]string)
+	for k, v := range doc {
+		if k == "_id" {
+			continue
+		}
+		var encrypted []byte
+		switch b := v.(type) {
+		case []byte:
+			encrypted = b
+		case bson.Binary:
+			encrypted = b.Data
+		default:
+			continue
+		}
+		plaintext, err := s.decrypt(encrypted)
+		if err != nil {
+			log.Printf("change stream: decrypt %q.%q: %v", id, k, err)
+			continue
+		}
+		section[k] = string(plaintext)
+	}
+
+	s.mu.Lock()
+	s.data[id] = section
+	s.mu.Unlock()
 }

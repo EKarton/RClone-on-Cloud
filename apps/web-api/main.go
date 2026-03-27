@@ -42,7 +42,12 @@ func main() {
 	if err := store.Load(); err != nil {
 		log.Fatalf("load config: %v", err)
 	}
+	if err := store.StartWatching(ctx); err != nil {
+		log.Fatalf("start watching config: %v", err)
+	}
 	defer func() {
+		log.Println("stopping watching config...")
+		store.StopWatching()
 		log.Println("saving config to mongo...")
 		if err := store.Save(); err != nil {
 			log.Printf("error saving config: %v", err)
