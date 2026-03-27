@@ -1,8 +1,6 @@
-<div class="dropdown dropdown-end">
-  <div
-    tabindex="0"
-    role="button"
-    class="btn btn-sm btn-ghost rounded-lg capitalize hover:border hover:border-current"
+<details class="dropdown dropdown-end">
+  <summary
+    class="btn btn-sm btn-ghost rounded-lg capitalize hover:border hover:border-current list-none"
   >
     @if (listViewOption() === ListViewOptions.LIST) {
       <svg
@@ -57,11 +55,11 @@
 
       Table
     }
-  </div>
+  </summary>
+
   <div
-    class="dropdown-content z-[1] menu shadow-lg bg-base-300 rounded-box border border-base-300 flex flex-col gap-4 max-w-xs p-4 mt-2 border rounded-lg"
+    class="dropdown-content z-[1] menu shadow-lg bg-base-300 rounded-box border border-base-300 flex flex-col gap-4 max-w-xs p-4 mt-2"
   >
-    <!-- List view options -->
     <div class="flex flex-col gap-2">
       <label class="label cursor-pointer">
         <input
@@ -73,6 +71,7 @@
         />
         <span class="label-text ml-2">List</span>
       </label>
+
       <label class="label cursor-pointer">
         <input
           type="radio"
@@ -85,4 +84,4 @@
       </label>
     </div>
   </div>
-</div>
+</details>

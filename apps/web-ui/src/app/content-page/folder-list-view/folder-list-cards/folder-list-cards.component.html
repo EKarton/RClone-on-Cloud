@@ -73,7 +73,7 @@
 
         <div
           data-testid="album-card-name"
-          class="text-sm hover:bg-base-300 cursor-pointer hover:underline"
+          class="text-sm cursor-pointer hover:underline"
           (click)="item.onClick()"
           (keydown.enter)="item.onClick()"
           tabindex="0"
@@ -81,6 +81,11 @@
           {{ item.name }}
         </div>
         <app-folder-item-actions-dropdown [item]="item" />
+      </div>
+    } @empty {
+      <div class="flex flex-col items-center gap-4 mx-auto py-10">
+        <img class="max-w-[10vw]" src="/assets/content-page/no-items.svg" alt="No items" />
+        <p>There are no files in this folder.</p>
       </div>
     }
   </div>
