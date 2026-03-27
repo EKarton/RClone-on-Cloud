@@ -38,12 +38,31 @@ export interface MoveFolderRequest {
   toPath: string;
 }
 
+export interface CopyFileRequest {
+  kind: 'copy-file';
+  fromRemote: string;
+  fromPath: string;
+  toRemote: string;
+  toPath: string;
+}
+
+export interface CopyFolderRequest {
+  kind: 'copy-folder';
+  fromRemote: string;
+  fromPath: string;
+  toRemote: string;
+  toPath: string;
+  createEmptySrcDirs: boolean;
+}
+
 export type JobRequest =
   | UploadFileRequest
   | DeleteFileRequest
   | DeleteFolderRequest
   | MoveFileRequest
-  | MoveFolderRequest;
+  | MoveFolderRequest
+  | CopyFileRequest
+  | CopyFolderRequest;
 
 /** The type defs of this NgRx store. */
 export interface JobState {

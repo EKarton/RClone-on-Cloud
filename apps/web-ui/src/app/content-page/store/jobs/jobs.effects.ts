@@ -1,6 +1,16 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { concatMap, filter, map, mergeMap, switchMap, take, takeWhile } from 'rxjs/operators';
+import {
+  concatMap,
+  exhaustMap,
+  filter,
+  map,
+  mergeMap,
+  switchMap,
+  take,
+  takeWhile,
+  tap,
+} from 'rxjs/operators';
 
 import * as jobsActions from './jobs.actions';
 import { concat, Observable, of, throwError, timer } from 'rxjs';
@@ -87,6 +97,21 @@ export class JobsEffects {
           request.toRemote,
           request.toPath,
         );
+      case 'copy-file':
+        return this.webApiService.copyFileAsync(
+          request.fromRemote,
+          request.fromPath,
+          request.toRemote,
+          request.toPath,
+        );
+      case 'copy-folder':
+        return this.webApiService.copyFolderAsync(
+          request.fromRemote,
+          request.fromPath,
+          request.toRemote,
+          request.toPath,
+          request.createEmptySrcDirs,
+        );
       default:
         return throwError(() => new Error(`Job request type ${request.kind} not implemented`));
     }
@@ -96,10 +121,14 @@ export class JobsEffects {
     this.actions$.pipe(
       ofType(jobsActions.assignJobId),
       mergeMap(({ jobId }) => {
+        console.log('I am here', jobId);
         return this.store.select(jobsState.selectJobRequest(jobId)).pipe(
           take(1),
           filter((request) => request?.kind !== 'upload-file'),
-          map(() => jobsActions.pollJobStatus({ jobId })),
+          map(() => {
+            console.log('I am here 2', jobId);
+            return jobsActions.pollJobStatus({ jobId });
+          }),
         );
       }),
     ),
@@ -112,29 +141,36 @@ export class JobsEffects {
         concat(
           of(jobsActions.setJobResult({ jobId, result: toPending<void>() })),
           timer(0, 2000).pipe(
-            switchMap(() => this.webApiService.getJobStatus(jobId)),
-            takeWhile((result) => hasSucceed(result) && result.data!.success !== true, true),
-            concatMap((result) => {
-              if (hasFailed(result) || isPending(result)) {
-                return of(
-                  jobsActions.setJobResult({
-                    jobId,
-                    result: result as Result<void>,
-                  }),
-                );
+            tap(() => console.log('timer tick', jobId)),
+            exhaustMap(() => this.webApiService.getJobStatus(jobId)),
+            map((result) => {
+              if (hasFailed(result)) {
+                return jobsActions.setJobResult({
+                  jobId,
+                  result: result as Result<void>,
+                });
               }
 
-              if (result.data!.success) {
-                return of(
-                  jobsActions.setJobResult({
-                    jobId,
-                    result: toSuccess('') as Result<void>,
-                  }),
-                );
+              if (isPending(result)) {
+                return jobsActions.setJobResult({
+                  jobId,
+                  result: toPending<void>(),
+                });
               }
 
-              return of(jobsActions.setJobResult({ jobId, result: toPending<void>() }));
+              if (result.data!.success === true) {
+                return jobsActions.setJobResult({
+                  jobId,
+                  result: toSuccess('') as Result<void>,
+                });
+              }
+
+              return jobsActions.setJobResult({
+                jobId,
+                result: toPending<void>(),
+              });
             }),
+            takeWhile((action) => !hasFailed(action.result) && !hasSucceed(action.result), true),
           ),
         ),
       ),

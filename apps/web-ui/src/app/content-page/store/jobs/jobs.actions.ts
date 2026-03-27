@@ -7,13 +7,13 @@ import { AsyncJobResponse } from '../../services/web-api/types/async-job';
 /** An action that requests to upload a file. */
 export const submitJob = createAction(
   '[Jobs] Requests to submit a job',
-  props<{ request: UploadFileRequest }>(),
+  props<{ request: JobRequest }>(),
 );
 
 /** An action that sets the result of a failed job submission. */
 export const setSubmitJobFailed = createAction(
   '[Jobs] Set submit job failed',
-  props<{ request: UploadFileRequest; result: Result<AsyncJobResponse> }>(),
+  props<{ request: JobRequest; result: Result<AsyncJobResponse> }>(),
 );
 
 /** An action that assigns a jobId to the job request */

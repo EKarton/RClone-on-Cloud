@@ -21,6 +21,7 @@ export class WebApiService {
 
   /** Gets the status of a job */
   getJobStatus(jobId: string): Observable<Result<JobStatusResponse>> {
+    console.log('getJobStatus', jobId);
     const url = `${environment.webApiEndpoint}/api/v1/rclone/job/status`;
     const requestBody = {
       jobid: jobId,
@@ -169,6 +170,42 @@ export class WebApiService {
     const requestBody = {
       srcFs: `${fromRemote}:${fromPath}`,
       dstFs: `${toRemote}:${toPath}`,
+      _async: true,
+    };
+    return this.post<AsyncJobResponse>(url, requestBody);
+  }
+
+  /** Copies a folder from a source remote dir path to a target remote dir path */
+  copyFolderAsync(
+    fromRemote: string,
+    fromPath: string,
+    toRemote: string,
+    toPath: string,
+    createEmptySrcDirs: boolean,
+  ): Observable<Result<AsyncJobResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/sync/copy`;
+    const requestBody = {
+      srcFs: `${fromRemote}:${fromPath}`,
+      dstFs: `${toRemote}:${toPath}`,
+      createEmptySrcDirs,
+      _async: true,
+    };
+    return this.post<AsyncJobResponse>(url, requestBody);
+  }
+
+  /** Copies a file from a source remote file path to a target remote file path */
+  copyFileAsync(
+    fromRemote: string,
+    fromPath: string,
+    toRemote: string,
+    toPath: string,
+  ): Observable<Result<AsyncJobResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/copyfile`;
+    const requestBody = {
+      srcFs: `${fromRemote}:`,
+      srcRemote: fromPath,
+      dstFs: `${toRemote}:`,
+      dstRemote: toPath,
       _async: true,
     };
     return this.post<AsyncJobResponse>(url, requestBody);

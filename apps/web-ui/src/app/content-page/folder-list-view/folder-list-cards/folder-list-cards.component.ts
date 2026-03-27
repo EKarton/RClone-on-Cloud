@@ -12,21 +12,25 @@ import { Result, toPending } from '../../../shared/results/results';
 import { mapResultRxJs } from '../../../shared/results/rxjs/mapResultRxJs';
 import { FileViewerRequest } from '../../file-viewer/file-viewer.request';
 import { ListAlbumsSortBy } from '../../services/web-api/types/list-albums';
-import { ListFolderResponse } from '../../services/web-api/types/list-folder';
+import { ListFolderItem, ListFolderResponse } from '../../services/web-api/types/list-folder';
 import { dialogsActions } from '../../store/dialogs';
 import { REMOTE_PATH$ } from '../folder-list-view.tokens';
+import { FolderItemActionsDropdownComponent } from '../folder-item-actions-dropdown/folder-item-actions-dropdown.component';
 
-interface Item {
-  name: string;
-  mimeType: string;
-  isDir: boolean;
+interface Item extends ListFolderItem {
   onClick: () => void;
 }
 
 @Component({
   standalone: true,
   selector: 'app-folder-list-cards',
-  imports: [CommonModule, RouterModule, HasFailedPipe, IsPendingPipe],
+  imports: [
+    CommonModule,
+    RouterModule,
+    HasFailedPipe,
+    IsPendingPipe,
+    FolderItemActionsDropdownComponent,
+  ],
   templateUrl: './folder-list-cards.component.html',
 })
 export class FolderListCardsComponent {
@@ -45,9 +49,7 @@ export class FolderListCardsComponent {
           mapResultRxJs((contents) => {
             return contents.items.map((item) => {
               return {
-                name: item.name,
-                mimeType: item.mimeType ?? '',
-                isDir: item.isDir,
+                ...item,
                 onClick: () => {
                   if (item.isDir) {
                     this.router.navigate([

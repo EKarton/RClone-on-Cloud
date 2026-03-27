@@ -33,6 +33,9 @@ import { FolderListViewStore } from './folder-list-view.store';
 import { Subscription } from 'rxjs';
 import { jobsState } from '../store/jobs';
 import { Store } from '@ngrx/store';
+import { DeleteDialogComponent } from './folder-item-actions-dropdown/delete-dialog/delete-dialog.component';
+import { RenameDialogComponent } from './folder-item-actions-dropdown/rename-dialog/rename-dialog.component';
+import { MoveDialogComponent } from './folder-item-actions-dropdown/move-dialog/move-dialog.component';
 
 @Component({
   standalone: true,
@@ -46,6 +49,9 @@ import { Store } from '@ngrx/store';
     FolderListCardsComponent,
     FolderListTableComponent,
     AddItemsDropdownComponent,
+    DeleteDialogComponent,
+    RenameDialogComponent,
+    MoveDialogComponent,
   ],
   templateUrl: './folder-list-view.component.html',
   providers: [REMOTE_PATH$_PROVIDER, FolderListViewStore],
@@ -87,25 +93,16 @@ export class FolderListViewComponent implements OnInit, OnDestroy {
         .pipe(
           switchMap((remotePath) => {
             return this.globalStore.select(jobsState.selectAllJobs).pipe(
-              map((jobs) =>
-                jobs.filter(
-                  (job) =>
-                    job.kind === 'upload-file' &&
-                    `${job.remote}:${job.dirPath ?? ''}` ===
-                      `${remotePath.remote}:${remotePath.path ?? ''}`,
-                ),
-              ),
               scan(
-                (state, uploadingFiles) => {
-                  console.log('uploadingFiles', uploadingFiles);
+                (state, jobs) => {
                   let hasNewSuccess = false;
                   const pendingFiles = new Set<string | number>(state.pendingFiles);
 
-                  for (const file of uploadingFiles) {
-                    if (isPending(file.result)) {
-                      pendingFiles.add(file.key);
-                    } else if (hasSucceed(file.result) && pendingFiles.has(file.key)) {
-                      pendingFiles.delete(file.key);
+                  for (const job of jobs) {
+                    if (isPending(job.result)) {
+                      pendingFiles.add(job.key);
+                    } else if (hasSucceed(job.result) && pendingFiles.has(job.key)) {
+                      pendingFiles.delete(job.key);
                       hasNewSuccess = true;
                     }
                   }

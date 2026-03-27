@@ -10,12 +10,14 @@ export interface RawListFolderResponse {
 }
 
 export interface ListFolderResponse {
-  items: {
-    path: string;
-    name: string;
-    size?: number;
-    mimeType?: string;
-    modTime?: Date;
-    isDir: boolean;
-  }[];
+  items: ListFolderItem[];
+}
+
+export interface ListFolderItem {
+  path: string;
+  name: string;
+  size?: number;
+  mimeType?: string;
+  modTime?: Date;
+  isDir: boolean;
 }

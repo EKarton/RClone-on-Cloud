@@ -1,0 +1,56 @@
+<dialog #modal class="modal">
+  <div class="modal-box">
+    <h3 class="text-lg font-bold text-base-content">Rename item</h3>
+
+    <p class="mt-3 text-sm leading-6 text-base-content/80">
+      @if (request()?.item?.isDir) {
+        Enter a new name for this directory.
+      } @else {
+        Enter a new name for this file.
+      }
+    </p>
+
+    <div class="mt-4">
+      <label for="rename-input" class="block text-sm font-medium text-base-content/80 mb-2">
+        New name
+      </label>
+
+      <input
+        id="rename-input"
+        name="rename"
+        type="text"
+        class="input input-bordered w-full"
+        [(ngModel)]="newName"
+        (keydown.enter)="confirmRename()"
+        placeholder="Enter new name"
+      />
+    </div>
+
+    <div class="modal-action mt-6">
+      <form method="dialog" class="flex w-full justify-end gap-3">
+        <button value="cancel" type="button" class="btn btn-ghost" (click)="closeDialog()">
+          Cancel
+        </button>
+
+        <button
+          value="rename"
+          type="button"
+          class="btn btn-primary"
+          [disabled]="!newName.trim() || newName.trim() === request()?.item?.name"
+          (click)="confirmRename()"
+        >
+          Rename
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <form
+    method="dialog"
+    class="modal-backdrop"
+    (click)="closeDialog()"
+    (keydown.enter)="closeDialog()"
+  >
+    <button>close</button>
+  </form>
+</dialog>
