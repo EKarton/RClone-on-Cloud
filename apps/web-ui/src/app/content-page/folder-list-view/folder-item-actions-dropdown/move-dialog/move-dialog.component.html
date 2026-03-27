@@ -29,12 +29,14 @@
       />
     </div>
 
-    <div *ngIf="getPreviewPath()" class="mt-4">
-      <label class="block text-sm font-medium text-base-content/80 mb-2"> Final path </label>
-      <div class="text-sm text-base-content/70 bg-base-200/60 rounded-lg px-3 py-2 break-all">
-        {{ getPreviewPath() }}
+    @if (getPreviewPath()) {
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-base-content/80 mb-2"> Final path </label>
+        <div class="text-sm text-base-content/70 bg-base-200/60 rounded-lg px-3 py-2 break-all">
+          {{ getPreviewPath() }}
+        </div>
       </div>
-    </div>
+    }
 
     <div class="modal-action mt-6">
       <form method="dialog" class="flex w-full justify-end gap-3">

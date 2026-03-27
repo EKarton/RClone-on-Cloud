@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 
@@ -8,14 +8,6 @@ import { DeleteDialogRequest } from './delete-dialog.request';
 import { jobsActions } from '../../../store/jobs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { REMOTE_PATH$ } from '../../folder-list-view.tokens';
-
-/** Resolved file details for the template. */
-interface FileDetails {
-  blob: Blob;
-  blobUrl: string;
-  mimeType: string;
-  fileName: string;
-}
 
 @Component({
   selector: 'app-delete-dialog',

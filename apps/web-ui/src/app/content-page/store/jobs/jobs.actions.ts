@@ -1,6 +1,6 @@
 import { createAction, props } from '@ngrx/store';
 
-import { JobRequest, UploadFileRequest } from './jobs.state';
+import { JobRequest } from './jobs.state';
 import { Result } from '../../../shared/results/results';
 import { AsyncJobResponse } from '../../services/web-api/types/async-job';
 

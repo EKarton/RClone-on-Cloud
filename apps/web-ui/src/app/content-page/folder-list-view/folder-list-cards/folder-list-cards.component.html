@@ -8,7 +8,6 @@
       <div
         data-testid="item"
         class="flex items-center gap-2 border border-opacity-50 rounded-md pl-5 pr-3 pt-3 pb-3"
-        tabindex="0"
       >
         @if (item.isDir) {
           <svg
@@ -55,7 +54,6 @@
               d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
             />
           </svg>
-          />
         } @else {
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -78,6 +76,7 @@
           class="text-sm hover:bg-base-300 cursor-pointer hover:underline"
           (click)="item.onClick()"
           (keydown.enter)="item.onClick()"
+          tabindex="0"
         >
           {{ item.name }}
         </div>

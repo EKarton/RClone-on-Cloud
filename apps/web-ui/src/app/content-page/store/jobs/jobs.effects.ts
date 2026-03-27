@@ -1,16 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import {
-  concatMap,
-  exhaustMap,
-  filter,
-  map,
-  mergeMap,
-  switchMap,
-  take,
-  takeWhile,
-  tap,
-} from 'rxjs/operators';
+import { exhaustMap, filter, map, mergeMap, take, takeWhile, tap } from 'rxjs/operators';
 
 import * as jobsActions from './jobs.actions';
 import { concat, Observable, of, throwError, timer } from 'rxjs';

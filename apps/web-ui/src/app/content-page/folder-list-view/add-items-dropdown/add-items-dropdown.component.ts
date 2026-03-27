@@ -69,10 +69,6 @@ export class AddItemsDropdownComponent {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
 
-    if (files.length === 0) {
-      return;
-    }
-
     const remotePath = this.remotePath();
     if (!remotePath) {
       return;
@@ -138,7 +134,7 @@ export class AddItemsDropdownComponent {
 
   private getTargetDirectory(webkitRelativePath: string): string {
     const parts = webkitRelativePath.split('/');
-    return parts.slice(1, -1).join('/');
+    return parts.slice(0, -1).join('/');
   }
 
   private joinRemotePath(basePath: string, childPath: string): string {
