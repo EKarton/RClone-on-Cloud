@@ -7,7 +7,7 @@
     </p>
 
     <div class="mt-4">
-      <label class="block text-sm font-medium text-base-content/80 mb-2"> Source </label>
+      <p class="block text-sm font-medium text-base-content/80 mb-2">Source</p>
       <div class="text-sm text-base-content/70 bg-base-200/60 rounded-lg px-3 py-2">
         {{ request()?.item?.path }}
       </div>
@@ -15,7 +15,7 @@
 
     <div class="mt-4">
       <label for="destination-path" class="block text-sm font-medium text-base-content/80 mb-2">
-        Destination path
+        Destination folder path
       </label>
 
       <input
@@ -31,7 +31,7 @@
 
     @if (getPreviewPath()) {
       <div class="mt-4">
-        <label class="block text-sm font-medium text-base-content/80 mb-2"> Final path </label>
+        <p class="block text-sm font-medium text-base-content/80 mb-2">Final path</p>
         <div class="text-sm text-base-content/70 bg-base-200/60 rounded-lg px-3 py-2 break-all">
           {{ getPreviewPath() }}
         </div>
