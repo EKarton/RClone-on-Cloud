@@ -30,7 +30,7 @@
     tabindex="0"
     class="dropdown-content z-[1] menu mt-2 rounded-box border border-base-300 bg-base-300 p-2 shadow-lg"
   >
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2" data-testid="job-details">
       @for (job of jobs$ | async; track job.key) {
         @if (job.result | hasSucceeded) {
           <span class="flex items-center gap-2 text-success pr-2">

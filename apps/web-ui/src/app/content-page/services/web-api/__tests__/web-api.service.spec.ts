@@ -289,4 +289,51 @@ describe('WebApiService', () => {
       expect(emissions).toEqual([toPending(), toSuccess(mockResponse)]);
     });
   });
+
+  describe('copyFolderAsync', () => {
+    it('should copy a folder between remotes', () => {
+      const mockResponse = { jobid: 129 };
+      const emissions: Result<AsyncJobResponse>[] = [];
+      service.copyFolderAsync('remote1', 'dir1', 'remote2', 'dir2', true).subscribe((response) => {
+        emissions.push(response);
+      });
+
+      const req = httpMock.expectOne(`${environment.webApiEndpoint}/api/v1/rclone/sync/copy`);
+      expect(req.request.body).toEqual({
+        srcFs: 'remote1:dir1',
+        dstFs: 'remote2:dir2',
+        createEmptySrcDirs: true,
+        _async: true,
+      });
+
+      req.flush(mockResponse);
+      expect(emissions).toEqual([toPending(), toSuccess(mockResponse)]);
+    });
+  });
+
+  describe('copyFileAsync', () => {
+    it('should copy a file between remotes', () => {
+      const mockResponse = { jobid: 130 };
+      const emissions: Result<AsyncJobResponse>[] = [];
+      service
+        .copyFileAsync('remote1', 'file.txt', 'remote2', 'target.txt')
+        .subscribe((response) => {
+          emissions.push(response);
+        });
+
+      const req = httpMock.expectOne(
+        `${environment.webApiEndpoint}/api/v1/rclone/operations/copyfile`,
+      );
+      expect(req.request.body).toEqual({
+        srcFs: 'remote1:',
+        srcRemote: 'file.txt',
+        dstFs: 'remote2:',
+        dstRemote: 'target.txt',
+        _async: true,
+      });
+
+      req.flush(mockResponse);
+      expect(emissions).toEqual([toPending(), toSuccess(mockResponse)]);
+    });
+  });
 });

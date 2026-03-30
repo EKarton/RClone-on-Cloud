@@ -1,12 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideMockStore } from '@ngrx/store/testing';
-import { CookieService } from 'ngx-cookie-service';
 import { Mock, vi } from 'vitest';
 
-import { environment } from '../../../environments/environment';
 import { WINDOW } from '../../app.tokens';
 import { themeState } from '../../themes/store';
 import { HomePageComponent } from '../home-page.component';
+import { provideRouter, Router } from '@angular/router';
 
 describe('HomePageComponent', () => {
   let component: HomePageComponent;
@@ -15,9 +14,8 @@ describe('HomePageComponent', () => {
     localStorage: { removeItem: Mock; setItem: Mock };
     pageYOffset: number;
     location: { href: string; pathname: string };
-    document: { cookie: string };
   };
-  let cookieService: CookieService;
+  let router: Router;
 
   beforeEach(async () => {
     mockWindow = {
@@ -27,7 +25,6 @@ describe('HomePageComponent', () => {
         removeItem: vi.fn(),
         setItem: vi.fn(),
       },
-      document: { cookie: '' },
     };
 
     await TestBed.configureTestingModule({
@@ -37,12 +34,12 @@ describe('HomePageComponent', () => {
           provide: WINDOW,
           useValue: mockWindow,
         },
+        provideRouter([]),
         provideMockStore({
           initialState: {
             [themeState.FEATURE_KEY]: themeState.initialState,
           },
         }),
-        CookieService,
       ],
     }).compileComponents();
 
@@ -50,8 +47,8 @@ describe('HomePageComponent', () => {
     component = fixture.componentInstance;
     fixture.detectChanges();
 
-    cookieService = TestBed.inject(CookieService);
-    vi.spyOn(cookieService, 'set');
+    router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate');
   });
 
   it('should create component', () => {
@@ -109,14 +106,11 @@ describe('HomePageComponent', () => {
     expect(header.classList.contains('bg-base-200')).toBe(false);
   });
 
-  it('should clear auth redirect local storage, generate state, and redirect to login URL with state on handleLoginClick', () => {
-    vi.spyOn(crypto, 'randomUUID').mockReturnValue('123e4567-e89b-12d3-a456-426614174000');
+  it('should clear auth redirect local storage and redirect to login URL on login click', () => {
     const button = fixture.nativeElement.querySelector('[data-test-id="login-button"]');
     button.click();
 
-    const expectedHref = `${environment.loginUrl}?select_account=true&state=123e4567-e89b-12d3-a456-426614174000`;
-    expect(mockWindow.location.href).toBe(expectedHref);
+    expect(router.navigate).toHaveBeenCalledWith(['/auth/v1/google/login']);
     expect(mockWindow.localStorage.removeItem).toHaveBeenCalledWith('auth_redirect_path');
-    expect(cookieService.set).toHaveBeenCalled();
   });
 });
