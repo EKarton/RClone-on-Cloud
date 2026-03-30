@@ -64,17 +64,6 @@ describe('FolderBreadcrumbsComponent', () => {
     expect(getBreadcrumbLinkByText('current')).toBeFalsy();
   });
 
-  it('should render remote as plain text when path is empty', () => {
-    remotePath$.next({
-      remote: 'my-remote',
-      path: '',
-    });
-    fixture.detectChanges();
-
-    expect(getBreadcrumbTextByText('my-remote')).toBeTruthy();
-    expect(getBreadcrumbLinkByText('my-remote')).toBeFalsy();
-  });
-
   it('should render only Home and remote when path is empty', () => {
     remotePath$.next({
       remote: 'my-remote',

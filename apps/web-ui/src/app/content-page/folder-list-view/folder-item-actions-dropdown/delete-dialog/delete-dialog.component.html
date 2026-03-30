@@ -12,9 +12,9 @@
 
     <div class="modal-action mt-6">
       <form method="dialog" class="flex w-full justify-end gap-3">
-        <button value="no" class="btn btn-ghost" (click)="closeDialog()">No</button>
+        <button data-testid="cancel-button" value="no" class="btn btn-ghost" (click)="closeDialog()">No</button>
 
-        <button value="yes" class="btn btn-error" (click)="confirmDelete()">Yes</button>
+        <button data-testid="delete-button" value="yes" class="btn btn-error" (click)="confirmDelete()">Yes</button>
       </form>
     </div>
   </div>

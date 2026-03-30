@@ -46,12 +46,12 @@ export class MoveDialogComponent implements AfterViewInit {
   confirmMove() {
     const request = this.request();
     const remotePath = this.remotePath();
-    const destinationPath = this.normalizePath(this.destinationPath);
 
-    if (!request || !remotePath || !destinationPath) {
+    if (!request || !remotePath) {
       return;
     }
 
+    const destinationPath = this.normalizePath(this.destinationPath);
     const itemName = request.item.name;
     const finalPath = this.joinPath(destinationPath, itemName);
 
@@ -90,12 +90,11 @@ export class MoveDialogComponent implements AfterViewInit {
 
   getPreviewPath(): string {
     const request = this.request();
-    const destinationPath = this.normalizePath(this.destinationPath);
-
-    if (!request || !destinationPath) {
+    if (!request) {
       return '';
     }
 
+    const destinationPath = this.normalizePath(this.destinationPath);
     return this.joinPath(destinationPath, request.item.name);
   }
 

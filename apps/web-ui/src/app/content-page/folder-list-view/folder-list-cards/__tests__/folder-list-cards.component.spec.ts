@@ -102,7 +102,7 @@ describe('FolderListCardsComponent', () => {
     fixture.componentRef.setInput('contentsResult', toSuccess(mockFolderResponse));
     fixture.detectChanges();
 
-    const items = fixture.nativeElement.querySelectorAll('[data-testid="item"]');
+    const items = fixture.nativeElement.querySelectorAll('[data-testid="folder-item-card-name"]');
     items[0].click();
 
     const expectedBase64 = Buffer.from('my-remote:dir1').toString('base64').replace(/=/g, '');
@@ -125,7 +125,7 @@ describe('FolderListCardsComponent', () => {
     fixture.componentRef.setInput('contentsResult', toSuccess(mockFolderResponse));
     fixture.detectChanges();
 
-    const items = fixture.nativeElement.querySelectorAll('[data-testid="item"]');
+    const items = fixture.nativeElement.querySelectorAll('[data-testid="folder-item-card-name"]');
     items[0].click();
 
     const expectedRequest = new FileViewerRequest(

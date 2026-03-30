@@ -19,6 +19,7 @@
       </label>
 
       <input
+        data-testid="destination-path"
         id="destination-path"
         name="destinationPath"
         type="text"
@@ -40,11 +41,18 @@
 
     <div class="modal-action mt-6">
       <form method="dialog" class="flex w-full justify-end gap-3">
-        <button value="cancel" type="button" class="btn btn-ghost" (click)="closeDialog()">
+        <button
+          data-testid="cancel-button"
+          value="cancel"
+          type="button"
+          class="btn btn-ghost"
+          (click)="closeDialog()"
+        >
           Cancel
         </button>
 
         <button
+          data-testid="move-button"
           value="move"
           type="button"
           class="btn btn-primary"

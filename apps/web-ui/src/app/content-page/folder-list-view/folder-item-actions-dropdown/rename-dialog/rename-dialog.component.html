@@ -28,11 +28,18 @@
 
     <div class="modal-action mt-6">
       <form method="dialog" class="flex w-full justify-end gap-3">
-        <button value="cancel" type="button" class="btn btn-ghost" (click)="closeDialog()">
+        <button
+          data-testid="cancel-button"
+          value="cancel"
+          type="button"
+          class="btn btn-ghost"
+          (click)="closeDialog()"
+        >
           Cancel
         </button>
 
         <button
+          data-testid="submit-button"
           value="rename"
           type="button"
           class="btn btn-primary"
