@@ -21,7 +21,6 @@ export class WebApiService {
 
   /** Gets the status of a job */
   getJobStatus(jobId: string): Observable<Result<JobStatusResponse>> {
-    console.log('getJobStatus', jobId);
     const url = `${environment.webApiEndpoint}/api/v1/rclone/job/status`;
     const requestBody = {
       jobid: jobId,

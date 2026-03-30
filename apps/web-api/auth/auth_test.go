@@ -56,10 +56,7 @@ type mockExchanger struct {
 }
 
 func (m *mockExchanger) Exchange(_ context.Context, _ string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
-	// Simple verification if VerifierOption is passed
-	if len(opts) > 0 {
-		// In a real test we'd check if it matches the expected verifier
-	}
+	_ = opts // Ignore opts for mock
 	return m.token, m.err
 }
 

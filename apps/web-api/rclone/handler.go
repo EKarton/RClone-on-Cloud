@@ -18,6 +18,7 @@ import (
 	// Side-effect imports to register RC methods and backends
 	_ "github.com/rclone/rclone/backend/all"
 	_ "github.com/rclone/rclone/fs/operations"
+	_ "github.com/rclone/rclone/fs/sync"
 )
 
 var fsMatch = regexp.MustCompile(`^\[(.*?)\](.*)$`)

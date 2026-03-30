@@ -9,6 +9,7 @@ import {
   hasSucceed,
   isPending,
   Result,
+  toFailure,
   toPending,
   toSuccess,
 } from '../../../shared/results/results';
@@ -111,12 +112,10 @@ export class JobsEffects {
     this.actions$.pipe(
       ofType(jobsActions.assignJobId),
       mergeMap(({ jobId }) => {
-        console.log('I am here', jobId);
         return this.store.select(jobsState.selectJobRequest(jobId)).pipe(
           take(1),
           filter((request) => request?.kind !== 'upload-file'),
           map(() => {
-            console.log('I am here 2', jobId);
             return jobsActions.pollJobStatus({ jobId });
           }),
         );
@@ -131,7 +130,6 @@ export class JobsEffects {
         concat(
           of(jobsActions.setJobResult({ jobId, result: toPending<void>() })),
           timer(0, 2000).pipe(
-            tap(() => console.log('timer tick', jobId)),
             exhaustMap(() => this.webApiService.getJobStatus(jobId)),
             map((result) => {
               if (hasFailed(result)) {
@@ -145,6 +143,13 @@ export class JobsEffects {
                 return jobsActions.setJobResult({
                   jobId,
                   result: toPending<void>(),
+                });
+              }
+
+              if (result.data!.error) {
+                return jobsActions.setJobResult({
+                  jobId,
+                  result: toFailure(new Error(result.data!.error)) as Result<void>,
                 });
               }
 
