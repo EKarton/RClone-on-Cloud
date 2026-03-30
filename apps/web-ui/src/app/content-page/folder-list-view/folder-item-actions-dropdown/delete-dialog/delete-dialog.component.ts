@@ -30,9 +30,9 @@ export class DeleteDialogComponent implements AfterViewInit {
     this.subscription.add(
       this.request$.subscribe((request) => {
         if (request) {
-          this.myModal?.nativeElement?.showModal();
+          this.myModal?.nativeElement?.showModal?.();
         } else {
-          this.myModal?.nativeElement?.close();
+          this.myModal?.nativeElement?.close?.();
         }
       }),
     );

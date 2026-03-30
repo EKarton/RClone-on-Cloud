@@ -8,8 +8,8 @@ describe('Jobs Selectors', () => {
   beforeEach(() => {
     mockState = {
       jobIdToRequest: ImmutableMap({
-        'job-1': { kind: 'upload-file', remote: 'r1', dirPath: 'd1', file: new File([], 'f1.txt') } as any,
-        'job-2': { kind: 'delete-file', remote: 'r2', path: 'p2' } as any,
+        'job-1': { kind: 'upload-file', remote: 'r1', dirPath: 'd1', file: new File([], 'f1.txt') },
+        'job-2': { kind: 'delete-file', remote: 'r2', path: 'p2' },
       }),
       jobIdToResult: ImmutableMap({
         'job-1': toPending<void>(),
@@ -47,13 +47,13 @@ describe('Jobs Selectors', () => {
       const result = selectAllJobs.projector(mockState);
 
       expect(result.size).toBe(2);
-      
-      const job1 = result.find(j => j.key === 'job-1');
+
+      const job1 = result.find((j) => j.key === 'job-1');
       expect(job1).toBeDefined();
       expect(job1!.kind).toBe('upload-file');
       expect(job1!.result).toEqual(toPending<void>());
 
-      const job2 = result.find(j => j.key === 'job-2');
+      const job2 = result.find((j) => j.key === 'job-2');
       expect(job2).toBeDefined();
       expect(job2!.kind).toBe('delete-file');
       expect(job2!.result).toEqual(toSuccess(undefined));

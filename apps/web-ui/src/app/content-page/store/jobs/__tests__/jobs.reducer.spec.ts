@@ -1,11 +1,11 @@
 import { jobsReducer } from '../jobs.reducer';
 import { setSubmitJobFailed, assignJobId, setJobResult } from '../jobs.actions';
-import { initialState } from '../jobs.state';
+import { initialState, MoveFileRequest } from '../jobs.state';
 import { Result, toFailure, toPending, toSuccess } from '../../../../shared/results/results';
 
 describe('Jobs Reducer', () => {
   it('should return the previous state for an unknown action', () => {
-    const action = { type: 'Unknown' } as any;
+    const action = { type: 'Unknown' };
     const result = jobsReducer(initialState, action);
     expect(result).toBe(initialState);
   });
@@ -29,7 +29,13 @@ describe('Jobs Reducer', () => {
 
   describe('assignJobId', () => {
     it('should set the job request and its initial result for the given jobId', () => {
-      const request: any = { kind: 'move-file' };
+      const request = {
+        kind: 'move-file',
+        fromRemote: 'r1',
+        fromPath: 'p1',
+        toRemote: 'r2',
+        toPath: 'p2',
+      } as MoveFileRequest;
       const result = toPending() as Result<void>;
       const action = assignJobId({ jobId: 'job-1', request, result });
 

@@ -131,10 +131,6 @@ describe('FolderSortDropdownComponent', () => {
     expect(getSummaryText()).toContain('Name');
   });
 
-  function getDetails(): HTMLDetailsElement {
-    return fixture.nativeElement.querySelector('details') as HTMLDetailsElement;
-  }
-
   function getSummary(): HTMLElement {
     return fixture.nativeElement.querySelector('summary') as HTMLElement;
   }

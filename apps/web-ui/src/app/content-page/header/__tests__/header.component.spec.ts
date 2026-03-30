@@ -8,7 +8,6 @@ import { routes } from '../../content-page.routes';
 import { HeaderComponent } from '../header.component';
 import { jobsState } from '../../store/jobs';
 import { toPending } from '../../../shared/results/results';
-import { UploadFileRequest } from '../../store/jobs/jobs.state';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;

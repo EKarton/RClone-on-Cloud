@@ -34,10 +34,10 @@ export class RenameDialogComponent implements AfterViewInit {
       this.request$.subscribe((request) => {
         if (request) {
           this.newName = request.item.name;
-          this.myModal?.nativeElement?.showModal();
+          this.myModal?.nativeElement?.showModal?.();
         } else {
           this.newName = '';
-          this.myModal?.nativeElement?.close();
+          this.myModal?.nativeElement?.close?.();
         }
       }),
     );

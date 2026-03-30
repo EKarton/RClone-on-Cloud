@@ -34,10 +34,10 @@ export class MoveDialogComponent implements AfterViewInit {
       this.request$.subscribe((request) => {
         if (request) {
           this.destinationPath = this.remotePath()?.path ?? '';
-          this.myModal?.nativeElement?.showModal();
+          this.myModal?.nativeElement?.showModal?.();
         } else {
           this.destinationPath = '';
-          this.myModal?.nativeElement?.close();
+          this.myModal?.nativeElement?.close?.();
         }
       }),
     );
