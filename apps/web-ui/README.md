@@ -12,34 +12,34 @@ This project is a web UI for RClone on Cloud. This web UI allows users to easily
 
 1. First, install Angular by running:
 
-    ```bash
-    npm install -g @angular/cli
-    ```
+   ```bash
+   npm install -g @angular/cli
+   ```
 
 1. Next, install the project's dependencies by running:
 
-    ```bash
-    npm install
-    ```
+   ```bash
+   npm install
+   ```
 
 1. Then, create a `.env` file to store your environment variables, like:
 
-    ```text
-    NG_APP_LOGIN_URL=http://localhost:3000/auth/v1/google
-    NG_APP_WEB_API_ENDPOINT=http://localhost:3000
-    ```
+   ```text
+   NG_APP_LOGIN_URL=http://localhost:3000/auth/v1/google
+   NG_APP_WEB_API_ENDPOINT=http://localhost:3000
+   ```
 
-    where:
-    - `NG_APP_LOGIN_URL`: is the login url of your [web-api](./../web-api)
-    - `NG_APP_WEB_API_ENDPOINT`: is the domain of your [web-api](./../web-api)
+   where:
+   - `NG_APP_LOGIN_URL`: is the login url of your [web-api](./../web-api)
+   - `NG_APP_WEB_API_ENDPOINT`: is the domain of your [web-api](./../web-api)
 
 1. Next, run:
 
-    ```bash
-    npm run dev
-    ```
+   ```bash
+   npm run dev
+   ```
 
-    It should start a local development server of this app to <http://localhost:4200>. Once the server is running, open your browser and navigate to <http://localhost:4200>. The application will automatically reload whenever you modify any of the source files.
+   It should start a local development server of this app to <http://localhost:4200>. Once the server is running, open your browser and navigate to <http://localhost:4200>. The application will automatically reload whenever you modify any of the source files.
 
 ## Development
 

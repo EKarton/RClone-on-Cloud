@@ -41,9 +41,10 @@ describe('LoginPageComponent', () => {
 
   it('should redirect user to login URL with select_account=true and state set', async () => {
     vi.spyOn(crypto, 'randomUUID').mockReturnValue('123e4567-e89b-12d3-a456-426614174000');
-    vi.spyOn(crypto, 'getRandomValues').mockImplementation((arr: any) => {
-      for (let i = 0; i < arr.length; i++) {
-        arr[i] = 0;
+    vi.spyOn(crypto, 'getRandomValues').mockImplementation((arr) => {
+      const typedArr = arr as Uint32Array;
+      for (let i = 0; i < typedArr.length; i++) {
+        typedArr[i] = 0;
       }
       return arr;
     });

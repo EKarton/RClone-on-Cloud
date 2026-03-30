@@ -5,14 +5,14 @@ import { vi } from 'vitest';
 
 import { dialogsState, dialogsActions } from '../../../../store/dialogs';
 import { jobsActions } from '../../../../store/jobs';
-import { REMOTE_PATH$ } from '../../../folder-list-view.tokens';
+import { REMOTE_PATH$, RemotePath } from '../../../folder-list-view.tokens';
 import { DeleteDialogComponent } from '../delete-dialog.component';
 import { DeleteDialogRequest } from '../delete-dialog.request';
 
 describe('DeleteDialogComponent', () => {
   let fixture: ComponentFixture<DeleteDialogComponent>;
   let mockStore: MockStore;
-  let remotePathSubject: BehaviorSubject<{ remote: string; path: string }>;
+  let remotePathSubject: BehaviorSubject<RemotePath>;
 
   beforeEach(async () => {
     // HTMLDialogElement isn't implemented by JSDOM
@@ -25,7 +25,7 @@ describe('DeleteDialogComponent', () => {
       }
     }
 
-    remotePathSubject = new BehaviorSubject({
+    remotePathSubject = new BehaviorSubject<RemotePath>({
       remote: 'my-remote',
       path: 'my-path',
     });
@@ -64,7 +64,7 @@ describe('DeleteDialogComponent', () => {
       path: 'file.txt',
       name: 'file.txt',
       isDir: false,
-    } as any);
+    });
 
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: { requests: [request] },
@@ -84,7 +84,7 @@ describe('DeleteDialogComponent', () => {
       path: 'file.txt',
       name: 'file.txt',
       isDir: false,
-    } as any);
+    });
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: { requests: [request] },
     });
@@ -114,7 +114,7 @@ describe('DeleteDialogComponent', () => {
       path: 'my-folder',
       name: 'my-folder',
       isDir: true,
-    } as any);
+    });
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: { requests: [request] },
     });
@@ -144,7 +144,7 @@ describe('DeleteDialogComponent', () => {
       path: 'file.txt',
       name: 'file.txt',
       isDir: false,
-    } as any);
+    });
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: { requests: [request] },
     });

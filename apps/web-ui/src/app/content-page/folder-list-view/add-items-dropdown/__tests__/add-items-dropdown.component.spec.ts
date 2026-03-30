@@ -50,8 +50,12 @@ describe('AddItemsDropdownComponent', () => {
 
     const dialog = fixture.nativeElement.querySelector('dialog') as HTMLDialogElement;
 
-    dialog.showModal = (() => {}) as HTMLDialogElement['showModal'];
-    dialog.close = ((_ = '') => {}) as HTMLDialogElement['close'];
+    dialog.showModal = () => {
+      /* mock */
+    };
+    dialog.close = () => {
+      /* mock */
+    };
   });
 
   function setFiles(input: HTMLInputElement, files: File[]) {

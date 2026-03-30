@@ -5,14 +5,14 @@ import { vi } from 'vitest';
 
 import { dialogsState, dialogsActions } from '../../../../store/dialogs';
 import { jobsActions } from '../../../../store/jobs';
-import { REMOTE_PATH$ } from '../../../folder-list-view.tokens';
+import { REMOTE_PATH$, RemotePath } from '../../../folder-list-view.tokens';
 import { RenameDialogComponent } from '../rename-dialog.component';
 import { RenameDialogRequest } from '../rename-dialog.request';
 
 describe('RenameDialogComponent', () => {
   let fixture: ComponentFixture<RenameDialogComponent>;
   let mockStore: MockStore;
-  let remotePathSubject: BehaviorSubject<{ remote: string; path: string }>;
+  let remotePathSubject: BehaviorSubject<RemotePath>;
 
   beforeEach(async () => {
     // Mock HTMLDialogElement.prototype.showModal and close (not implemented in JSDOM)
@@ -25,7 +25,7 @@ describe('RenameDialogComponent', () => {
       }
     }
 
-    remotePathSubject = new BehaviorSubject({
+    remotePathSubject = new BehaviorSubject<RemotePath>({
       remote: 'my-remote',
       path: 'my-path',
     });
@@ -64,7 +64,7 @@ describe('RenameDialogComponent', () => {
       path: 'file.txt',
       name: 'file.txt',
       isDir: false,
-    } as any);
+    });
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: { requests: [request] },
     });
@@ -84,7 +84,7 @@ describe('RenameDialogComponent', () => {
       path: 'file.txt',
       name: 'file.txt',
       isDir: false,
-    } as any);
+    });
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: { requests: [request] },
     });
@@ -122,7 +122,7 @@ describe('RenameDialogComponent', () => {
       path: 'my-folder',
       name: 'my-folder',
       isDir: true,
-    } as any);
+    });
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: { requests: [request] },
     });
@@ -161,7 +161,7 @@ describe('RenameDialogComponent', () => {
       path: 'file.txt',
       name: 'file.txt',
       isDir: false,
-    } as any);
+    });
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: { requests: [request] },
     });
@@ -199,7 +199,7 @@ describe('RenameDialogComponent', () => {
       path: 'file.txt',
       name: 'file.txt',
       isDir: false,
-    } as any);
+    });
     mockStore.setState({
       [dialogsState.FEATURE_KEY]: { requests: [request] },
     });

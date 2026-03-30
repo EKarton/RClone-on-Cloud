@@ -1,6 +1,7 @@
 import { jobsReducer } from '../jobs.reducer';
 import { setSubmitJobFailed, assignJobId, setJobResult } from '../jobs.actions';
-import { initialState, MoveFileRequest } from '../jobs.state';
+import { AsyncJobResponse } from '../../../services/web-api/types/async-job';
+import { initialState, MoveFileRequest, JobRequest } from '../jobs.state';
 import { Result, toFailure, toPending, toSuccess } from '../../../../shared/results/results';
 
 describe('Jobs Reducer', () => {
@@ -12,9 +13,17 @@ describe('Jobs Reducer', () => {
 
   describe('setSubmitJobFailed', () => {
     it('should set the job request and failed result with a generated failed-job ID', () => {
-      const request: any = { kind: 'upload-file', file: new File([], 'test.txt') };
-      const failedResult = toFailure(new Error('error'));
-      const action = setSubmitJobFailed({ request, result: failedResult as any });
+      const request: JobRequest = {
+        kind: 'upload-file',
+        file: new File([], 'test.txt'),
+        remote: 'remote',
+        dirPath: 'path',
+      };
+      const failedResult = toFailure<AsyncJobResponse>(new Error('error'));
+      const action = setSubmitJobFailed({
+        request,
+        result: failedResult,
+      });
 
       const state = jobsReducer(initialState, action);
 
@@ -48,7 +57,13 @@ describe('Jobs Reducer', () => {
 
   describe('setJobResult', () => {
     it('should update the job result for the given jobId', () => {
-      const request: any = { kind: 'move-file' };
+      const request: JobRequest = {
+        kind: 'move-file',
+        fromRemote: 'r1',
+        fromPath: 'p1',
+        toRemote: 'r2',
+        toPath: 'p2',
+      };
       const action1 = assignJobId({ jobId: 'job-1', request, result: toPending<void>() });
       const state1 = jobsReducer(initialState, action1);
 
