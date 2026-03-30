@@ -29,11 +29,13 @@ export class DeleteDialogComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.subscription.add(
       this.request$.subscribe((request) => {
-        if (request) {
-          this.myModal?.nativeElement?.showModal?.();
-        } else {
-          this.myModal?.nativeElement?.close?.();
-        }
+        queueMicrotask(() => {
+          if (request) {
+            this.myModal?.nativeElement?.showModal?.();
+          } else {
+            this.myModal?.nativeElement?.close?.();
+          }
+        });
       }),
     );
   }

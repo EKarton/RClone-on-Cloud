@@ -32,13 +32,15 @@ export class MoveDialogComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.subscription.add(
       this.request$.subscribe((request) => {
-        if (request) {
-          this.destinationPath = this.remotePath()?.path ?? '';
-          this.myModal?.nativeElement?.showModal?.();
-        } else {
-          this.destinationPath = '';
-          this.myModal?.nativeElement?.close?.();
-        }
+        queueMicrotask(() => {
+          if (request) {
+            this.destinationPath = this.remotePath()?.path ?? '';
+            this.myModal?.nativeElement?.showModal?.();
+          } else {
+            this.destinationPath = '';
+            this.myModal?.nativeElement?.close?.();
+          }
+        });
       }),
     );
   }

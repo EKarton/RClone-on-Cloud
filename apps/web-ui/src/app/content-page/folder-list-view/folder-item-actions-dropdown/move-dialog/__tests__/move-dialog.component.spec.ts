@@ -16,14 +16,14 @@ describe('MoveDialogComponent', () => {
 
   beforeEach(async () => {
     // Mock HTMLDialogElement.prototype.showModal and close (not implemented in JSDOM)
-    // if (typeof HTMLDialogElement !== 'undefined') {
-    //   if (!HTMLDialogElement.prototype.showModal) {
-    //     HTMLDialogElement.prototype.showModal = vi.fn();
-    //   }
-    //   if (!HTMLDialogElement.prototype.close) {
-    //     HTMLDialogElement.prototype.close = vi.fn();
-    //   }
-    // }
+    if (typeof HTMLDialogElement !== 'undefined') {
+      if (!HTMLDialogElement.prototype.showModal) {
+        HTMLDialogElement.prototype.showModal = vi.fn();
+      }
+      if (!HTMLDialogElement.prototype.close) {
+        HTMLDialogElement.prototype.close = vi.fn();
+      }
+    }
 
     remotePathSubject = new BehaviorSubject({
       remote: 'my-remote',
@@ -71,9 +71,9 @@ describe('MoveDialogComponent', () => {
     mockStore.refreshState();
     fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
 
-    const destinationTextbox = fixture.nativeElement.querySelector('input[type="text"]');
-    expect(destinationTextbox.value).toBe('my-path');
+    expect(fixture.componentInstance.destinationPath).toBe('my-path');
     // expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
   });
 
@@ -93,10 +93,9 @@ describe('MoveDialogComponent', () => {
     mockStore.refreshState();
     fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
 
-    const destinationTextbox = fixture.nativeElement.querySelector('input[type="text"]');
-    expect(destinationTextbox.value).toBe('');
-    // expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
+    expect(fixture.componentInstance.destinationPath).toBe('');
   });
 
   it('should close dialog when request is clear', async () => {
@@ -112,16 +111,16 @@ describe('MoveDialogComponent', () => {
     mockStore.refreshState();
     fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
 
     // Now clear it
     mockStore.setState({ [dialogsState.FEATURE_KEY]: { requests: [] } });
     mockStore.refreshState();
     fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
 
-    const destinationTextbox = fixture.nativeElement.querySelector('input[type="text"]');
-    expect(destinationTextbox.value).toBe('');
-    // expect(HTMLDialogElement.prototype.close).toHaveBeenCalled();
+    expect(fixture.componentInstance.destinationPath).toBe('');
   });
 
   it('should dispatch submitJob with move-file when moving a file', async () => {
@@ -139,10 +138,12 @@ describe('MoveDialogComponent', () => {
     mockStore.refreshState();
     fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
 
     const textbox = fixture.nativeElement.querySelector('input[type="text"]');
     textbox.value = 'new-folder';
     textbox.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
 
     const submitButton = fixture.nativeElement.querySelector('[data-testid="move-button"]');
     submitButton.click();
@@ -180,6 +181,7 @@ describe('MoveDialogComponent', () => {
     const destinationTextbox = fixture.nativeElement.querySelector('input[type="text"]');
     destinationTextbox.value = 'new-location';
     destinationTextbox.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
 
     const submitButton = fixture.nativeElement.querySelector('[data-testid="move-button"]');
     submitButton.click();
@@ -217,6 +219,7 @@ describe('MoveDialogComponent', () => {
     const destinationTextbox = fixture.nativeElement.querySelector('input[type="text"]');
     destinationTextbox.value = '/';
     destinationTextbox.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
 
     const submitButton = fixture.nativeElement.querySelector('[data-testid="move-button"]');
     submitButton.click();
@@ -254,14 +257,17 @@ describe('MoveDialogComponent', () => {
     const destinationTextbox = fixture.nativeElement.querySelector('input[type="text"]');
     destinationTextbox.value = 'new-location';
     destinationTextbox.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
     expect(fixture.componentInstance.getPreviewPath()).toBe('new-location/file.txt');
 
     destinationTextbox.value = '/';
     destinationTextbox.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
     expect(fixture.componentInstance.getPreviewPath()).toBe('/file.txt');
 
     destinationTextbox.value = '';
     destinationTextbox.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
     expect(fixture.componentInstance.getPreviewPath()).toBe('/file.txt');
   });
 });

@@ -32,13 +32,15 @@ export class RenameDialogComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.subscription.add(
       this.request$.subscribe((request) => {
-        if (request) {
-          this.newName = request.item.name;
-          this.myModal?.nativeElement?.showModal?.();
-        } else {
-          this.newName = '';
-          this.myModal?.nativeElement?.close?.();
-        }
+        queueMicrotask(() => {
+          if (request) {
+            this.newName = request.item.name;
+            this.myModal?.nativeElement?.showModal?.();
+          } else {
+            this.newName = '';
+            this.myModal?.nativeElement?.close?.();
+          }
+        });
       }),
     );
   }
