@@ -5,14 +5,14 @@ import { vi } from 'vitest';
 
 import { dialogsState, dialogsActions } from '../../../../store/dialogs';
 import { jobsActions } from '../../../../store/jobs';
-import { REMOTE_PATH$ } from '../../../folder-list-view.tokens';
+import { REMOTE_PATH$, RemotePath } from '../../../folder-list-view.tokens';
 import { MoveDialogComponent } from '../move-dialog.component';
 import { MoveDialogRequest } from '../move-dialog.request';
 
 describe('MoveDialogComponent', () => {
   let fixture: ComponentFixture<MoveDialogComponent>;
   let mockStore: MockStore;
-  let remotePathSubject: BehaviorSubject<{ remote: string; path: string }>;
+  let remotePathSubject: BehaviorSubject<RemotePath>;
 
   beforeEach(async () => {
     // Mock HTMLDialogElement.prototype.showModal and close (not implemented in JSDOM)
@@ -25,7 +25,7 @@ describe('MoveDialogComponent', () => {
       }
     }
 
-    remotePathSubject = new BehaviorSubject({
+    remotePathSubject = new BehaviorSubject<RemotePath>({
       remote: 'my-remote',
       path: 'my-path',
     });
