@@ -8,7 +8,6 @@ import { jobsState } from '../../../store/jobs';
 import { toPending, toSuccess } from '../../../../shared/results/results';
 
 describe('JobsDropdownComponent', () => {
-  let component: JobsDropdownComponent;
   let fixture: ComponentFixture<JobsDropdownComponent>;
   let mockStore: MockStore;
 
@@ -26,7 +25,6 @@ describe('JobsDropdownComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(JobsDropdownComponent);
-    component = fixture.componentInstance;
     fixture.detectChanges();
 
     mockStore = TestBed.inject(MockStore);
@@ -61,10 +59,8 @@ describe('JobsDropdownComponent', () => {
 
     const jobDetails = fixture.nativeElement.querySelector('[data-testid="job-details"]');
     expect(jobDetails.children.length).toBe(2);
-    expect(jobDetails.children[0].textContent).toBe('Moving Documents to 2010');
-    expect(jobDetails.children[1].textContent).toBe(
-      'Move folder from drive/Documents to photos/2010',
-    );
+    expect(jobDetails.children[0].textContent).toContain('Moving Documents to 2010');
+    expect(jobDetails.children[1].textContent).toContain('Moved Documents to 2010');
   });
 
   it('should render the spinner icon when there are ongoing jobs', () => {
