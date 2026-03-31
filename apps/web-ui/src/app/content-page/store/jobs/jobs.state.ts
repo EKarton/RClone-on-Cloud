@@ -1,7 +1,7 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { Map as ImmutableMap } from 'immutable';
 
-import { Result } from '../../../shared/results/results';
+import { Result, toPending } from '../../../shared/results/results';
 
 export interface UploadFileRequest {
   kind: 'upload-file';
@@ -96,7 +96,7 @@ export const selectAllJobs = createSelector(selectJobState, (state) =>
       return {
         key: jobId,
         ...request,
-        result: state.jobIdToResult.get(jobId)!,
+        result: state.jobIdToResult.get(jobId) ?? toPending<void>(),
       };
     })
     .toList(),
