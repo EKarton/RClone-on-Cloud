@@ -1,6 +1,7 @@
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
 import { Mock, vi } from 'vitest';
 
 import { environment } from '../../../../environments/environment';
@@ -14,6 +15,7 @@ describe('webApiAuthRequestInterceptor', () => {
     localStorage: { setItem: Mock };
     location: { href: string; pathname: string };
   };
+  let router: Router;
 
   beforeEach(() => {
     windowMock = {
@@ -31,25 +33,29 @@ describe('webApiAuthRequestInterceptor', () => {
       providers: [
         provideHttpClient(withInterceptors([webApiAuthRequestInterceptor])),
         provideHttpClientTesting(),
+        provideRouter([]),
         { provide: WINDOW, useValue: windowMock },
       ],
     });
 
     httpClient = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
+
+    router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate');
   });
 
   afterEach(() => {
     httpMock.verify();
   });
 
-  it('should redirect to login page and save path to local storage when web api request returns 401 error', async () => {
+  it('should navigate to login page and save path to local storage when web api request returns 401 error', async () => {
     const testUrl = `${environment.webApiEndpoint}/test`;
 
     const promise = new Promise<void>((resolve) => {
       httpClient.get(testUrl).subscribe({
         complete: () => {
-          expect(windowMock.location.href).toBe(environment.loginUrl);
+          expect(router.navigate).toHaveBeenCalledWith(['/auth/v1/google/login']);
           expect(windowMock.localStorage.setItem).toHaveBeenCalledWith(
             'auth_redirect_path',
             '/content/home',
@@ -70,7 +76,7 @@ describe('webApiAuthRequestInterceptor', () => {
     httpClient.get(testUrl).subscribe({
       error: (error) => {
         expect(error.status).toBe(401);
-        expect(windowMock.location.href).not.toBe(environment.loginUrl);
+        expect(router.navigate).not.toHaveBeenCalled();
       },
     });
 
@@ -83,7 +89,7 @@ describe('webApiAuthRequestInterceptor', () => {
     httpClient.get(testUrl).subscribe({
       error: (error) => {
         expect(error.status).toBe(500);
-        expect(windowMock.location.href).not.toBe(environment.loginUrl);
+        expect(router.navigate).not.toHaveBeenCalled();
       },
     });
 
@@ -96,7 +102,7 @@ describe('webApiAuthRequestInterceptor', () => {
 
     httpClient.get(testUrl).subscribe((data) => {
       expect(data).toEqual(testData);
-      expect(windowMock.location.href).not.toBe(environment.loginUrl);
+      expect(router.navigate).not.toHaveBeenCalled();
     });
 
     httpMock.expectOne(testUrl).flush(testData);

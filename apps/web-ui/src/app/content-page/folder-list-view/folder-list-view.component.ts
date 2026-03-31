@@ -1,17 +1,24 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, Signal, signal, WritableSignal } from '@angular/core';
+import {
+  Component,
+  inject,
+  Signal,
+  signal,
+  WritableSignal,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterModule } from '@angular/router';
-import { map, switchMap } from 'rxjs/operators';
+import { filter, map, scan, switchMap } from 'rxjs/operators';
 
-import { Result, toPending } from '../../shared/results/results';
+import { hasSucceed, isPending, Result } from '../../shared/results/results';
 import {
   ListAlbumsSortBy,
   ListAlbumsSortByFields,
   ListAlbumsSortDirection,
 } from '../services/web-api/types/list-albums';
 import { ListFolderResponse } from '../services/web-api/types/list-folder';
-import { WebApiService } from '../services/web-api/web-api.service';
 import { FolderBreadcrumbsComponent } from './folder-breadcrumbs/folder-breadcrumbs.component';
 import {
   FolderDisplayDropdownComponent,
@@ -21,6 +28,14 @@ import { FolderListCardsComponent } from './folder-list-cards/folder-list-cards.
 import { FolderListTableComponent } from './folder-list-table/folder-list-table.component';
 import { REMOTE_PATH$, REMOTE_PATH$_PROVIDER } from './folder-list-view.tokens';
 import { FolderSortDropdownComponent } from './folder-sort-dropdown/folder-sort-dropdown.component';
+import { AddItemsDropdownComponent } from './add-items-dropdown/add-items-dropdown.component';
+import { FolderListViewStore } from './folder-list-view.store';
+import { Subscription } from 'rxjs';
+import { jobsState } from '../store/jobs';
+import { Store } from '@ngrx/store';
+import { DeleteDialogComponent } from './folder-item-actions-dropdown/delete-dialog/delete-dialog.component';
+import { RenameDialogComponent } from './folder-item-actions-dropdown/rename-dialog/rename-dialog.component';
+import { MoveDialogComponent } from './folder-item-actions-dropdown/move-dialog/move-dialog.component';
 
 @Component({
   standalone: true,
@@ -33,13 +48,19 @@ import { FolderSortDropdownComponent } from './folder-sort-dropdown/folder-sort-
     FolderSortDropdownComponent,
     FolderListCardsComponent,
     FolderListTableComponent,
+    AddItemsDropdownComponent,
+    DeleteDialogComponent,
+    RenameDialogComponent,
+    MoveDialogComponent,
   ],
   templateUrl: './folder-list-view.component.html',
-  providers: [REMOTE_PATH$_PROVIDER],
+  providers: [REMOTE_PATH$_PROVIDER, FolderListViewStore],
 })
-export class FolderListViewComponent {
+export class FolderListViewComponent implements OnInit, OnDestroy {
   private readonly remotePath$ = inject(REMOTE_PATH$);
-  private readonly webApiService = inject(WebApiService);
+  private readonly folderListViewStore = inject(FolderListViewStore);
+  private readonly globalStore = inject(Store);
+  private readonly subscriptions = new Subscription();
 
   readonly ListViewOptions = ListViewOptions;
 
@@ -50,15 +71,62 @@ export class FolderListViewComponent {
 
   filesListViewOption: WritableSignal<ListViewOptions> = signal(ListViewOptions.LIST);
 
-  readonly contentsResult: Signal<Result<ListFolderResponse>> = toSignal(
-    this.remotePath$.pipe(
-      switchMap(({ remote, path }) => this.webApiService.listFolder(remote, path ?? '')),
-    ),
-    { initialValue: toPending<ListFolderResponse>() },
-  );
+  readonly contentsResult: Signal<Result<ListFolderResponse>> = this.folderListViewStore.items;
 
   readonly currentFolder = toSignal(
     this.remotePath$.pipe(map(({ remote, path }) => path?.split('/').pop() ?? remote)),
     { initialValue: '' },
   );
+
+  ngOnInit() {
+    this.subscriptions.add(
+      this.remotePath$.subscribe((remotePath) => {
+        this.folderListViewStore.loadItems({
+          remote: remotePath.remote,
+          dirPath: remotePath.path ?? '',
+        });
+      }),
+    );
+
+    this.subscriptions.add(
+      this.remotePath$
+        .pipe(
+          switchMap((remotePath) => {
+            return this.globalStore.select(jobsState.selectAllJobs).pipe(
+              scan(
+                (state, jobs) => {
+                  let hasNewSuccess = false;
+                  const pendingFiles = new Set<string | number>(state.pendingFiles);
+
+                  for (const job of jobs) {
+                    if (isPending(job.result)) {
+                      pendingFiles.add(job.key);
+                    } else if (hasSucceed(job.result) && pendingFiles.has(job.key)) {
+                      pendingFiles.delete(job.key);
+                      hasNewSuccess = true;
+                    }
+                  }
+
+                  return { pendingFiles, hasNewSuccess };
+                },
+                { pendingFiles: new Set<string | number>(), hasNewSuccess: false },
+              ),
+              filter((state) => state.hasNewSuccess),
+              map(() => remotePath),
+            );
+          }),
+        )
+        .subscribe((remotePath) => {
+          console.log('Loading items again');
+          this.folderListViewStore.loadItems({
+            remote: remotePath.remote,
+            dirPath: remotePath.path ?? '',
+          });
+        }),
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
 }

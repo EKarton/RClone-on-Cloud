@@ -30,6 +30,7 @@
     "buffer": "^6.0.3",
     "daisyui": "^5.5.19",
     "http-server": "^14.1.1",
+    "immutable": "^5.1.5",
     "lru-cache": "^11.2.7",
     "ngx-cookie-service": "^21.3.1",
     "pretty-bytes": "^7.1.0",

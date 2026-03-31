@@ -3,6 +3,7 @@ package mongodb_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,14 +23,17 @@ func setup(t *testing.T) (*mongodb.MongoStorage, *mongo.Collection, func()) {
 	t.Helper()
 	ctx := context.Background()
 
-	// Start a real MongoDB container (pulled from Docker Hub)
-	container, err := tcmongo.Run(ctx, "mongo:7")
+	// Start a real MongoDB container as a single-node replica set
+	// (required for Change Streams)
+	container, err := tcmongo.Run(ctx, "mongo:7", tcmongo.WithReplicaSet("rs"))
 	require.NoError(t, err, "failed to start MongoDB container")
 
 	uri, err := container.ConnectionString(ctx)
 	require.NoError(t, err)
 
-	client, err := mongo.Connect(options.Client().ApplyURI(uri))
+	// Force a direct connection so the driver uses the mapped localhost port
+	// instead of trying to reach the container-internal replica set member IP.
+	client, err := mongo.Connect(options.Client().ApplyURI(uri).SetDirect(true))
 	require.NoError(t, err)
 
 	// Use t.Name() as the DB name so each test is fully isolated
@@ -304,4 +308,121 @@ func TestNew_EmptyKey(t *testing.T) {
 	_, err := mongodb.New(nil, "")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot be empty")
+}
+
+// --- Change Stream tests ---
+
+// waitFor polls cond every 50ms, failing if timeout elapses.
+func waitFor(t *testing.T, timeout time.Duration, cond func() bool, msg string) {
+	t.Helper()
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		if cond() {
+			return
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	t.Fatal(msg)
+}
+
+func TestStartWatching_ExternalInsert(t *testing.T) {
+	store, collection, cleanup := setup(t)
+	defer cleanup()
+
+	require.NoError(t, store.Load())
+	require.NoError(t, store.StartWatching(context.Background()))
+	defer store.StopWatching()
+
+	// Insert a document directly via the collection (simulating another process)
+	store.SetValue("seed", "k", "v")
+	require.NoError(t, store.Save())
+
+	// Now use the same store's encryption to prepare a doc that the watcher can decrypt.
+	// We'll insert via the raw collection to bypass the in-memory cache.
+	// First, save one doc so we can get the encrypted bytes for test data.
+	tempStore, err := mongodb.New(collection, testKey)
+	require.NoError(t, err)
+	tempStore.SetValue("external_remote", "type", "s3")
+	tempStore.SetValue("external_remote", "region", "eu-west-1")
+	require.NoError(t, tempStore.Save())
+
+	// Wait for the change stream to pick up the insert
+	waitFor(t, 5*time.Second, func() bool {
+		v, ok := store.GetValue("external_remote", "type")
+		return ok && v == "s3"
+	}, "timed out waiting for external insert to propagate")
+
+	v, ok := store.GetValue("external_remote", "region")
+	assert.True(t, ok)
+	assert.Equal(t, "eu-west-1", v)
+}
+
+func TestStartWatching_ExternalUpdate(t *testing.T) {
+	store, collection, cleanup := setup(t)
+	defer cleanup()
+
+	// Pre-populate
+	store.SetValue("myremote", "type", "s3")
+	store.SetValue("myremote", "region", "us-east-1")
+	require.NoError(t, store.Save())
+	require.NoError(t, store.Load())
+	require.NoError(t, store.StartWatching(context.Background()))
+	defer store.StopWatching()
+
+	// Update via a second store instance (simulates another process)
+	store2, err := mongodb.New(collection, testKey)
+	require.NoError(t, err)
+	require.NoError(t, store2.Load())
+	store2.SetValue("myremote", "region", "ap-south-1")
+	require.NoError(t, store2.Save())
+
+	waitFor(t, 5*time.Second, func() bool {
+		v, ok := store.GetValue("myremote", "region")
+		return ok && v == "ap-south-1"
+	}, "timed out waiting for external update to propagate")
+}
+
+func TestStartWatching_ExternalDelete(t *testing.T) {
+	store, collection, cleanup := setup(t)
+	defer cleanup()
+
+	// Pre-populate
+	store.SetValue("toremove", "type", "drive")
+	require.NoError(t, store.Save())
+	require.NoError(t, store.Load())
+	require.NoError(t, store.StartWatching(context.Background()))
+	defer store.StopWatching()
+
+	// Delete directly via the collection
+	_, err := collection.DeleteOne(context.Background(), bson.M{"_id": "toremove"})
+	require.NoError(t, err)
+
+	waitFor(t, 5*time.Second, func() bool {
+		return !store.HasSection("toremove")
+	}, "timed out waiting for external delete to propagate")
+}
+
+func TestStopWatching(t *testing.T) {
+	store, collection, cleanup := setup(t)
+	defer cleanup()
+
+	require.NoError(t, store.Load())
+	require.NoError(t, store.StartWatching(context.Background()))
+
+	// Stop watching immediately
+	store.StopWatching()
+
+	// Give goroutine time to shut down
+	time.Sleep(200 * time.Millisecond)
+
+	// Make an external change
+	store2, err := mongodb.New(collection, testKey)
+	require.NoError(t, err)
+	store2.SetValue("after_stop", "type", "ftp")
+	require.NoError(t, store2.Save())
+
+	// Wait briefly — the change should NOT propagate
+	time.Sleep(500 * time.Millisecond)
+	assert.False(t, store.HasSection("after_stop"),
+		"change should not propagate after StopWatching")
 }

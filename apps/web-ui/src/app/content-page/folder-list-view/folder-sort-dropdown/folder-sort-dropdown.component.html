@@ -1,8 +1,6 @@
-<div class="dropdown dropdown-end">
-  <div
-    tabindex="0"
-    role="button"
-    class="btn btn-sm btn-ghost rounded-lg capitalize hover:border hover:border-current"
+<details class="dropdown dropdown-end">
+  <summary
+    class="btn btn-sm btn-ghost rounded-lg capitalize hover:border hover:border-current list-none"
   >
     @if (isAscending()) {
       <svg
@@ -17,7 +15,6 @@
           clip-rule="evenodd"
         />
       </svg>
-
       {{ sortByFieldText() }}
     } @else {
       <svg
@@ -32,29 +29,27 @@
           clip-rule="evenodd"
         />
       </svg>
-
       {{ sortByFieldText() }}
     }
-  </div>
+  </summary>
+
   <div
-    class="dropdown-content z-[1] menu shadow-lg bg-base-300 rounded-box border border-base-300 flex flex-col gap-4 max-w-xs p-4 mt-2 border rounded-lg"
+    class="dropdown-content z-[1] menu shadow-lg bg-base-300 rounded-box border border-base-300 flex flex-col gap-4 max-w-xs p-4 mt-2"
   >
-    <!-- Sort Field Radios -->
     <div class="flex flex-col gap-2">
       <label class="label cursor-pointer">
         <input
           type="radio"
-          data-testid="sort-by-id-radio-button"
           class="radio radio-xs checked:bg-primary"
           [checked]="sortBy().field === ListAlbumsSortByFields.ID"
           (change)="setField(ListAlbumsSortByFields.ID)"
         />
         <span class="label-text ml-2">ID</span>
       </label>
+
       <label class="label cursor-pointer">
         <input
           type="radio"
-          data-testid="sort-by-name-radio-button"
           class="radio radio-xs checked:bg-primary"
           [checked]="sortBy().field === ListAlbumsSortByFields.NAME"
           (change)="setField(ListAlbumsSortByFields.NAME)"
@@ -65,22 +60,20 @@
 
     <hr />
 
-    <!-- Sort Direction Radios -->
     <div class="flex flex-col gap-2">
       <label class="label cursor-pointer">
         <input
           type="radio"
-          data-testid="sort-ascending-radio-button"
           class="radio radio-xs checked:bg-primary"
           [checked]="sortBy().direction === ListAlbumsSortDirection.ASCENDING"
           (change)="setDirection(ListAlbumsSortDirection.ASCENDING)"
         />
         <span class="label-text ml-2">Ascending</span>
       </label>
+
       <label class="label cursor-pointer">
         <input
           type="radio"
-          data-testid="sort-descending-radio-button"
           class="radio radio-xs checked:bg-primary"
           [checked]="sortBy().direction === ListAlbumsSortDirection.DESCENDING"
           (change)="setDirection(ListAlbumsSortDirection.DESCENDING)"
@@ -89,4 +82,4 @@
       </label>
     </div>
   </div>
-</div>
+</details>

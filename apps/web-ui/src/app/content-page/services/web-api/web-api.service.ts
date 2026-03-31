@@ -11,11 +11,54 @@ import { toResult } from '../../../shared/results/rxjs/toResult';
 import { ListFolderResponse, RawListFolderResponse } from './types/list-folder';
 import { ListRemoteUsageResponse } from './types/list-remote-usage';
 import { ListRemotesResponse } from './types/list-remotes';
+import { JobStatusResponse } from './types/get-job-status';
+import { AsyncJobResponse } from './types/async-job';
 
 @Injectable({ providedIn: 'root' })
 export class WebApiService {
   private readonly httpClient = inject(HttpClient);
   private readonly store = inject(Store);
+
+  /** Gets the status of a job */
+  getJobStatus(jobId: string): Observable<Result<JobStatusResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/job/status`;
+    const requestBody = {
+      jobid: jobId,
+    };
+    return this.post<JobStatusResponse>(url, requestBody);
+  }
+
+  /** Uploads a file to a remote asynchronously */
+  uploadFile(remote: string, dirPath: string, file: File): Observable<Result<void>> {
+    const url =
+      `${environment.webApiEndpoint}/api/v1/rclone/operations/uploadfile` +
+      `?fs=${encodeURIComponent(remote + ':')}` +
+      `&remote=${encodeURIComponent(dirPath)}`;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.store.select(authState.selectAuthToken).pipe(
+      take(1),
+      switchMap((authToken) =>
+        this.httpClient.post<void>(url, formData, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }),
+      ),
+      toResult(),
+    );
+  }
+
+  mkdir(remote: string, dirPath: string): Observable<Result<void>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/mkdir`;
+    const requestBody = {
+      fs: `${remote}:`,
+      remote: dirPath,
+    };
+    return this.post<void>(url, requestBody);
+  }
 
   /** Lists the contents of a folder */
   listFolder(remote: string, path: string): Observable<Result<ListFolderResponse>> {
@@ -27,16 +70,7 @@ export class WebApiService {
         UseListR: true,
       },
     };
-    return this.store.select(authState.selectAuthToken).pipe(
-      take(1),
-      switchMap((authToken) =>
-        this.httpClient.post<RawListFolderResponse>(url, requestBody, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }),
-      ),
-      toResult(),
+    return this.post<RawListFolderResponse>(url, requestBody).pipe(
       mapResultRxJs((res) => ({
         items: res.list.map((item) => ({
           path: item.Path,
@@ -53,41 +87,13 @@ export class WebApiService {
   /** List the remote usage */
   listRemoteUsage(remote: string): Observable<Result<ListRemoteUsageResponse>> {
     const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/about`;
-    return this.store.select(authState.selectAuthToken).pipe(
-      take(1),
-      switchMap((authToken) =>
-        this.httpClient.post<ListRemoteUsageResponse>(
-          url,
-          { fs: `${remote}:` },
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          },
-        ),
-      ),
-      toResult(),
-    );
+    return this.post<ListRemoteUsageResponse>(url, { fs: `${remote}:` });
   }
 
   /** Lists the rclone remotes available */
   listRemotes(): Observable<Result<ListRemotesResponse>> {
     const url = `${environment.webApiEndpoint}/api/v1/rclone/config/listremotes`;
-    return this.store.select(authState.selectAuthToken).pipe(
-      take(1),
-      switchMap((authToken) =>
-        this.httpClient.post<ListRemotesResponse>(
-          url,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          },
-        ),
-      ),
-      toResult(),
-    );
+    return this.post<ListRemotesResponse>(url, {});
   }
 
   /** Fetches the raw content of a file as a Blob */
@@ -106,6 +112,112 @@ export class WebApiService {
             Authorization: `Bearer ${authToken}`,
           },
           responseType: 'blob',
+        }),
+      ),
+      toResult(),
+    );
+  }
+
+  /** Deletes a file from a remote file path */
+  deleteFileAsync(remote: string, path: string): Observable<Result<AsyncJobResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/deletefile`;
+    const requestBody = {
+      fs: `${remote}:`,
+      remote: path,
+      _async: true,
+    };
+    return this.post<AsyncJobResponse>(url, requestBody);
+  }
+
+  /** Deletes a folder from a remote dir path */
+  deleteFolderAsync(remote: string, path: string): Observable<Result<AsyncJobResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/purge`;
+    const requestBody = {
+      fs: `${remote}:`,
+      remote: path,
+      _async: true,
+    };
+    return this.post<AsyncJobResponse>(url, requestBody);
+  }
+
+  /** Moves a file from a source remote file path to a target remote file path */
+  moveFileAsync(
+    fromRemote: string,
+    fromPath: string,
+    toRemote: string,
+    toPath: string,
+  ): Observable<Result<AsyncJobResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/movefile`;
+    const requestBody = {
+      srcFs: `${fromRemote}:`,
+      srcRemote: fromPath,
+      dstFs: `${toRemote}:`,
+      dstRemote: toPath,
+      _async: true,
+    };
+    return this.post<AsyncJobResponse>(url, requestBody);
+  }
+
+  /** Moves a folder from a source remote dir path to a target remote dir path */
+  moveFolderAsync(
+    fromRemote: string,
+    fromPath: string,
+    toRemote: string,
+    toPath: string,
+  ): Observable<Result<AsyncJobResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/sync/move`;
+    const requestBody = {
+      srcFs: `${fromRemote}:${fromPath}`,
+      dstFs: `${toRemote}:${toPath}`,
+      _async: true,
+    };
+    return this.post<AsyncJobResponse>(url, requestBody);
+  }
+
+  /** Copies a folder from a source remote dir path to a target remote dir path */
+  copyFolderAsync(
+    fromRemote: string,
+    fromPath: string,
+    toRemote: string,
+    toPath: string,
+    createEmptySrcDirs: boolean,
+  ): Observable<Result<AsyncJobResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/sync/copy`;
+    const requestBody = {
+      srcFs: `${fromRemote}:${fromPath}`,
+      dstFs: `${toRemote}:${toPath}`,
+      createEmptySrcDirs,
+      _async: true,
+    };
+    return this.post<AsyncJobResponse>(url, requestBody);
+  }
+
+  /** Copies a file from a source remote file path to a target remote file path */
+  copyFileAsync(
+    fromRemote: string,
+    fromPath: string,
+    toRemote: string,
+    toPath: string,
+  ): Observable<Result<AsyncJobResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/copyfile`;
+    const requestBody = {
+      srcFs: `${fromRemote}:`,
+      srcRemote: fromPath,
+      dstFs: `${toRemote}:`,
+      dstRemote: toPath,
+      _async: true,
+    };
+    return this.post<AsyncJobResponse>(url, requestBody);
+  }
+
+  private post<T>(url: string, body: unknown): Observable<Result<T>> {
+    return this.store.select(authState.selectAuthToken).pipe(
+      take(1),
+      switchMap((authToken) =>
+        this.httpClient.post<T>(url, body, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
         }),
       ),
       toResult(),

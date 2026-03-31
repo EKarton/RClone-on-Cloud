@@ -10,6 +10,8 @@ import { toPending } from '../../../shared/results/results';
 import { ListFolderResponse } from '../../services/web-api/types/list-folder';
 import { WebApiService } from '../../services/web-api/web-api.service';
 import { FolderListViewComponent } from '../folder-list-view.component';
+import { dialogsState } from '../../store/dialogs';
+import { jobsState } from '../../store/jobs';
 
 describe('FolderListViewComponent', () => {
   let webApiServiceSpy: Mocked<WebApiService>;
@@ -23,7 +25,12 @@ describe('FolderListViewComponent', () => {
     await TestBed.configureTestingModule({
       imports: [EmptyComponent],
       providers: [
-        provideMockStore(),
+        provideMockStore({
+          initialState: {
+            [dialogsState.FEATURE_KEY]: dialogsState.initialState,
+            [jobsState.FEATURE_KEY]: jobsState.initialState,
+          },
+        }),
         provideRouter([
           {
             path: 'folders/:remotePath',
