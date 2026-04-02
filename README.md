@@ -34,21 +34,21 @@ This project consists of several components, each responsible for performing a c
 }}%%
 graph LR
     subgraph "Local Environment"
-        CLI[CLI Client / Go]
+        CLI[CLI Client]
     end
 
     subgraph "Cloud / Storage"
-        MongoDB[(MongoDB)]
+        MongoDB[(RClone Configs in \n MongoDB)]
     end
 
     subgraph "Cloud / Web"
-        WebUI[Web UI / Angular]
-        WebAPI[Web API / Go]
+        WebUI[Web UI]
+        WebAPI[Web API]
     end
 
     WebUI -->|REST API + JWT| WebAPI
-    WebAPI -->|Encrypted Configs| MongoDB
-    CLI -->|Encrypted Configs| MongoDB
+    WebAPI --> MongoDB
+    CLI --> MongoDB
 ```
 
 Users can use the front-end web application to browse their cloud files and manage their remotes directly from their browser.
@@ -59,7 +59,15 @@ Users can use the front-end web application to browse their cloud files and mana
     </p>
 </div>
 
-The application includes an image viewer to easily preview your media stored on the cloud.
+The application includes a file viewers to easily preview your content stored on the cloud.
+
+<div width="100%">
+    <p align="center">
+    <img src="./apps/web-ui/public/assets/home-page/image-viewer.png"  width="600px"/>
+    </p>
+</div>
+
+Users can also modify content in the cloud, such as uploading new content, renaming files / directories, moving files / directories, and deleting files / directories.
 
 <div width="100%">
     <p align="center">
@@ -91,6 +99,7 @@ It also provides a mobile-responsive interface for managing your files on the go
 
 ##### Set up the Web API:
 
+- Set up your Google Cloud OAuth2 credentials.
 - Navigate to the `apps/web-api` directory.
 - Create a `.env` file and set the following environment variables:
   - `RCLONE_CONFIG_MONGO_KEY`: A 32-character encryption key.
@@ -127,7 +136,28 @@ It also provides a mobile-responsive interface for managing your files on the go
   ```bash
   go build -o rclone-cloud .
   ```
-- Configure your environment variables (`MONGO_URL` and `MONGO_KEY`) to match those used by the Web API.
+- Set your environment variables (`MONGO_URL` and `MONGO_KEY`) to match those used by the Web API.
+- Migrate your existing `rclone.conf` to the MongoDB storage by running:
+
+  ```bash
+  ./rclone-cloud migrate --from-file <path/to/rclone.conf>
+  ```
+
+- Now, you can run any RClone command such as:
+
+  ```bash
+  ./rclone-cloud listremotes
+  ./rclone-cloud config
+  ./rclone-cloud lsd <remote>:
+  ./rclone-cloud ls <remote>:
+  ./rclone-cloud copy <remote>:file.txt .
+  ./rclone-cloud copy file.txt <remote>:
+  ...
+  ```
+
+  You can find more available commands at https://rclone.org/commands.
+
+- Note: each time the configs change in MongoDB, the CLI and the Web API automatically picks up the new changes.
 
 ### Usage
 
