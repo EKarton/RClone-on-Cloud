@@ -1,4 +1,4 @@
-package cmd_test
+package cmd
 
 import (
 	"bytes"
@@ -9,8 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ekarton/RClone-Cloud/apps/cli/cmd"
 	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
+	_ "github.com/rclone/rclone/backend/all"
+	_ "github.com/rclone/rclone/cmd/all"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	mongodbcontainer "github.com/testcontainers/testcontainers-go/modules/mongodb"
@@ -69,7 +70,7 @@ func TestRootCommand_ListRemotes(t *testing.T) {
 	os.Stdout = w
 
 	// Build the command line arguments
-	cmd.Root.SetArgs([]string{
+	Root.SetArgs([]string{
 		"listremotes",
 		"--mongo-url", uri,
 		"--mongo-key", keyHex,
@@ -78,11 +79,10 @@ func TestRootCommand_ListRemotes(t *testing.T) {
 	})
 
 	// Make sure everything is initialized as it would be inside main.go
-	cmd.AddBackendFlags()
-	// Usually setupRootCommand handles the cobra.OnInitialize etc.
-	// But it might have been already set up if we don't decouple test execution.
-	// We just execute the Root command:
-	err = cmd.Root.Execute()
+	setupRootCommand(Root)
+	AddBackendFlags()
+
+	err = Root.Execute()
 
 	// Close writer to flush pipe, restore stdout
 	_ = w.Close()
