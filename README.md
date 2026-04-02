@@ -55,7 +55,7 @@ Users can use the front-end web application to browse their cloud files from the
 
 <div width="100%">
     <p align="center">
-<img src="./apps/web-ui/public/assets/home-page/images-list-view.png" width="600px"/>
+<img src="./apps/web-ui/public/assets/home-page/contents-table-view.png" width="600px"/>
     </p>
 </div>
 
@@ -63,7 +63,7 @@ The application includes a file viewers to easily preview your content stored on
 
 <div width="100%">
     <p align="center">
-    <img src="./apps/web-ui/public/assets/home-page/image-viewer.png"  width="600px"/>
+    <img src="./apps/web-ui/public/assets/home-page/pdf-viewer.png"  width="600px"/>
     </p>
 </div>
 
@@ -71,17 +71,11 @@ Users can also modify content in the cloud, such as uploading new content, renam
 
 <div width="100%">
     <p align="center">
-    <img src="./apps/web-ui/public/assets/home-page/image-viewer.png"  width="600px"/>
+    <img src="./apps/web-ui/public/assets/home-page/modify-content.png"  width="600px"/>
     </p>
 </div>
 
 It also provides a mobile-responsive interface for managing your files on the go.
-
-<div width="100%">
-    <p align="center">
-<img src="./apps/web-ui/public/assets/home-page/folder-view-mobile.png" width="600px"/>
-    </p>
-</div>
 
 ### Installation
 

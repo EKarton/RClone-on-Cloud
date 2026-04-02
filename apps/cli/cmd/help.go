@@ -179,12 +179,7 @@ func setupRootCommand(rootCmd *cobra.Command) {
 		return groups.Groups
 	})
 	rootCmd.SetUsageTemplate(usageTemplate)
-	// rootCmd.SetHelpTemplate(helpTemplate)
-	// rootCmd.SetFlagErrorFunc(FlagErrorFunc)
 	rootCmd.SetHelpCommand(helpCommand)
-	// rootCmd.PersistentFlags().BoolP("help", "h", false, "Print usage")
-	// rootCmd.PersistentFlags().MarkShorthandDeprecated("help", "please use --help")
-
 	rootCmd.AddCommand(helpCommand)
 	rootCmd.AddCommand(migrate.MigrateCmd)
 	rootCmd.AddCommand(dump.DumpCmd)

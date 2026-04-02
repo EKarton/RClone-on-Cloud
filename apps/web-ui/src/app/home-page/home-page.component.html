@@ -55,7 +55,7 @@
         </button>
       </div>
       <img
-        src="/assets/home-page/images-list-view.png"
+        src="/assets/home-page/contents-table-view.png"
         alt="Intro section"
         class="object-contain object-top lg:object-left overflow-hidden"
       />
@@ -81,8 +81,8 @@
           <div class="text-3xl font-bold whitespace-nowrap">About</div>
         </div>
         <div class="text-xl">
-          This is a front-facing web application that connects to your Photos Drive instance. You
-          can securely view your photos and videos on any web browser.
+          This is a front-facing web application that connects to your RClone on Cloud instance. You
+          can securely view and manage your files on any web browser.
         </div>
       </div>
       <div class="flex flex-col gap-4">
@@ -104,8 +104,9 @@
           <div class="text-3xl font-bold whitespace-nowrap">Secure</div>
         </div>
         <div class="text-xl">
-          All actions in this web application can only be read. To modify the contents of your
-          RClone on Cloud, you will have to use the CLI. All users must be authenticated via OAuth2.
+          This web application interacts with your Web API to fetch and modify the contents of your
+          files in your RClone on Cloud. All requests are protected with JWT tokens, which are
+          issued after you authenticate via Google's OAuth2 authentication flow.
         </div>
       </div>
       <div class="flex flex-col gap-4">
@@ -127,8 +128,9 @@
           <div class="text-3xl font-bold whitespace-nowrap">Easy to use</div>
         </div>
         <div class="text-xl">
-          You can view your photos in many ways - list view, or map view within an albums or across
-          all albums. You can even search through your photos via Gemini.
+          You can view your files in many ways - list view, or table view. You can view your files
+          natively on the browser (currently supports images, text, and pdf files; the rest you have
+          to download).
         </div>
       </div>
     </div>
@@ -137,40 +139,56 @@
       <div class="flex items-center w-full flex-col gap-2 lg:flex-row lg:h-full">
         <div>
           <p class="text-3xl font-bold whitespace-nowrap">View your files and folders better</p>
-          <p class="pt-3 text-xl">View all of your files and folders in a directory view</p>
+          <p class="pt-3 text-xl">View all of your files and folders in a table or cards view</p>
         </div>
         <img
-          src="/assets/home-page/map-view.png"
-          alt="List View"
+          src="/assets/home-page/contents-table-view.png"
+          alt="Table View"
           class="object-contain object-top lg:object-left overflow-hidden"
         />
       </div>
 
       <div class="flex items-center w-full flex-col gap-2 lg:flex-row-reverse lg:h-full">
-        <div>
+        <div class="text-end">
           <p class="text-3xl font-bold whitespace-nowrap">Embedded Viewer</p>
           <p class="pt-3 text-xl">View, share, download files in high resolution</p>
         </div>
+        <div class="flex flex-col">
+          <img
+            src="/assets/home-page/pdf-viewer.png"
+            alt="PDF Viewer"
+            class="object-contain object-left lg:object-top overflow-hidden"
+          />
+        </div>
+      </div>
+
+      <div class="flex items-center w-full flex-col gap-2 lg:flex-row lg:h-full">
+        <div>
+          <p class="text-3xl font-bold whitespace-nowrap">Manage your content</p>
+          <p class="pt-3 text-xl">
+            Upload new content, move them around, rename, copy, delete, and more
+          </p>
+        </div>
         <img
-          src="/assets/home-page/image-viewer.png"
-          alt="Image Viewer"
-          class="object-contain object-left lg:object-top overflow-hidden"
+          src="/assets/home-page/modify-content.png"
+          alt="Modify content"
+          class="object-contain object-top lg:object-left overflow-hidden"
         />
       </div>
 
-      <div class="flex items-center w-full flex-col gap-2 lg:flex-row">
-        <div>
+      <div class="flex items-center w-full flex-col gap-2 lg:flex-row-reverse lg:h-full">
+        <div class="text-end">
           <p class="text-3xl font-bold whitespace-nowrap">Mobile Friendly</p>
           <p class="pt-3 text-xl">Easily access your content from your phone</p>
         </div>
         <div class="carousel rounded-box w-full h-full gap-4 p-4">
           @let images =
             [
-              '/assets/home-page/images-list-view-mobile.png',
-              '/assets/home-page/llm-chat-mobile.png',
-              '/assets/home-page/map-view-mobile.png',
-              '/assets/home-page/folder-view-mobile.png',
+              '/assets/home-page/contents-table-view-mobile.png',
+              '/assets/home-page/contents-cards-view-mobile.png',
               '/assets/home-page/image-viewer-mobile.png',
+              '/assets/home-page/pdf-viewer-mobile.png',
+              '/assets/home-page/text-viewer-mobile.png',
             ];
           @for (image of images; track image) {
             <div class="carousel-item">
@@ -184,14 +202,14 @@
         </div>
       </div>
 
-      <div class="flex items-center w-full flex-col gap-2 lg:flex-row-reverse lg:h-full">
+      <div class="flex items-center w-full flex-col gap-2 lg:flex-row lg:h-full">
         <div>
           <p class="text-3xl font-bold whitespace-nowrap">Dark mode</p>
           <p class="pt-3 text-xl">Ease your eyes with dark theme</p>
         </div>
         <img
-          src="/assets/home-page/images-list-view-dark.png"
-          alt="LLM Chat View"
+          src="/assets/home-page/contents-table-view-dark.png"
+          alt="Dark mode"
           class="object-contain object-top lg:object-left overflow-hidden"
         />
       </div>
