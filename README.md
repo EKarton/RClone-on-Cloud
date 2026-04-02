@@ -25,7 +25,7 @@ graph LR
     end
 
     subgraph "Cloud / Storage"
-        MongoDB[(RClone Configs in\nMongoDB)]
+        MongoDB[(RClone Configs in\nMongoDB \nEncrypted with AES-256-GCM)]
     end
 
     subgraph "Cloud / Web"
