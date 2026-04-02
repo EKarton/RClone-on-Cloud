@@ -36,7 +36,6 @@ documentation, changelog and configuration walkthroughs.`,
 		fs.Debugf("rclone-cloud", "Version %q finishing with parameters %q", fs.Version, os.Args)
 		atexit.Run()
 	},
-	ValidArgsFunction: validArgs,
 	DisableAutoGenTag: true,
 }
 
@@ -201,22 +200,7 @@ func setupRootCommand(rootCmd *cobra.Command) {
 	helpCommand.AddCommand(helpBackends)
 	helpCommand.AddCommand(helpBackend)
 
-	// Set command completion for all functions to be the same
-	traverseCommands(rootCmd, func(cmd *cobra.Command) {
-		cmd.ValidArgsFunction = validArgs
-	})
-
 	cobra.OnInitialize(initConfig)
-}
-
-// Traverse the tree of commands running fn on each
-//
-// I was surprised there wasn't a cobra command to do this
-func traverseCommands(cmd *cobra.Command, fn func(*cobra.Command)) {
-	fn(cmd)
-	for _, childCmd := range cmd.Commands() {
-		traverseCommands(childCmd, fn)
-	}
 }
 
 var usageTemplate = `Usage:{{if .Runnable}}
