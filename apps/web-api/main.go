@@ -12,8 +12,12 @@ import (
 	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone"
 	mongocfg "github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
 	"github.com/ekarton/RClone-Cloud/apps/web-api/shared/cors"
+	"github.com/ekarton/RClone-Cloud/apps/web-api/telemetry"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/contrib/instrumentation/runtime"
 )
 
 func main() {
@@ -22,8 +26,29 @@ func main() {
 
 	env := LoadEnv()
 
+	// -- Telemetry --
+	shutdown := telemetry.InitTelemetry(ctx, telemetry.Config{
+		ServiceName:    env.OtelServiceName,
+		ServiceVersion: env.OtelServiceVersion,
+		Environment:    env.OtelEnvironment,
+		Endpoint:       env.OtelExporterEndpoint,
+		Headers:        env.OtelExporterHeaders,
+	})
+	defer func() {
+		log.Println("shutting down telemetry...")
+		if err := shutdown(context.Background()); err != nil {
+			log.Printf("error shutting down telemetry: %v", err)
+		}
+	}()
+
+	// Go runtime metrics
+	if err := runtime.Start(); err != nil {
+		log.Printf("failed to start runtime metrics: %v", err)
+	}
+
 	// -- MongoDB --
-	client, err := mongo.Connect(options.Client().ApplyURI(env.MongoURI))
+	mongoOpts := options.Client().ApplyURI(env.MongoURI).SetMonitor(otelmongo.NewMonitor())
+	client, err := mongo.Connect(mongoOpts)
 	if err != nil {
 		log.Fatalf("mongo connect: %v", err)
 	}
@@ -77,7 +102,13 @@ func main() {
 	authHandler.RegisterRoutes(mux)
 	rcloneHandler.RegisterRoutes(mux)
 
-	server := &http.Server{Addr: env.ListenAddr, Handler: cors.NewMiddleware(env.CORSAllowedURLs)(mux)}
+	// Wrap with OpenTelemetry instrumentation
+	otelHandler := otelhttp.NewHandler(mux, "http.request")
+
+	server := &http.Server{
+		Addr:    env.ListenAddr,
+		Handler: cors.NewMiddleware(env.CORSAllowedURLs)(otelHandler),
+	}
 	go func() {
 		log.Printf("API listening on %s", env.ListenAddr)
 		if err := server.ListenAndServe(); err != http.ErrServerClosed {

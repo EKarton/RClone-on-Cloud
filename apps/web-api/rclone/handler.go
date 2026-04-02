@@ -14,6 +14,10 @@ import (
 	"github.com/rclone/rclone/fs/rc"
 	"github.com/rclone/rclone/fs/rc/jobs"
 	"github.com/rclone/rclone/lib/http/serve"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 
 	// Side-effect imports to register RC methods and backends
 	_ "github.com/rclone/rclone/backend/all"
@@ -21,7 +25,10 @@ import (
 	_ "github.com/rclone/rclone/fs/sync"
 )
 
-var fsMatch = regexp.MustCompile(`^\[(.*?)\](.*)$`)
+var (
+	fsMatch = regexp.MustCompile(`^\[(.*?)\](.*)$`)
+	tracer  = otel.Tracer("rclone-handler")
+)
 
 // allowedMethods is the set of rclone RC endpoints that this API exposes.
 // Any POST to a path not listed here will be rejected with HTTP 403.
@@ -78,7 +85,12 @@ func (h *RCHandler) handleGet(w http.ResponseWriter, r *http.Request, path strin
 }
 
 func (h *RCHandler) serveRemote(w http.ResponseWriter, r *http.Request, path string, fsName string) {
-	ctx := r.Context()
+	ctx, span := tracer.Start(r.Context(), "serveRemote", trace.WithAttributes(
+		attribute.String("rclone.fs", fsName),
+		attribute.String("rclone.path", path),
+	))
+	defer span.End()
+
 	f, err := cache.Get(ctx, fsName)
 	if err != nil {
 		h.writeError(path, nil, w, fmt.Errorf("failed to make Fs: %w", err), http.StatusInternalServerError)
@@ -143,6 +155,9 @@ func (h *RCHandler) handlePost(w http.ResponseWriter, r *http.Request, path stri
 		}
 	}
 
+	ctx, span := tracer.Start(ctx, "rclone.rc."+path)
+	defer span.End()
+
 	if contentTypeMediaType == "application/json" {
 		if charset, ok := contentTypeParams["charset"]; ok && !strings.EqualFold(charset, "utf-8") {
 			h.writeError(path, in, w, fmt.Errorf("unsupported charset %q for JSON input", charset), http.StatusBadRequest)
@@ -182,8 +197,11 @@ func (h *RCHandler) handlePost(w http.ResponseWriter, r *http.Request, path stri
 	job, out, err := jobs.NewJob(ctx, call.Fn, in)
 	if job != nil {
 		w.Header().Add("x-rclone-jobid", fmt.Sprintf("%d", job.ID))
+		span.SetAttributes(attribute.Int64("rclone.jobid", int64(job.ID)))
 	}
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		h.writeError(path, inOrig, w, err, http.StatusInternalServerError)
 		return
 	}

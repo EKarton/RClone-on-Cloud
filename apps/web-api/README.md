@@ -25,9 +25,11 @@ The **RClone-Cloud Web API** is a secure, stateless HTTP interface to [rclone](h
 ## 🚀 Getting Started
 
 ### 1. Configure Google OAuth2
+
 Follow [this guide](./docs/setup_oauth2.md) to create a new Google Cloud project, configure the OAuth consent screen, and obtain your **Client ID** and **Client Secret**.
 
 ### 2. Generate JWT Keys
+
 The API requires an asymmetric key pair to sign and verify its own JWTs. You can generate an RSA or Ed25519 key pair:
 
 ```bash
@@ -37,9 +39,10 @@ openssl genpkey -algorithm ed25519 -out private.pem
 openssl pkey -in private.pem -pubout -out public.pem
 ```
 
-*(Note: When setting the environment variables, you must provide the raw, multiline PEM strings.)*
+_(Note: When setting the environment variables, you must provide the raw, multiline PEM strings.)_
 
 ### 3. Environment Variables
+
 Create a `.env` file in the `apps/web-api` directory with the following variables:
 
 ```env
@@ -62,17 +65,34 @@ AUTH_GOOGLE_REDIRECT_URL=http://localhost:3000/auth/v1/google/callback
 # Server Configuration
 LISTEN_ADDR=:3000
 
+# Telemetry (OpenTelemetry configurations for New Relic or other OTLP providers)
+OTEL_SERVICE_NAME=rclone-cloud-web-api
+OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.nr-data.net:4318
+OTEL_EXPORTER_OTLP_HEADERS=api-key=YOUR_NR_LICENSE_KEY
+
 # JWT Keys (Ensure formatting is preserved if exporting via bash, or just paste the multi-line string into your deployment environment)
 AUTH_JWT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
 AUTH_JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n..."
 ```
+
+### 4. Telemetry Configuration
+
+The API uses OpenTelemetry for tracing. To hook it up to **New Relic**, set the following as environment variables:
+
+- `OTEL_SERVICE_NAME`: The name of your service as it will appear in New Relic.
+- `OTEL_EXPORTER_OTLP_ENDPOINT`: The New Relic OTLP/HTTP endpoint (e.g., `https://otlp.nr-data.net:4318` for US or `https://otlp.eu.nr-data.net:4318` for EU).
+- `OTEL_EXPORTER_OTLP_HEADERS`: Must include your New Relic License Key (e.g., `api-key=YOUR_LICENSE_KEY`).
+
+---
 
 ---
 
 ## 💻 Development
 
 ### Running Locally
+
 To run the server locally on your machine:
+
 ```shell
 # Download dependencies
 go mod download
@@ -82,6 +102,7 @@ go run .
 ```
 
 ### Running Tests
+
 The test suite utilizes `testcontainers-go` to spin up ephemeral MongoDB instances to ensure the configuration storage and retrieval logic is fully tested. Ensure Docker is running locally before running the tests.
 
 ```shell
@@ -94,7 +115,9 @@ go tool cover -html=coverage.out
 ```
 
 ### Running Linting
+
 We use `golangci-lint` to maintain code quality:
+
 ```shell
 golangci-lint run ./...
 ```
@@ -106,12 +129,14 @@ golangci-lint run ./...
 The API is bundled with a `Dockerfile` for seamless deployment.
 
 **1. Build the image:**
+
 ```shell
 docker build -t rclone-cloud-web-api .
 ```
 
 **2. Run the container:**
 Make sure you pass in the `.env` file containing your secrets.
+
 ```shell
 docker run -d \
   --name rclone-api \

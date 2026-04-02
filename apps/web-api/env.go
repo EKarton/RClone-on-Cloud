@@ -23,6 +23,12 @@ type Env struct {
 	ListenAddr         string
 	AllowedGoogleIDs   []string
 	CORSAllowedURLs    []string
+
+	OtelServiceName      string
+	OtelServiceVersion   string
+	OtelEnvironment      string
+	OtelExporterEndpoint string
+	OtelExporterHeaders  string
 }
 
 // LoadEnv reads and validates all required environment variables,
@@ -55,18 +61,23 @@ func LoadEnv() Env {
 	}
 
 	return Env{
-		MongoKey:           requireEnv("RCLONE_CONFIG_MONGO_KEY"),
-		MongoURI:           requireEnv("RCLONE_CONFIG_MONGO_URI"),
-		MongoDB:            getEnv("RCLONE_CONFIG_MONGO_DB", "rclone"),
-		MongoCol:           getEnv("RCLONE_CONFIG_MONGO_COL", "configs"),
-		JWTPublicKeyPEM:    pub,
-		JWTPrivateKeyPEM:   priv,
-		GoogleClientID:     requireEnv("AUTH_GOOGLE_CLIENT_ID"),
-		GoogleClientSecret: requireEnv("AUTH_GOOGLE_CLIENT_SECRET"),
-		GoogleRedirectURL:  getEnv("AUTH_GOOGLE_REDIRECT_URL", "http://localhost:8080/auth/v1/google/callback"),
-		ListenAddr:         getEnv("LISTEN_ADDR", ":8080"),
-		AllowedGoogleIDs:   allowedGoogleIDs,
-		CORSAllowedURLs:    corsAllowedURLs,
+		MongoKey:             requireEnv("RCLONE_CONFIG_MONGO_KEY"),
+		MongoURI:             requireEnv("RCLONE_CONFIG_MONGO_URI"),
+		MongoDB:              getEnv("RCLONE_CONFIG_MONGO_DB", "rclone"),
+		MongoCol:             getEnv("RCLONE_CONFIG_MONGO_COL", "configs"),
+		JWTPublicKeyPEM:      pub,
+		JWTPrivateKeyPEM:     priv,
+		GoogleClientID:       requireEnv("AUTH_GOOGLE_CLIENT_ID"),
+		GoogleClientSecret:   requireEnv("AUTH_GOOGLE_CLIENT_SECRET"),
+		GoogleRedirectURL:    getEnv("AUTH_GOOGLE_REDIRECT_URL", "http://localhost:8080/auth/v1/google/callback"),
+		ListenAddr:           getEnv("LISTEN_ADDR", ":8080"),
+		AllowedGoogleIDs:     allowedGoogleIDs,
+		CORSAllowedURLs:      corsAllowedURLs,
+		OtelServiceName:      getEnv("OTEL_SERVICE_NAME", "rclone-cloud-web-api"),
+		OtelServiceVersion:   getEnv("OTEL_SERVICE_VERSION", "1.0.0"),
+		OtelEnvironment:      getEnv("OTEL_ENVIRONMENT", "development"),
+		OtelExporterEndpoint: os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
+		OtelExporterHeaders:  os.Getenv("OTEL_EXPORTER_OTLP_HEADERS"),
 	}
 }
 
