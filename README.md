@@ -94,11 +94,19 @@ It also provides a mobile-responsive interface for managing your files on the go
 
 - Set up your Google Cloud OAuth2 credentials [here](./apps/web-api/docs/setup_oauth2.md).
 - Navigate to the `apps/web-api` directory.
-- Create a `.env` file and set the following environment variables:
-  - `RCLONE_CONFIG_MONGO_KEY`: A 32-character encryption key.
-  - `RCLONE_CONFIG_MONGO_URI`: Your MongoDB connection URI.
-  - `AUTH_GOOGLE_CLIENT_ID` / `AUTH_GOOGLE_CLIENT_SECRET`: Your Google Cloud OAuth2 credentials.
 - Generate an RSA or Ed25519 key pair for JWT signing and add the PEM strings to your `.env` (refer to the [Web API README](./apps/web-api/README.md) for details).
+- Create a `.env` file to set the following environment variables:
+
+  ```env
+  RCLONE_CONFIG_MONGO_KEY=<your-mongo-key>
+  RCLONE_CONFIG_MONGO_URI=<your-mongo-uri>
+  AUTH_GOOGLE_CLIENT_ID=<your-google-client-id>
+  AUTH_GOOGLE_CLIENT_SECRET=<your-google-client-secret>
+  AUTH_ALLOWED_GOOGLE_IDS=<your-google-id>
+  AUTH_JWT_PRIVATE_KEY=<your-jwt-private-key>
+  AUTH_JWT_PUBLIC_KEY=<your-jwt-public-key>
+  ```
+
 - Download dependencies and run the API:
   ```bash
   go mod download
