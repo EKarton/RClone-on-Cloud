@@ -51,7 +51,7 @@ jobs:
         working-directory: ./apps/web-api
         run: |
           go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-          golangci-lint run ./...
+          golangci-lint run --timeout=30m ./...
 
   run-tests:
     name: Run tests in Web API
