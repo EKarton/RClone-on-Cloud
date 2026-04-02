@@ -20,7 +20,7 @@ This project consists of several components, each responsible for performing a c
 
 ```mermaid
 graph LR
-    subgraph "User"
+    subgraph "User's Terminal"
         CLI[CLI Client]
     end
 
@@ -32,7 +32,7 @@ graph LR
         WebAPI[Web API]
     end
 
-    subgraph "User"
+    subgraph "User's Browser"
         WebUI[Web UI]
     end
 
