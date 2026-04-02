@@ -89,6 +89,7 @@ It also provides a mobile-responsive interface for managing your files on the go
 
 - Install MongoDB on your machine or use a MongoDB Atlas instance.
 - Ensure you have a valid connection string (e.g., `mongodb://localhost:27017`).
+- Generate a 32-character encryption key for the MongoDB configs and remember it.
 
 ##### Set up the Web API:
 
@@ -100,8 +101,8 @@ It also provides a mobile-responsive interface for managing your files on the go
   ```env
   RCLONE_CONFIG_MONGO_KEY=<your-mongo-key>
   RCLONE_CONFIG_MONGO_URI=<your-mongo-uri>
-  AUTH_GOOGLE_CLIENT_ID=<your-google-client-id>
-  AUTH_GOOGLE_CLIENT_SECRET=<your-google-client-secret>
+  AUTH_GOOGLE_CLIENT_ID=<your-google-oauth-client-id>
+  AUTH_GOOGLE_CLIENT_SECRET=<your-google-oauth-client-secret>
   AUTH_ALLOWED_GOOGLE_IDS=<your-google-id>
   AUTH_JWT_PRIVATE_KEY=<your-jwt-private-key>
   AUTH_JWT_PUBLIC_KEY=<your-jwt-public-key>
