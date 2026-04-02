@@ -93,7 +93,7 @@ It also provides a mobile-responsive interface for managing your files on the go
 
 ##### Set up the Web API:
 
-- Set up your Google Cloud OAuth2 credentials.
+- Set up your Google Cloud OAuth2 credentials [here](./apps/web-api/docs/setup_oauth2.md).
 - Navigate to the `apps/web-api` directory.
 - Create a `.env` file and set the following environment variables:
   - `RCLONE_CONFIG_MONGO_KEY`: A 32-character encryption key.
