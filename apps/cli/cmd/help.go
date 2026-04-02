@@ -21,6 +21,9 @@ import (
 	"github.com/spf13/pflag"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+
+	"github.com/ekarton/RClone-Cloud/apps/cli/cmd/dump"
+	"github.com/ekarton/RClone-Cloud/apps/cli/cmd/migrate"
 )
 
 // Root is the main rclone command
@@ -183,6 +186,8 @@ func setupRootCommand(rootCmd *cobra.Command) {
 	// rootCmd.PersistentFlags().MarkShorthandDeprecated("help", "please use --help")
 
 	rootCmd.AddCommand(helpCommand)
+	rootCmd.AddCommand(migrate.MigrateCmd)
+	rootCmd.AddCommand(dump.DumpCmd)
 
 	// Add rclone subcommands
 	for _, c := range rclonecmd.Root.Commands() {

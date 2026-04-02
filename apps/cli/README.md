@@ -1,96 +1,91 @@
-# RClone-Cloud CLI
+# 🌌 RClone-on-Cloud CLI
 
-The **RClone-Cloud CLI** is a Go-based command-line tool built to help you transition your local `rclone` configurations to the secure, MongoDB-backed storage used by the RClone-Cloud Web API.
+The **RClone-on-Cloud CLI** is a powerful extension of the legendary `rclone`, redesigned to store your cloud configurations securely in **MongoDB** with **AES-256-GCM** encryption. 
 
-## ✨ Features
-
-- **Migrate (`migrate`)**: Parses an existing local `rclone.conf` file, encrypts the sensitive configuration values using AES-256-GCM, and securely upserts them into a MongoDB collection.
-- **Dump (`dump`)**: Connects to the MongoDB database, decrypts all remote configurations, and reconstructs a standard, INI-formatted `rclone.conf` file on your local machine.
+Manage your cloud files with the same familiar `rclone` syntax while keeping your configurations centralized and secure.
 
 ---
 
-## 🛠️ Prerequisites
+## 🚀 Quick Start
 
-- **Go 1.25+**
-- **MongoDB** (A running instance to connect to)
-- An existing **rclone config file** (for migration)
+### 1. Configure your Environment
+Set your MongoDB connection and encryption key as environment variables.
+
+```bash
+# Your MongoDB connection string
+export MONGO_URL="mongodb+srv://admin:password@cluster.mongodb.net/yourdb"
+
+# Your 32-character encryption key (must match your Web API key)
+export MONGO_KEY="your-super-secret-encryption-key-32"
+```
+
+> [!TIP]
+> You can also use `--mongo-url` and `--mongo-key` flags directly on any command.
+
+### 2. Run any RClone Command
+Once configured, you can run any standard `rclone` command. The CLI automatically loads your remotes from MongoDB.
+
+```bash
+# List all your remotes stored in MongoDB
+go run . listremotes
+
+# Sync a local folder to a cloud remote
+go run . sync ./local-folder my-remote:cloud-folder -P
+
+# Mount a remote
+go run . mount my-remote: /path/to/mount
+```
 
 ---
 
-## 🚀 Getting Started
+## 🛠️ Custom Commands
 
-### Installation
+We've added specialized commands to help you manage your configuration lifecycle.
 
-You can build the binary locally:
+### 🍱 Migration (`migrate`)
+Move your existing local `rclone.conf` into the secure MongoDB storage.
 
-```shell
-mkdir -p bin
-go build -o bin/rclone-cloud-cli .
+```bash
+go run . migrate --from-file ~/.config/rclone/rclone.conf
 ```
+*This reads your local config, encrypts it, and upserts it into MongoDB.*
 
-### Encryption Key
+### 📥 Dump (`dump`)
+Need your configs back in a standard INI format? Export them effortlessly.
 
-Both the `dump` and `migrate` commands require the same encryption key that the Web API uses to encrypt/decrypt configurations at rest. You must set this via the `MONGO_KEY` environment variable.
-
-```shell
-# Must be a strong, consistent secret
-export MONGO_KEY="your-strong-secret-key"
+```bash
+go run . dump --to-file ./exported-rclone.conf
 ```
+*This fetches your encrypted configs from MongoDB and decrypts them into a local file.*
 
 ---
 
-## 💻 Usage
+## ⚙️ Advanced Configuration
 
-### 1. Migrating to MongoDB
+You can further customize the MongoDB storage using these optional variables:
 
-To migrate an existing `rclone.conf` to your MongoDB instance, use the `migrate` command.
-
-```shell
-./bin/rclone-cloud-cli migrate \
-  --from-file ~/.config/rclone/rclone.conf \
-  --to-mongodb-uri "mongodb+srv://admin:password@cluster.mongodb.net"
-```
-
-_This reads your local config, flattens the properties, encrypts them, and saves them to the `rclone.configs` collection in MongoDB._
-
-### 2. Dumping from MongoDB
-
-If you need to view your database configs, debug, or take a backup, you can use the `dump` command to recreate a local `.conf` file from the database.
-
-```shell
-./bin/rclone-cloud-cli dump \
-  --from-mongodb-uri "mongodb+srv://admin:password@cluster.mongodb.net" \
-  --to-file ./dumped-rclone.conf
-```
-
-### 3. Making Config Changes
-
-Currently, the Web API does not provide endpoints to mutate config state. To add or modify a remote:
-
-1. Dump the current config from the database: `dump --to-file temp.conf`
-2. Make your edits to `temp.conf` directly (or use standard `rclone config` targeting `temp.conf`)
-3. Migrate the changes back to the database: `migrate --from-file temp.conf`
+| Environment Var | Flag | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `MONGO_DB` | `--mongo-db` | `rclone` | MongoDB database name |
+| `MONGO_COL` | `--mongo-col` | `configs` | MongoDB collection name |
 
 ---
 
-## 🧑‍💻 Contributing
+## 🏗️ Development
+
+### Building the Binary
+```bash
+go build -o rclone-cloud .
+```
 
 ### Running Tests
-
-The CLI tests utilize `testcontainers-go` to spin up ephemeral MongoDB instances to ensure the commands work end-to-end. Ensure Docker is running.
-
-```shell
-# Run tests
-go test ./... -v -race -coverprofile=coverage.out
-
-# View coverage in browser
-go tool cover -html=coverage.out
+The CLI uses `testcontainers-go` for end-to-end testing with an ephemeral MongoDB instance. Ensure Docker is running.
+```bash
+go test ./... -v
 ```
 
-### Linting
+---
 
-We use `golangci-lint` to maintain code quality:
-
-```shell
-golangci-lint run ./...
-```
+<div align="center">
+  <sub>Built with ❤️ for the RClone Community</sub>
+</div>
