@@ -35,7 +35,7 @@ func main() {
 	}()
 
 	// -- Rclone config (encrypted in MongoDB) --
-	store, err := mongocfg.New(client.Database("rclone").Collection("configs"), env.EncryptionKey)
+	store, err := mongocfg.New(client.Database(env.MongoDB).Collection(env.MongoCol), env.MongoKey)
 	if err != nil {
 		log.Fatalf("init storage: %v", err)
 	}

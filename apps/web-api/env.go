@@ -11,8 +11,10 @@ import (
 
 // Env holds all environment-driven configuration for the application.
 type Env struct {
-	EncryptionKey      string
+	MongoKey           string
 	MongoURI           string
+	MongoDB            string
+	MongoCol           string
 	JWTPublicKeyPEM    string
 	JWTPrivateKeyPEM   string
 	GoogleClientID     string
@@ -53,8 +55,10 @@ func LoadEnv() Env {
 	}
 
 	return Env{
-		EncryptionKey:      requireEnv("RCLONE_CONFIG_ENCRYPTION_KEY"),
-		MongoURI:           requireEnv("RCLONE_CONFIG_MONGODB_URI"),
+		MongoKey:           requireEnv("RCLONE_CONFIG_MONGO_KEY"),
+		MongoURI:           requireEnv("RCLONE_CONFIG_MONGO_URI"),
+		MongoDB:            getEnv("RCLONE_CONFIG_MONGO_DB", "rclone"),
+		MongoCol:           getEnv("RCLONE_CONFIG_MONGO_COL", "configs"),
 		JWTPublicKeyPEM:    pub,
 		JWTPrivateKeyPEM:   priv,
 		GoogleClientID:     requireEnv("AUTH_GOOGLE_CLIENT_ID"),

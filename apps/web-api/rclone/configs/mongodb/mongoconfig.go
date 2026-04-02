@@ -338,10 +338,14 @@ func (s *MongoStorage) processChangeStream(ctx context.Context, cs *mongo.Change
 			continue
 		}
 
+		log.Printf("Received change event: %v", event)
+
 		switch event.OperationType {
 		case "insert", "update", "replace":
+			log.Printf("Mongo config section updated: %v %v", event.OperationType, event.DocumentKey.ID)
 			s.applyFullDocument(event.DocumentKey.ID, event.FullDocument)
 		case "delete":
+			log.Printf("Mongo config section deleted: %v %v", event.OperationType, event.DocumentKey.ID)
 			s.mu.Lock()
 			delete(s.data, event.DocumentKey.ID)
 			s.mu.Unlock()

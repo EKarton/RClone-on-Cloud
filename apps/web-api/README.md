@@ -44,10 +44,12 @@ Create a `.env` file in the `apps/web-api` directory with the following variable
 
 ```env
 # Encryption key for MongoDB configs (must be a strong secret)
-RCLONE_CONFIG_ENCRYPTION_KEY=super-secret-aes-key-change-me
+RCLONE_CONFIG_MONGO_KEY=super-secret-aes-key-change-me
 
 # MongoDB Connection
-RCLONE_CONFIG_MONGODB_URI=mongodb://localhost:27017
+RCLONE_CONFIG_MONGO_URI=mongodb://localhost:27017
+RCLONE_CONFIG_MONGO_DB=rclone
+RCLONE_CONFIG_MONGO_COL=configs
 
 # Comma-separated list of allowed Google Account Subject IDs (Required for access)
 AUTH_ALLOWED_GOOGLE_IDS=10123456789,10987654321
