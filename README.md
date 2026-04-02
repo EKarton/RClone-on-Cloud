@@ -51,7 +51,7 @@ graph LR
     CLI --> MongoDB
 ```
 
-Users can use the front-end web application to browse their cloud files and manage their remotes directly from their browser.
+Users can use the front-end web application to browse their cloud files from their remotes directly from their browser.
 
 <div width="100%">
     <p align="center">
@@ -114,48 +114,55 @@ It also provides a mobile-responsive interface for managing your files on the go
 
 ##### Set up the Web UI:
 
-- Navigate to the `apps/web-ui` directory.
-- Install the project's dependencies:
-  ```bash
-  npm install
-  ```
-- Create a `.env` file to store your API endpoints:
-  ```text
-  NG_APP_LOGIN_URL=http://localhost:3000/auth/v1/google
-  NG_APP_WEB_API_ENDPOINT=http://localhost:3000
-  ```
-- Run the development server:
-  ```bash
-  npm run dev
-  ```
+1. Navigate to the `apps/web-ui` directory.
+2. Install the project's dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env` file to store your API endpoints:
+
+   ```text
+   NG_APP_LOGIN_URL=http://localhost:3000/auth/v1/google
+   NG_APP_WEB_API_ENDPOINT=http://localhost:3000
+   ```
+
+4. Run the development server:
+
+   ```bash
+   npm run dev
+   ```
 
 ##### Set up the CLI:
 
-- Navigate to the `apps/cli` directory.
-- Build the binary locally:
-  ```bash
-  go build -o rclone-cloud .
-  ```
-- Set your environment variables (`MONGO_URL` and `MONGO_KEY`) to match those used by the Web API.
-- Migrate your existing `rclone.conf` to the MongoDB storage by running:
+1. Navigate to the `apps/cli` directory.
+2. Build the binary locally:
 
-  ```bash
-  ./rclone-cloud migrate --from-file <path/to/rclone.conf>
-  ```
+   ```bash
+   go build -o rclone-cloud .
+   ```
 
-- Now, you can run any RClone command such as:
+3. Set your environment variables (`MONGO_URL` and `MONGO_KEY`) to match those used by the Web API.
+4. Migrate your existing `rclone.conf` to the MongoDB storage by running:
 
-  ```bash
-  ./rclone-cloud listremotes
-  ./rclone-cloud config
-  ./rclone-cloud lsd <remote>:
-  ./rclone-cloud ls <remote>:
-  ./rclone-cloud copy <remote>:file.txt .
-  ./rclone-cloud copy file.txt <remote>:
-  ...
-  ```
+   ```bash
+   ./rclone-cloud migrate --from-file <path/to/rclone.conf>
+   ```
 
-  You can find more available commands at https://rclone.org/commands.
+5. Now, you can run any RClone command such as:
+
+   ```bash
+   ./rclone-cloud listremotes
+   ./rclone-cloud config
+   ./rclone-cloud lsd <remote>:
+   ./rclone-cloud ls <remote>:
+   ./rclone-cloud sync . <remote>:Documents
+   ./rclone-cloud copy file.txt <remote>:
+   ...
+   ```
+
+   You can find more available commands at https://rclone.org/commands.
 
 - Note: each time the configs change in MongoDB, the CLI and the Web API automatically picks up the new changes.
 
