@@ -29,8 +29,11 @@ graph LR
     end
 
     subgraph "Cloud / Web"
-        WebUI[Web UI]
         WebAPI[Web API]
+    end
+
+    subgraph "User"
+        WebUI[Web UI]
     end
 
     WebUI -->|"Makes \nHTTP requests"| WebAPI
