@@ -1,8 +1,11 @@
 # Build stage
 FROM golang:alpine AS builder
 
-# Install build dependencies
-RUN apk add --no-cache git
+# Install build dependencies and runtime certs
+RUN apk add --no-cache git ca-certificates
+
+# Create a non-root user for security (accessible in final stage)
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup -u 1000
 
 WORKDIR /app
 
@@ -21,25 +24,27 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -o rclone-cloud-web-api .
 
 # Final stage
-# Using a fresh, small alpine image for the runtime
-FROM alpine:3.20
+# Using 'scratch' for the absolute slimmest image
+FROM scratch
 
 WORKDIR /app
 
-# Install ca-certificates for secure HTTPS connections
-RUN apk --no-cache add ca-certificates
-
-# Create a non-root user for security
-# Explicitly set UID/GID for predictability
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup -u 1000
-USER appuser
-
 # Copy the binary from the build stage
 COPY --from=builder /app/rclone-cloud-web-api .
+
+# Copy ca-certificates for secure HTTPS connections
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+# Copy the non-root user details we created in the builder
+# (Wait, builder needs to create the user first - I'll update that too)
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /etc/group /etc/group
+
+# Use the non-root user for security
+USER appuser
 
 # Expose the API port
 EXPOSE 3000
 
 # Run the binary
-# Using exec form for better signal handling
 ENTRYPOINT ["./rclone-cloud-web-api"]
