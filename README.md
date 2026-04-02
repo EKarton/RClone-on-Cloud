@@ -137,7 +137,13 @@ It also provides a mobile-responsive interface for managing your files on the go
    go build -o rclone-cloud .
    ```
 
-3. Set your environment variables (`MONGO_URL` and `MONGO_KEY`) to match those used by the Web API.
+3. Set your environment variables (`MONGO_URL` and `MONGO_KEY`) to match those used by the Web API:
+
+   ```bash
+   export MONGO_URL="<your-mongo-url>"
+   export MONGO_KEY="<your-mongo-key>"
+   ```
+
 4. Migrate your existing `rclone.conf` to the MongoDB storage by running:
 
    ```bash
