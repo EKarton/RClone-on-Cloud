@@ -88,7 +88,6 @@ It also provides a mobile-responsive interface for managing your files on the go
 ##### Set up the database
 
 - Install MongoDB on your machine or use a MongoDB Atlas instance.
-- Create a new database (default name: `rclone`) and a collection (default name: `configs`).
 - Ensure you have a valid connection string (e.g., `mongodb://localhost:27017`).
 
 ##### Set up the Web API:
