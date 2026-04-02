@@ -20,7 +20,7 @@ This project consists of several components, each responsible for performing a c
 
 ```mermaid
 graph LR
-    subgraph "Local Environment"
+    subgraph "User"
         CLI[CLI Client]
     end
 
