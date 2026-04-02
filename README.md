@@ -29,7 +29,7 @@ This project consists of several components, each responsible for performing a c
     "lineColor": "#444",
     "textColor": "#111",
     "nodeBorder": "#444",
-    "edgeLabelBackground": "transparent"
+    'edgeLabelBackground': 'transparent',
   }
 }}%%
 graph LR
@@ -38,7 +38,7 @@ graph LR
     end
 
     subgraph "Cloud / Storage"
-        MongoDB[(RClone Configs in \n MongoDB)]
+        MongoDB[(RClone Configs in\n MongoDB)]
     end
 
     subgraph "Cloud / Web"
@@ -46,7 +46,7 @@ graph LR
         WebAPI[Web API]
     end
 
-    WebUI -->|REST API + JWT| WebAPI
+    WebUI --> WebAPI
     WebAPI --> MongoDB
     CLI --> MongoDB
 ```
