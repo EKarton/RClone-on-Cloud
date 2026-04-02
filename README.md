@@ -8,11 +8,11 @@ The RClone-on-Cloud project is a full stack web development project. It is compr
 
 ### Table of Contents
 
-- Walkthrough
-- Installation
-- Usage
-- Credits
-- License
+- [Walkthrough](./README.md#walkthrough-of-this-project)
+- [Installation](./README.md#installation)
+- [Usage](./README.md#usage)
+- [Credits](./README.md#credits)
+- [License](./README.md#license)
 
 ### Walkthrough of this project
 
@@ -79,19 +79,19 @@ It also provides a mobile-responsive interface for managing your files on the go
 
 ### Installation
 
-##### Required Programs and Tools:
+#### Required Programs and Tools:
 
 - Go 1.25+
 - Node.js & npm
 - MongoDB 7.0+ (Local or Atlas)
 
-##### Set up the database
+#### Set up the database
 
 - Install MongoDB on your machine or use a MongoDB Atlas instance.
 - Ensure you have a valid connection string (e.g., `mongodb://localhost:27017`).
 - Generate a 32-character encryption key for the MongoDB configs and remember it.
 
-##### Set up the Web API:
+#### Set up the Web API:
 
 1. Set up your Google Cloud OAuth2 credentials [here](./apps/web-api/docs/setup_oauth2.md).
 2. Navigate to the `apps/web-api` directory.
@@ -115,7 +115,7 @@ It also provides a mobile-responsive interface for managing your files on the go
    go run .
    ```
 
-##### Set up the Web UI:
+#### Set up the Web UI:
 
 1. Navigate to the `apps/web-ui` directory.
 2. Install the project's dependencies:
@@ -137,7 +137,7 @@ It also provides a mobile-responsive interface for managing your files on the go
    npm run dev
    ```
 
-##### Set up the CLI:
+#### Set up the CLI:
 
 1. Navigate to the `apps/cli` directory.
 2. Build the binary locally:
