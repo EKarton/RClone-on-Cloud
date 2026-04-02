@@ -29,7 +29,7 @@ This project consists of several components, each responsible for performing a c
     "lineColor": "#444",
     "textColor": "#111",
     "nodeBorder": "#444",
-    'edgeLabelBackground': 'transparent',
+    "edgeLabelBackground": "transparent"
   }
 }}%%
 graph LR
@@ -38,7 +38,7 @@ graph LR
     end
 
     subgraph "Cloud / Storage"
-        MongoDB[(RClone Configs in\n MongoDB)]
+        MongoDB[(RClone Configs in\nMongoDB)]
     end
 
     subgraph "Cloud / Web"
@@ -46,9 +46,13 @@ graph LR
         WebAPI[Web API]
     end
 
-    WebUI --> WebAPI
-    WebAPI <--> MongoDB
-    CLI <--> MongoDB
+    WebUI -->|"Makes HTTP requests"| WebAPI
+
+    WebAPI -->|"Fetches and updates configs from MongoDB"| MongoDB
+    MongoDB -->|"Listens for DB changes from CLI"| WebAPI
+
+    CLI -->|"Fetches and updates configs from MongoDB"| MongoDB
+    MongoDB -->|"Listens for DB changes from Web API"| CLI
 ```
 
 Users can use the front-end web application to browse their cloud files from their remotes directly from their browser.
