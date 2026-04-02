@@ -36,7 +36,7 @@ graph LR
         WebUI[Web UI]
     end
 
-    WebUI -->|"Makes \nHTTP requests"| WebAPI
+    WebUI -->|"Makes HTTP requests"| WebAPI
 
     WebAPI <-->|"Fetches, updates, and watches config changes from DB"| MongoDB
 
