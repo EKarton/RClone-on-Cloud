@@ -47,8 +47,8 @@ graph LR
     end
 
     WebUI --> WebAPI
-    WebAPI --> MongoDB
-    CLI --> MongoDB
+    WebAPI <--> MongoDB
+    CLI <--> MongoDB
 ```
 
 Users can use the front-end web application to browse their cloud files from their remotes directly from their browser.
