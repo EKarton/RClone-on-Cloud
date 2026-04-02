@@ -19,19 +19,6 @@ The RClone-on-Cloud project is a full stack web development project. It is compr
 This project consists of several components, each responsible for performing a certain task to manage your cloud configurations securely. The diagram below illustrates the system architecture of the project.
 
 ```mermaid
-%%{init: {
-  "theme": "base",
-  "themeVariables": {
-    "background": "transparent",
-    "mainBkg": "transparent",
-    "primaryColor": "transparent",
-    "primaryBorderColor": "#444",
-    "lineColor": "#444",
-    "textColor": "#111",
-    "nodeBorder": "#444",
-    "edgeLabelBackground": "transparent"
-  }
-}}%%
 graph LR
     subgraph "Local Environment"
         CLI[CLI Client]
