@@ -65,10 +65,10 @@ func initConfig() {
 	// Flag takes precedence over env var
 	mongoURI := mongoURL
 	if mongoURI == "" {
-		mongoURI = os.Getenv("MONGODB_URI")
+		mongoURI = os.Getenv("MONGO_URL")
 	}
 	if mongoURI == "" {
-		fs.Fatalf(nil, "MongoDB URI is not set; use --mongo-url or MONGODB_URI")
+		fs.Fatalf(nil, "MongoDB URI is not set; use --mongo-url or MONGO_URL")
 	}
 	encKey := mongoKey
 	if encKey == "" {
