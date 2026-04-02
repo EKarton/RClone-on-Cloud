@@ -36,8 +36,10 @@ var (
 
 // MongoDB connection flags
 var (
-	mongoURL string
-	mongoKey string
+	mongoURL  string
+	mongoKey  string
+	mongoDB   string
+	mongoColl string
 )
 
 // Shared utilities are used from rclonecmd directly
@@ -82,7 +84,7 @@ func initConfig() {
 	}
 
 	mongoStore, err := mongodb.New(
-		mongoClient.Database("rclone").Collection("configs"),
+		mongoClient.Database(mongoDB).Collection(mongoColl),
 		encKey,
 	)
 	if err != nil {

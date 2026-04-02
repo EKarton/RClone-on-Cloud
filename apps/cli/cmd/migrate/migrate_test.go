@@ -10,9 +10,11 @@ import (
 	"time"
 
 	"github.com/ekarton/RClone-Cloud/apps/cli/cmd/migrate"
+	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
+	"github.com/rclone/rclone/fs/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go/modules/mongodb"
+	mongodbcontainer "github.com/testcontainers/testcontainers-go/modules/mongodb"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -23,28 +25,36 @@ func TestMigrateConfig(t *testing.T) {
 	defer cancel()
 
 	// 1. Start MongoDB testcontainer
-	mongodbContainer, err := mongodb.Run(ctx, "mongo:7.0")
+	container, err := mongodbcontainer.Run(ctx, "mongo:7.0")
 	require.NoError(t, err)
 
-	// Clean up the container
 	defer func() {
-		if err := mongodbContainer.Terminate(ctx); err != nil {
+		if err := container.Terminate(ctx); err != nil {
 			t.Fatalf("failed to terminate container: %s", err)
 		}
 	}()
 
-	uri, err := mongodbContainer.ConnectionString(ctx)
+	uri, err := container.ConnectionString(ctx)
 	require.NoError(t, err)
 
-	// 2. Setup environment variables
-	t.Setenv("MONGODB_URI", uri)
-
+	// 2. Connect to MongoDB and set up MongoStorage as global config
 	encryptionKey := make([]byte, 32)
 	_, err = rand.Read(encryptionKey)
 	require.NoError(t, err)
-
 	keyHex := hex.EncodeToString(encryptionKey)
-	t.Setenv("RCLONE_ENCRYPTION_KEY", keyHex)
+
+	client, err := mongo.Connect(options.Client().ApplyURI(uri))
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, client.Disconnect(ctx))
+	}()
+
+	coll := client.Database("rclone").Collection("configs")
+	storage, err := mongodb.New(coll, keyHex)
+	require.NoError(t, err)
+
+	// Install as global config (simulating initConfig)
+	config.SetData(storage)
 
 	// 3. Create a dummy rclone.conf file
 	tempDir := t.TempDir()
@@ -62,18 +72,9 @@ region = us-east-1`
 	require.NoError(t, err)
 
 	// 4. Run the migration
-	migrate.Migrate(configPath, uri)
+	migrate.Migrate(configPath)
 
-	// 5. Connect to MongoDB and verify the data
-	client, err := mongo.Connect(options.Client().ApplyURI(uri))
-	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, client.Disconnect(ctx))
-	}()
-
-	coll := client.Database("rclone").Collection("configs")
-
-	// We expect one document for "myremote"
+	// 5. Verify the data in MongoDB
 	var doc bson.M
 	err = coll.FindOne(ctx, bson.M{"_id": "myremote"}).Decode(&doc)
 	require.NoError(t, err, "could not find 'myremote' config in database")

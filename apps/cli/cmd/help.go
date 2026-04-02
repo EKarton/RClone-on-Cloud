@@ -146,6 +146,8 @@ func setupRootCommand(rootCmd *cobra.Command) {
 	Root.Flags().BoolVarP(&version, "version", "V", false, "Print the version number")
 	Root.PersistentFlags().StringVar(&mongoURL, "mongo-url", "", "MongoDB connection URI (env: MONGODB_URI)")
 	Root.PersistentFlags().StringVar(&mongoKey, "mongo-key", "", "MongoDB encryption key (env: MONGO_KEY)")
+	Root.PersistentFlags().StringVar(&mongoDB, "mongo-db", "rclone", "MongoDB database name")
+	Root.PersistentFlags().StringVar(&mongoColl, "mongo-col", "configs", "MongoDB collection name")
 
 	cobra.AddTemplateFunc("showGlobalFlags", func(cmd *cobra.Command) bool {
 		return cmd.CalledAs() == "flags" || cmd.Annotations["groups"] != ""

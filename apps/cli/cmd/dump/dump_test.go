@@ -10,6 +10,7 @@ import (
 
 	"github.com/ekarton/RClone-Cloud/apps/cli/cmd/dump"
 	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
+	"github.com/rclone/rclone/fs/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	mongodbcontainer "github.com/testcontainers/testcontainers-go/modules/mongodb"
@@ -34,11 +35,9 @@ func TestDumpConfig(t *testing.T) {
 	uri, err := container.ConnectionString(ctx)
 	require.NoError(t, err)
 
-	// 2. Setup environment variables
+	// 2. Seed MongoDB with encrypted data
 	encryptionKey := "test-secret-key"
-	t.Setenv("RCLONE_ENCRYPTION_KEY", encryptionKey)
 
-	// 3. Seed MongoDB document using MongoStorage (to ensure correct encryption/flattening)
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
 	require.NoError(t, err)
 	defer func() {
@@ -57,10 +56,13 @@ func TestDumpConfig(t *testing.T) {
 	err = storage.Save()
 	require.NoError(t, err)
 
+	// 3. Install the MongoStorage as the global config (simulating initConfig)
+	config.SetData(storage)
+
 	// 4. Run the Dump command
 	tempDir := t.TempDir()
 	dumpPath := filepath.Join(tempDir, "dump.conf")
-	dump.Dump(uri, dumpPath)
+	dump.Dump(dumpPath)
 
 	// 5. Verify the output file
 	content, err := os.ReadFile(dumpPath)

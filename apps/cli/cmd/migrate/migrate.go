@@ -1,49 +1,30 @@
 package migrate
 
 import (
-	"context"
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/rclone/rclone/fs/config"
 	"github.com/rclone/rclone/fs/config/configfile"
-
-	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
-
-	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
 )
 
-func Migrate(configPath string, mongoURI string) {
-	ctx := context.Background()
-
-	// 1. Point rclone at your existing .conf file and load it
+// Migrate reads an rclone.conf file and copies all sections/keys into the
+// global MongoDB-backed config (already set up by initConfig).
+func Migrate(configPath string) {
+	// 1. Read the source .conf file independently
 	if err := config.SetConfigPath(configPath); err != nil {
 		log.Fatalf("set config path: %v", err)
 	}
+
+	// Temporarily install file-based storage to parse the .conf,
+	// then grab a reference before restoring the MongoDB-backed store.
+	mongoStore := config.Data() // save current (MongoDB) store
 	configfile.Install()
-	fileStore := config.Data() // reads and parses the file
+	fileStore := config.Data() // file-based store
+	config.SetData(mongoStore) // restore MongoDB store
 
-	// 2. Connect to MongoDB
-	client, err := mongo.Connect(options.Client().ApplyURI(mongoURI))
-	if err != nil {
-		log.Fatalf("mongo connect: %v", err)
-	}
-	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Printf("mongo disconnect: %v", err)
-		}
-	}()
-
-	mongoStore, err := mongodb.New(
-		client.Database("rclone").Collection("configs"),
-		os.Getenv("RCLONE_ENCRYPTION_KEY"),
-	)
-	if err != nil {
-		log.Fatalf("init mongo storage: %v", err)
-	}
-
-	// 3. Copy every section + key from file → mongo
+	// 2. Copy every section + key from file → global config
 	sections := fileStore.GetSectionList()
 	if len(sections) == 0 {
 		log.Println("No sections found — nothing to migrate.")
@@ -51,17 +32,21 @@ func Migrate(configPath string, mongoURI string) {
 	}
 
 	for _, section := range sections {
-		for _, key := range fileStore.GetKeyList(section) {
+		keys := fileStore.GetKeyList(section)
+		for _, key := range keys {
 			value, _ := fileStore.GetValue(section, key)
 			mongoStore.SetValue(section, key, value)
 		}
-		log.Printf("✓ %s (%d keys)", section, len(fileStore.GetKeyList(section)))
+		log.Printf("✓ %s (%d keys)", section, len(keys))
 	}
 
-	// 4. Flush to MongoDB
+	// 3. Flush to MongoDB
 	if err := mongoStore.Save(); err != nil {
 		log.Fatalf("save to mongodb: %v", err)
 	}
 
-	log.Printf("Done — %d remotes migrated.", len(sections))
+	fmt.Printf("Done — %d remotes migrated.\n", len(sections))
+
+	// 4. Restore the config path (undo the temporary change)
+	_ = os.Setenv("RCLONE_CONFIG", "")
 }

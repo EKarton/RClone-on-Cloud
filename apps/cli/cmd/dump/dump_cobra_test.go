@@ -10,6 +10,7 @@ import (
 
 	"github.com/ekarton/RClone-Cloud/apps/cli/cmd/dump"
 	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
+	"github.com/rclone/rclone/fs/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	mongodbcontainer "github.com/testcontainers/testcontainers-go/modules/mongodb"
@@ -34,11 +35,9 @@ func TestDumpCobraCmd(t *testing.T) {
 	uri, err := container.ConnectionString(ctx)
 	require.NoError(t, err)
 
-	// 2. Setup environment
+	// 2. Seed DB
 	encryptionKey := "test-secret-key"
-	t.Setenv("RCLONE_ENCRYPTION_KEY", encryptionKey)
 
-	// 3. Seed DB
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
 	require.NoError(t, err)
 	defer func() {
@@ -51,12 +50,15 @@ func TestDumpCobraCmd(t *testing.T) {
 	storage.SetValue("remote1", "type", "drive")
 	require.NoError(t, storage.Save())
 
+	// 3. Install as global config (simulating initConfig)
+	config.SetData(storage)
+
 	// 4. Execute Command via Cobra
 	tempDir := t.TempDir()
 	dumpPath := filepath.Join(tempDir, "dump.conf")
 
 	cmd := dump.DumpCmd
-	cmd.SetArgs([]string{"--from-mongodb-uri", uri, "--to-file", dumpPath})
+	cmd.SetArgs([]string{"--to-file", dumpPath})
 	err = cmd.Execute()
 	require.NoError(t, err)
 
