@@ -46,13 +46,11 @@ graph LR
         WebAPI[Web API]
     end
 
-    WebUI -->|"Makes HTTP requests"| WebAPI
+    WebUI -->|"Makes \nHTTP requests"| WebAPI
 
-    WebAPI -->|"Fetches and updates configs from MongoDB"| MongoDB
-    MongoDB -->|"Listens for DB changes from CLI"| WebAPI
+    WebAPI <-->|"Fetches, updates, and watches config changes from DB"| MongoDB
 
-    CLI -->|"Fetches and updates configs from MongoDB"| MongoDB
-    MongoDB -->|"Listens for DB changes from Web API"| CLI
+    CLI <-->|"Fetches, updates, and watches config changes from DB"| MongoDB
 ```
 
 Users can use the front-end web application to browse their cloud files from their remotes directly from their browser.
