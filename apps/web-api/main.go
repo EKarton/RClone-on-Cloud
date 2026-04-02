@@ -46,9 +46,6 @@ func main() {
 		log.Printf("failed to start runtime metrics: %v", err)
 	}
 
-	// Instrument outgoing HTTP calls (including RClone cloud backends)
-	http.DefaultTransport = otelhttp.NewTransport(http.DefaultTransport)
-
 	// -- MongoDB --
 	mongoOpts := options.Client().ApplyURI(env.MongoURI).SetMonitor(otelmongo.NewMonitor())
 	client, err := mongo.Connect(mongoOpts)

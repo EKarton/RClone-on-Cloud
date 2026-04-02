@@ -35,7 +35,7 @@ func TestInitTelemetry(t *testing.T) {
 			Headers:     "invalid-header-format",
 		})
 		assert.NotNil(t, shutdown)
-		defer shutdown(ctx)
+		defer func() { _ = shutdown(ctx) }()
 	})
 
 	t.Run("Initialize with valid endpoint and headers", func(t *testing.T) {
@@ -45,7 +45,7 @@ func TestInitTelemetry(t *testing.T) {
 			Headers:     "api-key=test,other=value",
 		})
 		assert.NotNil(t, shutdown)
-		defer shutdown(ctx)
+		defer func() { _ = shutdown(ctx) }()
 
 		tp := otel.GetTracerProvider()
 		assert.NotNil(t, tp)
