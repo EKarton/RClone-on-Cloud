@@ -25,7 +25,7 @@ graph LR
     end
 
     subgraph "Cloud / Storage"
-        MongoDB[(RClone Encrypted Configs in\nMongoDB)]
+        MongoDB[(RClone Encrypted Configs \nin MongoDB)]
     end
 
     subgraph "Cloud / Web"
