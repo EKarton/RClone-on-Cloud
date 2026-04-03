@@ -93,7 +93,7 @@ It also provides a mobile-responsive interface for managing your files on the go
 1. Set up your Google Cloud OAuth2 credentials [here](./apps/web-api/docs/setup_oauth2.md).
 2. Navigate to the `apps/web-api` directory.
 3. Generate an RSA or Ed25519 key pair for JWT signing and add the PEM strings to your `.env` (refer to the [Web API README](./apps/web-api/README.md) for details).
-4. Create a `.env` file to set the following required environment variables:
+4. Create a `.env` file to set the following minimum required environment variables:
 
    ```env
    RCLONE_CONFIG_MONGO_KEY=<your-mongo-key>
