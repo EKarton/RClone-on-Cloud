@@ -13,6 +13,7 @@ It stores your RClone configurations in MongoDB with AES-256-GCM encryption, and
 
 - Go
 - Docker (not needed if you are not running test cases)
+- golangci-lint (not needed if you are not running linting)
 
 ## Quick start
 
@@ -21,6 +22,7 @@ It stores your RClone configurations in MongoDB with AES-256-GCM encryption, and
    ```bash
    git clone https://github.com/ekarton/RClone-on-Cloud.git
    cd RClone-on-Cloud/apps/cli
+   go mod download
    go build -o rclone-cloud .
    ```
 
@@ -34,19 +36,19 @@ It stores your RClone configurations in MongoDB with AES-256-GCM encryption, and
 3. Migrate your rclone config file by running:
 
    ```bash
-   rclone-cloud migrate --from-file ~/.config/rclone/rclone.conf
+   ./rclone-cloud migrate --from-file ~/.config/rclone/rclone.conf
    ```
 
 4. Run any RClone command like you would with the RClone CLI, such as:
 
    ```bash
-   rclone-cloud listremotes
+   ./rclone-cloud listremotes
    ```
 
 5. You can also export your RClone configs stored in MongoDB back to a file by running:
 
    ```bash
-   rclone-cloud dump --to-file ./exported-rclone.conf
+   ./rclone-cloud dump --to-file ./exported-rclone.conf
    ```
 
 ## Usage
@@ -54,37 +56,28 @@ It stores your RClone configurations in MongoDB with AES-256-GCM encryption, and
 ### Common commands
 
 ```bash
-rclone-cloud listremotes
-rclone-cloud sync ./local-folder my-remote:cloud-folder -P
-rclone-cloud migrate --from-file <path>
-rclone-cloud dump --to-file <path>
-rclone-cloud --help
-rclone-cloud --version
-```
+# List all remotes
+./rclone-cloud listremotes
 
-## Examples
+# Upload everything under ./local-folder to your cloud folder under your remote
+./rclone-cloud sync ./local-folder my-remote:cloud-folder -P
 
-### List all remotes
+# Migrate your rclone config file to MongoDB with AES-256-GCM encryption
+./rclone-cloud migrate --from-file <path>
 
-```bash
-rclone-cloud listremotes
-```
+# Export configurations to a file
+./rclone-cloud dump --to-file <path>
 
-### Sync local folder to a remote
+# Show help
+./rclone-cloud --help
 
-```bash
-rclone-cloud sync ./local-folder my-remote:cloud-folder -P
-```
-
-### Export configurations to a file
-
-```bash
-rclone-cloud dump --to-file ./exported-rclone.conf
+# Show version
+./rclone-cloud --version
 ```
 
 ## Configuration
 
-rclone-cloud checks configuration in this order:
+./rclone-cloud checks configuration in this order:
 
 1. Command-line flags
 2. Environment variables
@@ -110,6 +103,9 @@ go test ./... -v
 
 # Build binary
 go build -o rclone-cloud .
+
+# Lint
+golangci-lint run ./...
 ```
 
 ## License
