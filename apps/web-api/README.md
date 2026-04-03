@@ -41,6 +41,7 @@ This API provides a centralized management layer for rclone remotes, enabling sy
 ## Prerequisites
 
 - Go 1.25 or higher
+- golangci-lint (for linting)
 - MongoDB 7.0+
 - Docker (for containerized deployment and integration tests)
 - Google Cloud Project with OAuth2 credentials
@@ -89,6 +90,18 @@ This API provides a centralized management layer for rclone remotes, enabling sy
 
    ```text
    http://localhost:8080
+   ```
+
+3. Run unit and integration tests with:
+
+   ```bash
+   go test -v ./...
+   ```
+
+4. Run linter by running:
+
+   ```bash
+   golangci-lint run ./...
    ```
 
 ## Authentication
@@ -160,14 +173,6 @@ Example error response:
 {
   "error": "unauthorized access for user id: 1015389426"
 }
-```
-
-## Testing
-
-Run unit and integration tests with:
-
-```bash
-go test -v ./...
 ```
 
 ## Observability
