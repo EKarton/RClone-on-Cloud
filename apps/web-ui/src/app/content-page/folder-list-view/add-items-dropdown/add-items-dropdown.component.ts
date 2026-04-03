@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, ElementRef, inject, viewChild } from '@angular/core';
+import { Component, ElementRef, inject, viewChild } from '@angular/core';
 import { REMOTE_PATH$ } from '../folder-list-view.tokens';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { WebApiService } from '../../services/web-api/web-api.service';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { jobsActions } from '../../store/jobs';
