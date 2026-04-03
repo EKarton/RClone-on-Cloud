@@ -1,5 +1,7 @@
-<details class="dropdown dropdown-end">
-  <summary
+<div class="dropdown dropdown-end">
+  <div
+    tabindex="0"
+    role="button"
     class="btn btn-sm btn-ghost rounded-lg capitalize hover:border hover:border-current list-none"
   >
     @if (listViewOption() === ListViewOptions.LIST) {
@@ -55,9 +57,10 @@
 
       Table
     }
-  </summary>
+  </div>
 
   <div
+    tabindex="0"
     class="dropdown-content z-[1] menu shadow-lg bg-base-300 rounded-box border border-base-300 flex flex-col gap-4 max-w-xs p-4 mt-2"
   >
     <div class="flex flex-col gap-2">
@@ -84,4 +87,4 @@
       </label>
     </div>
   </div>
-</details>
+</div>
