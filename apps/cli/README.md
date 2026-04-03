@@ -1,8 +1,10 @@
 # The rclone-cloud CLI tool
 
-This is a CLI tool used to migrate your existing RClone config to the cloud, and for managing your RClone instances on that config.
+This is a CLI tool used to migrate your existing RClone config to the cloud, and for managing your RClone instances remotely.
 
-It stores your RClone configurations in MongoDB with AES-256-GCM encryption, and listens to any MongoDB config changes made by the Web API.
+This tool simply wraps around the popular [rclone](https://github.com/rclone/rclone) project but changes the config backend to MongoDB.
+
+It stores your RClone configs in MongoDB with AES-256-GCM encryption, and listens to any MongoDB config changes made by the Web API.
 
 ## Features
 
