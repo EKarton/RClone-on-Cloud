@@ -5,17 +5,17 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 
-import { dialogsActions, dialogsState } from '../../../store/dialogs';
-import { jobsActions } from '../../../store/jobs';
-import { REMOTE_PATH$ } from '../../folder-list-view.tokens';
-import { RenameDialogRequest } from './rename-dialog.request';
+import { dialogsActions, dialogsState } from '../../store/dialogs';
+import { jobsActions } from '../../store/jobs';
+import { REMOTE_PATH$ } from '../folder-list-view.tokens';
+import { RenameItemsDialogRequest } from './rename-items-dialog.request';
 
 @Component({
-  selector: 'app-rename-dialog',
+  selector: 'app-rename-items-dialog',
   imports: [CommonModule, FormsModule],
-  templateUrl: './rename-dialog.component.html',
+  templateUrl: './rename-items-dialog.component.html',
 })
-export class RenameDialogComponent implements AfterViewInit {
+export class RenameItemsDialogComponent implements AfterViewInit {
   private readonly store = inject(Store);
   private readonly remotePath = toSignal(inject(REMOTE_PATH$));
   private readonly subscription = new Subscription();
@@ -23,7 +23,7 @@ export class RenameDialogComponent implements AfterViewInit {
   @ViewChild('modal') myModal?: ElementRef<HTMLDialogElement>;
 
   private readonly request$ = this.store.select(
-    dialogsState.selectTopDialogRequest(RenameDialogRequest),
+    dialogsState.selectTopDialogRequest(RenameItemsDialogRequest),
   );
   readonly request = toSignal(this.request$);
 

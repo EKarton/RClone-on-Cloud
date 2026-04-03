@@ -3,18 +3,18 @@ import { AfterViewInit, Component, ElementRef, inject, ViewChild } from '@angula
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 
-import { dialogsActions, dialogsState } from '../../../store/dialogs';
-import { DeleteDialogRequest } from './delete-dialog.request';
-import { jobsActions } from '../../../store/jobs';
+import { dialogsActions, dialogsState } from '../../store/dialogs';
+import { DeleteItemsDialogRequest } from './delete-items-dialog.request';
+import { jobsActions } from '../../store/jobs';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { REMOTE_PATH$ } from '../../folder-list-view.tokens';
+import { REMOTE_PATH$ } from '../folder-list-view.tokens';
 
 @Component({
-  selector: 'app-delete-dialog',
+  selector: 'app-delete-items-dialog',
   imports: [CommonModule],
-  templateUrl: './delete-dialog.component.html',
+  templateUrl: './delete-items-dialog.component.html',
 })
-export class DeleteDialogComponent implements AfterViewInit {
+export class DeleteItemsDialogComponent implements AfterViewInit {
   private readonly store = inject(Store);
   private readonly remotePath = toSignal(inject(REMOTE_PATH$));
   private readonly subscription = new Subscription();
@@ -22,7 +22,7 @@ export class DeleteDialogComponent implements AfterViewInit {
   @ViewChild('modal') myModal?: ElementRef;
 
   private readonly request$ = this.store.select(
-    dialogsState.selectTopDialogRequest(DeleteDialogRequest),
+    dialogsState.selectTopDialogRequest(DeleteItemsDialogRequest),
   );
   readonly request = toSignal(this.request$);
 

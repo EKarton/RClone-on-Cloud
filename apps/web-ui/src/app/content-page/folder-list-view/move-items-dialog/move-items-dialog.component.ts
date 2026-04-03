@@ -5,17 +5,17 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 
-import { dialogsActions, dialogsState } from '../../../store/dialogs';
-import { jobsActions } from '../../../store/jobs';
-import { REMOTE_PATH$ } from '../../folder-list-view.tokens';
-import { MoveDialogRequest } from './move-dialog.request';
+import { dialogsActions, dialogsState } from '../../store/dialogs';
+import { jobsActions } from '../../store/jobs';
+import { REMOTE_PATH$ } from '../folder-list-view.tokens';
+import { MoveItemsDialogRequest } from './move-items-dialog.request';
 
 @Component({
-  selector: 'app-move-dialog',
+  selector: 'app-move-items-dialog',
   imports: [CommonModule, FormsModule],
-  templateUrl: './move-dialog.component.html',
+  templateUrl: './move-items-dialog.component.html',
 })
-export class MoveDialogComponent implements AfterViewInit {
+export class MoveItemsDialogComponent implements AfterViewInit {
   private readonly store = inject(Store);
   private readonly remotePath = toSignal(inject(REMOTE_PATH$));
   private readonly subscription = new Subscription();
@@ -23,7 +23,7 @@ export class MoveDialogComponent implements AfterViewInit {
   @ViewChild('modal') myModal?: ElementRef<HTMLDialogElement>;
 
   private readonly request$ = this.store.select(
-    dialogsState.selectTopDialogRequest(MoveDialogRequest),
+    dialogsState.selectTopDialogRequest(MoveItemsDialogRequest),
   );
   readonly request = toSignal(this.request$);
 

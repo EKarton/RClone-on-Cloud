@@ -7,9 +7,9 @@ import { jobsActions } from '../../store/jobs';
 import { REMOTE_PATH$ } from '../folder-list-view.tokens';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { dialogsActions } from '../../store/dialogs';
-import { DeleteDialogRequest } from './delete-dialog/delete-dialog.request';
-import { RenameDialogRequest } from './rename-dialog/rename-dialog.request';
-import { MoveDialogRequest } from './move-dialog/move-dialog.request';
+import { DeleteItemsDialogRequest } from '../delete-items-dialog/delete-items-dialog.request';
+import { RenameItemsDialogRequest } from '../rename-items-dialog/rename-items-dialog.request';
+import { MoveItemsDialogRequest } from '../move-items-dialog/move-items-dialog.request';
 
 @Component({
   standalone: true,
@@ -24,12 +24,12 @@ export class FolderItemActionsDropdownComponent {
   private readonly store = inject(Store);
 
   move() {
-    console.log('move', this.item());
-    this.store.dispatch(dialogsActions.openDialog({ request: new MoveDialogRequest(this.item()) }));
+    this.store.dispatch(
+      dialogsActions.openDialog({ request: new MoveItemsDialogRequest(this.item()) }),
+    );
   }
 
   duplicate() {
-    console.log('duplicate', this.item());
     this.store.dispatch(
       jobsActions.submitJob({
         request: {
@@ -44,16 +44,14 @@ export class FolderItemActionsDropdownComponent {
   }
 
   rename() {
-    console.log('rename', this.item());
     this.store.dispatch(
-      dialogsActions.openDialog({ request: new RenameDialogRequest(this.item()) }),
+      dialogsActions.openDialog({ request: new RenameItemsDialogRequest(this.item()) }),
     );
   }
 
   delete() {
-    console.log('delete', this.item());
     this.store.dispatch(
-      dialogsActions.openDialog({ request: new DeleteDialogRequest(this.item()) }),
+      dialogsActions.openDialog({ request: new DeleteItemsDialogRequest(this.item()) }),
     );
   }
 }

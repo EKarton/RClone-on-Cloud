@@ -3,14 +3,14 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { BehaviorSubject } from 'rxjs';
 import { vi } from 'vitest';
 
-import { dialogsState, dialogsActions } from '../../../../store/dialogs';
-import { jobsActions } from '../../../../store/jobs';
-import { REMOTE_PATH$, RemotePath } from '../../../folder-list-view.tokens';
-import { RenameDialogComponent } from '../rename-dialog.component';
-import { RenameDialogRequest } from '../rename-dialog.request';
+import { dialogsState, dialogsActions } from '../../../store/dialogs';
+import { jobsActions } from '../../../store/jobs';
+import { REMOTE_PATH$, RemotePath } from '../../folder-list-view.tokens';
+import { RenameItemsDialogComponent } from '../rename-items-dialog.component';
+import { RenameItemsDialogRequest } from '../rename-items-dialog.request';
 
-describe('RenameDialogComponent', () => {
-  let fixture: ComponentFixture<RenameDialogComponent>;
+describe('RenameItemsDialogComponent', () => {
+  let fixture: ComponentFixture<RenameItemsDialogComponent>;
   let mockStore: MockStore;
   let remotePathSubject: BehaviorSubject<RemotePath>;
 
@@ -31,7 +31,7 @@ describe('RenameDialogComponent', () => {
     });
 
     await TestBed.configureTestingModule({
-      imports: [RenameDialogComponent],
+      imports: [RenameItemsDialogComponent],
       providers: [
         provideMockStore({
           initialState: {
@@ -44,6 +44,9 @@ describe('RenameDialogComponent', () => {
 
     mockStore = TestBed.inject(MockStore);
     vi.spyOn(mockStore, 'dispatch');
+
+    fixture = TestBed.createComponent(RenameItemsDialogComponent);
+    fixture.detectChanges();
   });
 
   afterEach(() => {
@@ -51,16 +54,11 @@ describe('RenameDialogComponent', () => {
   });
 
   it('should create the component', () => {
-    fixture = TestBed.createComponent(RenameDialogComponent);
-    fixture.detectChanges();
     expect(fixture.componentInstance).toBeTruthy();
   });
 
   it('should open dialog and populate newName when request arrives', async () => {
-    fixture = TestBed.createComponent(RenameDialogComponent);
-    fixture.detectChanges();
-
-    const request = new RenameDialogRequest({
+    const request = new RenameItemsDialogRequest({
       path: 'file.txt',
       name: 'file.txt',
       isDir: false,
@@ -77,10 +75,7 @@ describe('RenameDialogComponent', () => {
   });
 
   it('should dispatch submitJob with move-file when renaming a file', async () => {
-    fixture = TestBed.createComponent(RenameDialogComponent);
-    fixture.detectChanges();
-
-    const request = new RenameDialogRequest({
+    const request = new RenameItemsDialogRequest({
       path: 'file.txt',
       name: 'file.txt',
       isDir: false,
@@ -115,10 +110,7 @@ describe('RenameDialogComponent', () => {
   });
 
   it('should dispatch submitJob with move-folder when renaming a directory', async () => {
-    fixture = TestBed.createComponent(RenameDialogComponent);
-    fixture.detectChanges();
-
-    const request = new RenameDialogRequest({
+    const request = new RenameItemsDialogRequest({
       path: 'my-folder',
       name: 'my-folder',
       isDir: true,
@@ -153,11 +145,8 @@ describe('RenameDialogComponent', () => {
   });
 
   it('should dispatch submitJob with correct top-level path when remotePath path is empty', async () => {
-    fixture = TestBed.createComponent(RenameDialogComponent);
-    fixture.detectChanges();
-
     remotePathSubject.next({ remote: 'my-remote', path: '' });
-    const request = new RenameDialogRequest({
+    const request = new RenameItemsDialogRequest({
       path: 'file.txt',
       name: 'file.txt',
       isDir: false,
@@ -192,10 +181,7 @@ describe('RenameDialogComponent', () => {
   });
 
   it('should not dispatch submitJob if newName is unchanged or empty', async () => {
-    fixture = TestBed.createComponent(RenameDialogComponent);
-    fixture.detectChanges();
-
-    const request = new RenameDialogRequest({
+    const request = new RenameItemsDialogRequest({
       path: 'file.txt',
       name: 'file.txt',
       isDir: false,

@@ -3,14 +3,14 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { BehaviorSubject } from 'rxjs';
 import { vi } from 'vitest';
 
-import { dialogsState, dialogsActions } from '../../../../store/dialogs';
-import { jobsActions } from '../../../../store/jobs';
-import { REMOTE_PATH$, RemotePath } from '../../../folder-list-view.tokens';
-import { DeleteDialogComponent } from '../delete-dialog.component';
-import { DeleteDialogRequest } from '../delete-dialog.request';
+import { dialogsState, dialogsActions } from '../../../store/dialogs';
+import { jobsActions } from '../../../store/jobs';
+import { REMOTE_PATH$, RemotePath } from '../../folder-list-view.tokens';
+import { DeleteItemsDialogComponent } from '../delete-items-dialog.component';
+import { DeleteItemsDialogRequest } from '../delete-items-dialog.request';
 
-describe('DeleteDialogComponent', () => {
-  let fixture: ComponentFixture<DeleteDialogComponent>;
+describe('DeleteItemsDialogComponent', () => {
+  let fixture: ComponentFixture<DeleteItemsDialogComponent>;
   let mockStore: MockStore;
   let remotePathSubject: BehaviorSubject<RemotePath>;
 
@@ -31,7 +31,7 @@ describe('DeleteDialogComponent', () => {
     });
 
     await TestBed.configureTestingModule({
-      imports: [DeleteDialogComponent],
+      imports: [DeleteItemsDialogComponent],
       providers: [
         provideMockStore({
           initialState: {
@@ -44,6 +44,9 @@ describe('DeleteDialogComponent', () => {
 
     mockStore = TestBed.inject(MockStore);
     vi.spyOn(mockStore, 'dispatch');
+
+    fixture = TestBed.createComponent(DeleteItemsDialogComponent);
+    fixture.detectChanges();
   });
 
   afterEach(() => {
@@ -51,16 +54,11 @@ describe('DeleteDialogComponent', () => {
   });
 
   it('should create the component', () => {
-    fixture = TestBed.createComponent(DeleteDialogComponent);
-    fixture.detectChanges();
     expect(fixture.componentInstance).toBeTruthy();
   });
 
   it('should open dialog when request arrives', async () => {
-    fixture = TestBed.createComponent(DeleteDialogComponent);
-    fixture.detectChanges();
-
-    const request = new DeleteDialogRequest({
+    const request = new DeleteItemsDialogRequest({
       path: 'file.txt',
       name: 'file.txt',
       isDir: false,
@@ -77,10 +75,7 @@ describe('DeleteDialogComponent', () => {
   });
 
   it('should dispatch submitJob with delete-file when deleting a file', async () => {
-    fixture = TestBed.createComponent(DeleteDialogComponent);
-    fixture.detectChanges();
-
-    const request = new DeleteDialogRequest({
+    const request = new DeleteItemsDialogRequest({
       path: 'file.txt',
       name: 'file.txt',
       isDir: false,
@@ -107,10 +102,7 @@ describe('DeleteDialogComponent', () => {
   });
 
   it('should dispatch submitJob with delete-folder when deleting a directory', async () => {
-    fixture = TestBed.createComponent(DeleteDialogComponent);
-    fixture.detectChanges();
-
-    const request = new DeleteDialogRequest({
+    const request = new DeleteItemsDialogRequest({
       path: 'my-folder',
       name: 'my-folder',
       isDir: true,
@@ -137,10 +129,7 @@ describe('DeleteDialogComponent', () => {
   });
 
   it('should dispatch closeDialog when cancel button is clicked', async () => {
-    fixture = TestBed.createComponent(DeleteDialogComponent);
-    fixture.detectChanges();
-
-    const request = new DeleteDialogRequest({
+    const request = new DeleteItemsDialogRequest({
       path: 'file.txt',
       name: 'file.txt',
       isDir: false,
