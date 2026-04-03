@@ -36,6 +36,8 @@ import { Store } from '@ngrx/store';
 import { DeleteItemsDialogComponent } from './delete-items-dialog/delete-items-dialog.component';
 import { RenameItemsDialogComponent } from './rename-items-dialog/rename-items-dialog.component';
 import { MoveItemsDialogComponent } from './move-items-dialog/move-items-dialog.component';
+import { CopyItemsDialogComponent } from './copy-items-dialog/copy-items-dialog.component';
+
 
 @Component({
   standalone: true,
@@ -52,6 +54,8 @@ import { MoveItemsDialogComponent } from './move-items-dialog/move-items-dialog.
     DeleteItemsDialogComponent,
     RenameItemsDialogComponent,
     MoveItemsDialogComponent,
+    CopyItemsDialogComponent,
+
   ],
   templateUrl: './folder-list-view.component.html',
   providers: [REMOTE_PATH$_PROVIDER, FolderListViewStore],

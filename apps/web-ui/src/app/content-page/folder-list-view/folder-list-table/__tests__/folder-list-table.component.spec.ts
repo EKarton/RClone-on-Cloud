@@ -16,6 +16,7 @@ import { MoveItemsDialogRequest } from '../../move-items-dialog/move-items-dialo
 import { RenameItemsDialogRequest } from '../../rename-items-dialog/rename-items-dialog.request';
 import { DeleteItemsDialogRequest } from '../../delete-items-dialog/delete-items-dialog.request';
 import { dialogsActions } from '../../../store/dialogs';
+import { CopyItemsDialogRequest } from '../../copy-items-dialog/copy-items-dialog.request';
 
 const ITEM_DETAILS = {
   path: 'folder1',
@@ -403,6 +404,26 @@ describe('FolderListTableComponent', () => {
     expect(store.dispatch).toHaveBeenCalledWith(
       dialogsActions.openDialog({
         request: new MoveItemsDialogRequest(expect.objectContaining(ITEM_DETAILS)),
+      }),
+    );
+  });
+
+  it('should open copy dialog when copy button is clicked', () => {
+    const store = TestBed.inject(Store);
+    vi.spyOn(store, 'dispatch');
+    const fixture = TestBed.createComponent(FolderListTableComponent);
+    fixture.componentRef.setInput(
+      'contentsResult',
+      toSuccess<ListFolderResponse>({ items: [ITEM_DETAILS] }),
+    );
+    fixture.detectChanges();
+
+    const copyButton = fixture.nativeElement.querySelector('[data-testid="copy-button"]');
+    copyButton.click();
+
+    expect(store.dispatch).toHaveBeenCalledWith(
+      dialogsActions.openDialog({
+        request: new CopyItemsDialogRequest(expect.objectContaining(ITEM_DETAILS)),
       }),
     );
   });

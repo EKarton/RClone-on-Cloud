@@ -7,6 +7,8 @@ import { dialogsActions } from '../../store/dialogs';
 import { DeleteItemsDialogRequest } from '../delete-items-dialog/delete-items-dialog.request';
 import { RenameItemsDialogRequest } from '../rename-items-dialog/rename-items-dialog.request';
 import { MoveItemsDialogRequest } from '../move-items-dialog/move-items-dialog.request';
+import { CopyItemsDialogRequest } from '../copy-items-dialog/copy-items-dialog.request';
+
 
 @Component({
   standalone: true,
@@ -25,7 +27,12 @@ export class FolderItemActionsDropdownComponent {
     );
   }
 
-  copy() {}
+  copy() {
+    this.store.dispatch(
+      dialogsActions.openDialog({ request: new CopyItemsDialogRequest(this.item()) }),
+    );
+  }
+
 
   rename() {
     this.store.dispatch(

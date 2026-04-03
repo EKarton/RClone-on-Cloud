@@ -8,6 +8,7 @@ import { MoveItemsDialogRequest } from '../../move-items-dialog/move-items-dialo
 import { RenameItemsDialogRequest } from '../../rename-items-dialog/rename-items-dialog.request';
 import { DeleteItemsDialogRequest } from '../../delete-items-dialog/delete-items-dialog.request';
 import { provideMockStore } from '@ngrx/store/testing';
+import { CopyItemsDialogRequest } from '../../copy-items-dialog/copy-items-dialog.request';
 
 const ITEM_DETAILS = {
   path: 'folder1',
@@ -44,6 +45,23 @@ describe('FolderListTableComponent', () => {
     expect(store.dispatch).toHaveBeenCalledWith(
       dialogsActions.openDialog({
         request: new MoveItemsDialogRequest(ITEM_DETAILS),
+      }),
+    );
+  });
+
+  it('should dispatch action to open copy dialog when user clicks on copy button', () => {
+    const fixture = TestBed.createComponent(FolderItemActionsDropdownComponent);
+    fixture.componentRef.setInput('item', ITEM_DETAILS);
+    fixture.detectChanges();
+
+    const dropdownButton = fixture.nativeElement.querySelector('.dropdown');
+    dropdownButton.click();
+    const copyButton = fixture.nativeElement.querySelector('[data-testid="copy-button"]');
+    copyButton.click();
+
+    expect(store.dispatch).toHaveBeenCalledWith(
+      dialogsActions.openDialog({
+        request: new CopyItemsDialogRequest(ITEM_DETAILS),
       }),
     );
   });
