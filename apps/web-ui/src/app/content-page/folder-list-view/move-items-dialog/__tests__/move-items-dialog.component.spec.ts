@@ -44,9 +44,6 @@ describe('MoveItemsDialogComponent', () => {
 
     mockStore = TestBed.inject(MockStore);
     vi.spyOn(mockStore, 'dispatch');
-
-    fixture = TestBed.createComponent(MoveItemsDialogComponent);
-    fixture.detectChanges();
   });
 
   afterEach(() => {
@@ -54,10 +51,15 @@ describe('MoveItemsDialogComponent', () => {
   });
 
   it('should create the component', () => {
+    fixture = TestBed.createComponent(MoveItemsDialogComponent);
+    fixture.detectChanges();
     expect(fixture.componentInstance).toBeTruthy();
   });
 
   it('should open dialog and populate destinationPath when request arrives', async () => {
+    fixture = TestBed.createComponent(MoveItemsDialogComponent);
+    fixture.detectChanges();
+
     const request = new MoveItemsDialogRequest({
       path: 'file.txt',
       name: 'file.txt',
@@ -72,13 +74,13 @@ describe('MoveItemsDialogComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.destinationPath).toBe('my-path');
-    // expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
   });
 
   it('should open dialog and populate empty destinationPath when remotePath has no path', async () => {
-    remotePathSubject.next({ remote: 'my-remote', path: '' });
+    fixture = TestBed.createComponent(MoveItemsDialogComponent);
     fixture.detectChanges();
 
+    remotePathSubject.next({ remote: 'my-remote', path: '' });
     const request = new MoveItemsDialogRequest({
       path: 'file.txt',
       name: 'file.txt',
@@ -96,6 +98,8 @@ describe('MoveItemsDialogComponent', () => {
   });
 
   it('should close dialog when request is clear', async () => {
+    fixture = TestBed.createComponent(MoveItemsDialogComponent);
+
     // Setup initial open state
     const request = new MoveItemsDialogRequest({
       path: 'file.txt',
@@ -119,6 +123,9 @@ describe('MoveItemsDialogComponent', () => {
   });
 
   it('should dispatch submitJob with move-file when moving a file', async () => {
+    fixture = TestBed.createComponent(MoveItemsDialogComponent);
+    fixture.detectChanges();
+
     const request = new MoveItemsDialogRequest({
       path: 'file.txt',
       name: 'file.txt',
@@ -155,6 +162,9 @@ describe('MoveItemsDialogComponent', () => {
   });
 
   it('should dispatch submitJob with move-folder when moving a directory', async () => {
+    fixture = TestBed.createComponent(MoveItemsDialogComponent);
+    fixture.detectChanges();
+
     const request = new MoveItemsDialogRequest({
       path: 'my-folder',
       name: 'my-folder',
@@ -166,6 +176,7 @@ describe('MoveItemsDialogComponent', () => {
     mockStore.refreshState();
     fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
 
     const destinationTextbox = fixture.nativeElement.querySelector('input[type="text"]');
     destinationTextbox.value = 'new-location';
@@ -190,6 +201,9 @@ describe('MoveItemsDialogComponent', () => {
   });
 
   it('should handle root path destination correctly for files', async () => {
+    fixture = TestBed.createComponent(MoveItemsDialogComponent);
+    fixture.detectChanges();
+
     const request = new MoveItemsDialogRequest({
       path: 'subdir/file.txt',
       name: 'file.txt',
@@ -201,6 +215,7 @@ describe('MoveItemsDialogComponent', () => {
     mockStore.refreshState();
     fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
 
     const destinationTextbox = fixture.nativeElement.querySelector('input[type="text"]');
     destinationTextbox.value = '/';
@@ -225,6 +240,9 @@ describe('MoveItemsDialogComponent', () => {
   });
 
   it('should compute preview path correctly', async () => {
+    fixture = TestBed.createComponent(MoveItemsDialogComponent);
+    fixture.detectChanges();
+
     const request = new MoveItemsDialogRequest({
       path: 'file.txt',
       name: 'file.txt',
@@ -236,6 +254,7 @@ describe('MoveItemsDialogComponent', () => {
     mockStore.refreshState();
     fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
 
     const destinationTextbox = fixture.nativeElement.querySelector('input[type="text"]');
     destinationTextbox.value = 'new-location';

@@ -132,7 +132,7 @@ describe('FolderSortDropdownComponent', () => {
   });
 
   function getSummary(): HTMLElement {
-    return fixture.nativeElement.querySelector('summary') as HTMLElement;
+    return fixture.nativeElement.querySelector('div[role="button"]') as HTMLElement;
   }
 
   function getSummaryText(): string {
