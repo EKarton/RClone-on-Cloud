@@ -3,9 +3,6 @@ import { Component, inject, input } from '@angular/core';
 
 import { ListFolderItem } from '../../services/web-api/types/list-folder';
 import { Store } from '@ngrx/store';
-import { jobsActions } from '../../store/jobs';
-import { REMOTE_PATH$ } from '../folder-list-view.tokens';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { dialogsActions } from '../../store/dialogs';
 import { DeleteItemsDialogRequest } from '../delete-items-dialog/delete-items-dialog.request';
 import { RenameItemsDialogRequest } from '../rename-items-dialog/rename-items-dialog.request';
@@ -20,7 +17,6 @@ import { MoveItemsDialogRequest } from '../move-items-dialog/move-items-dialog.r
 export class FolderItemActionsDropdownComponent {
   readonly item = input.required<ListFolderItem>();
 
-  private readonly remotePath = toSignal(inject(REMOTE_PATH$));
   private readonly store = inject(Store);
 
   move() {
@@ -29,19 +25,7 @@ export class FolderItemActionsDropdownComponent {
     );
   }
 
-  duplicate() {
-    this.store.dispatch(
-      jobsActions.submitJob({
-        request: {
-          kind: 'copy-file',
-          fromRemote: this.remotePath()!.remote,
-          fromPath: this.item().path,
-          toRemote: this.remotePath()!.remote,
-          toPath: this.item().path,
-        },
-      }),
-    );
-  }
+  copy() {}
 
   rename() {
     this.store.dispatch(

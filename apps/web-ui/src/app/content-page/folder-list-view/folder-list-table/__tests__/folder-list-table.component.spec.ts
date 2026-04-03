@@ -11,6 +11,11 @@ import { ListFolderResponse } from '../../../services/web-api/types/list-folder'
 import { WebApiService } from '../../../services/web-api/web-api.service';
 import { REMOTE_PATH$ } from '../../folder-list-view.tokens';
 import { FolderListTableComponent } from '../folder-list-table.component';
+import { Store } from '@ngrx/store';
+import { MoveItemsDialogRequest } from '../../move-items-dialog/move-items-dialog.request';
+import { RenameItemsDialogRequest } from '../../rename-items-dialog/rename-items-dialog.request';
+import { DeleteItemsDialogRequest } from '../../delete-items-dialog/delete-items-dialog.request';
+import { dialogsActions } from '../../../store/dialogs';
 
 const ITEM_DETAILS = {
   path: 'folder1',
@@ -304,7 +309,7 @@ describe('FolderListTableComponent', () => {
     );
     fixture.detectChanges();
 
-    const row = fixture.nativeElement.querySelector('[data-testid="table-row-item"]');
+    const row = fixture.nativeElement.querySelector('[data-testid="item-name"]');
     row.click();
 
     expect(router.navigate).toHaveBeenCalledWith([
@@ -380,5 +385,65 @@ describe('FolderListTableComponent', () => {
     expect(rows.length).toBe(2);
     expect(rows[0].textContent).toContain('A');
     expect(rows[1].textContent).toContain('A');
+  });
+
+  it('should open move dialog when move button is clicked', () => {
+    const store = TestBed.inject(Store);
+    vi.spyOn(store, 'dispatch');
+    const fixture = TestBed.createComponent(FolderListTableComponent);
+    fixture.componentRef.setInput(
+      'contentsResult',
+      toSuccess<ListFolderResponse>({ items: [ITEM_DETAILS] }),
+    );
+    fixture.detectChanges();
+
+    const moveButton = fixture.nativeElement.querySelector('[data-testid="move-button"]');
+    moveButton.click();
+
+    expect(store.dispatch).toHaveBeenCalledWith(
+      dialogsActions.openDialog({
+        request: new MoveItemsDialogRequest(expect.objectContaining(ITEM_DETAILS)),
+      }),
+    );
+  });
+
+  it('should open rename dialog when rename button is clicked', () => {
+    const store = TestBed.inject(Store);
+    vi.spyOn(store, 'dispatch');
+    const fixture = TestBed.createComponent(FolderListTableComponent);
+    fixture.componentRef.setInput(
+      'contentsResult',
+      toSuccess<ListFolderResponse>({ items: [ITEM_DETAILS] }),
+    );
+    fixture.detectChanges();
+
+    const renameButton = fixture.nativeElement.querySelector('[data-testid="rename-button"]');
+    renameButton.click();
+
+    expect(store.dispatch).toHaveBeenCalledWith(
+      dialogsActions.openDialog({
+        request: new RenameItemsDialogRequest(expect.objectContaining(ITEM_DETAILS)),
+      }),
+    );
+  });
+
+  it('should open delete dialog when delete button is clicked', () => {
+    const store = TestBed.inject(Store);
+    vi.spyOn(store, 'dispatch');
+    const fixture = TestBed.createComponent(FolderListTableComponent);
+    fixture.componentRef.setInput(
+      'contentsResult',
+      toSuccess<ListFolderResponse>({ items: [ITEM_DETAILS] }),
+    );
+    fixture.detectChanges();
+
+    const deleteButton = fixture.nativeElement.querySelector('[data-testid="delete-button"]');
+    deleteButton.click();
+
+    expect(store.dispatch).toHaveBeenCalledWith(
+      dialogsActions.openDialog({
+        request: new DeleteItemsDialogRequest(expect.objectContaining(ITEM_DETAILS)),
+      }),
+    );
   });
 });
