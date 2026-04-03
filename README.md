@@ -79,9 +79,14 @@ It also provides a mobile-responsive interface for managing your files on the go
 
 #### Set up the database
 
-- Install MongoDB on your machine or use a MongoDB Atlas instance.
-- Ensure you have a valid connection string (e.g., `mongodb://localhost:27017`).
-- Generate a 32-character encryption key for the MongoDB configs and remember it.
+- Install MongoDB on your machine or use a MongoDB Atlas instance and remember its connection string.
+- Generate a 32-byte encryption key for the MongoDB configs by running:
+
+  ```bash
+  openssl rand -base64 32
+  ```
+
+  and remember it.
 
 #### Set up the Web API:
 
