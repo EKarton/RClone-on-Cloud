@@ -445,3 +445,57 @@ func TestCallbackJSONBodySuccess(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 }
+
+func TestCallbackWildcardSuccess(t *testing.T) {
+	oauthToken := (&oauth2.Token{
+		AccessToken: "access-token",
+		TokenType:   "Bearer",
+		Expiry:      time.Now().Add(1 * time.Hour),
+	}).WithExtra(map[string]interface{}{
+		"id_token": "mock.google.idtoken",
+	})
+
+	exchanger := &mockExchanger{token: oauthToken}
+	validator := &mockValidator{
+		payload: &idtoken.Payload{
+			Claims: map[string]interface{}{
+				"sub":   "random-user-999",
+				"email": "anybody@example.com",
+			},
+		},
+	}
+
+	// Create handler with wildcard
+	pem := getPrivateKeyPEM(t)
+	cfg := Config{
+		GoogleClientID:     "test-client-id",
+		GoogleClientSecret: "test-client-secret",
+		RedirectURL:        "http://localhost:8080/auth/v1/google/callback",
+		PrivateKeyPEM:      pem,
+		AllowedGoogleIDs:   []string{"*"},
+	}
+	h, err := NewHandler(cfg)
+	require.NoError(t, err)
+	h.exchanger = exchanger
+	h.idValidator = validator
+
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier"})
+	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	resp := rec.Result()
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var tokenResp TokenResponse
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&tokenResp))
+	require.NotEmpty(t, tokenResp.Token)
+}

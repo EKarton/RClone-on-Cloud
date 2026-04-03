@@ -71,6 +71,7 @@ type Handler struct {
 	exchanger        TokenExchanger
 	idValidator      IDTokenValidator
 	allowedGoogleIDs map[string]bool
+	allowAllGoogleIDs bool
 }
 
 // Config holds the parameters needed to create a Handler.
@@ -98,7 +99,11 @@ func NewHandler(cfg Config) (*Handler, error) {
 	}
 
 	allowedGoogleIDs := make(map[string]bool)
+	var allowAll bool
 	for _, id := range cfg.AllowedGoogleIDs {
+		if id == "*" {
+			allowAll = true
+		}
 		allowedGoogleIDs[id] = true
 	}
 
@@ -109,6 +114,7 @@ func NewHandler(cfg Config) (*Handler, error) {
 		exchanger:        oauthCfg,
 		idValidator:      &googleIDTokenValidator{},
 		allowedGoogleIDs: allowedGoogleIDs,
+		allowAllGoogleIDs: allowAll,
 	}, nil
 }
 
@@ -189,7 +195,7 @@ func (h *Handler) handleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// SECURITY: Ensure the user is explicitly authorized to access the API by their Google ID (sub).
-	if !h.allowedGoogleIDs[userID] {
+	if !h.allowAllGoogleIDs && !h.allowedGoogleIDs[userID] {
 		log.Printf("unauthorized login attempt from user ID: %s (email: %s)", userID, email)
 		writeError(w, fmt.Sprintf("unauthorized access for user id: %s", userID), http.StatusForbidden)
 		return

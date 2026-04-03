@@ -56,7 +56,7 @@ This API provides a centralized management layer for rclone remotes, enabling sy
    RCLONE_CONFIG_MONGO_DB=rclone
    RCLONE_CONFIG_MONGO_COL=configs
 
-   AUTH_ALLOWED_GOOGLE_IDS=id1,id2
+   AUTH_ALLOWED_GOOGLE_IDS=id1,id2 (or * to allow anyone)
    AUTH_GOOGLE_CLIENT_ID=your-id.apps.googleusercontent.com
    AUTH_GOOGLE_CLIENT_SECRET=your-secret
    AUTH_GOOGLE_REDIRECT_URL=http://localhost:8080/auth/v1/google/callback
@@ -131,6 +131,7 @@ Authorization: Bearer <token>
 | ------ | --------------------------------- | -------------------------------- |
 | GET    | /auth/v1/google/login             | Initiate Google OAuth2 flow      |
 | POST   | /auth/v1/google/callback          | Exchange Google code for API JWT |
+| GET    | /health                           | Application health check         |
 | POST   | /api/v1/rclone/rc/noop            | Rclone no-op check (heartbeat)   |
 | POST   | /api/v1/rclone/config/listremotes | List all configured remotes      |
 | POST   | /api/v1/rclone/operations/list    | List items in a remote path      |
@@ -189,13 +190,12 @@ Deploy as a stateless container to Kubernetes, ECS, or similar platforms. Ensure
 - Do not commit secrets or `.env` files to source control
 - Regularly rotate the `RCLONE_CONFIG_MONGO_KEY` and JWT asymmetric keys
 - Enforce HTTPS for all non-local traffic
-- Maintain a strict `AUTH_ALLOWED_GOOGLE_IDS` allowlist
+- Maintain a strict `AUTH_ALLOWED_GOOGLE_IDS` allowlist (or use \* with caution)
 
 ## Roadmap
 
 - [ ] Implement rate limiting for each endpoint
 - [ ] Generate OpenAPI documentation from route definitions
-- [ ] Implement health check endpoint (`/health`)
 
 ## Contributing
 
