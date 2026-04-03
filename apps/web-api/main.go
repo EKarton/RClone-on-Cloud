@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/ekarton/RClone-Cloud/apps/web-api/auth"
+	"github.com/ekarton/RClone-Cloud/apps/web-api/health"
 	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone"
 	mongocfg "github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
 	"github.com/ekarton/RClone-Cloud/apps/web-api/shared/cors"
@@ -99,6 +100,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	authHandler.RegisterRoutes(mux)
+	health.RegisterRoutes(mux)
 	rcloneHandler.RegisterRoutes(mux)
 
 	// Wrap with OpenTelemetry instrumentation
