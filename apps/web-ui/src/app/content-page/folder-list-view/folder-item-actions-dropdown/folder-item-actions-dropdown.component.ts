@@ -9,7 +9,6 @@ import { RenameItemsDialogRequest } from '../rename-items-dialog/rename-items-di
 import { MoveItemsDialogRequest } from '../move-items-dialog/move-items-dialog.request';
 import { CopyItemsDialogRequest } from '../copy-items-dialog/copy-items-dialog.request';
 
-
 @Component({
   standalone: true,
   selector: 'app-folder-item-actions-dropdown',
@@ -32,7 +31,6 @@ export class FolderItemActionsDropdownComponent {
       dialogsActions.openDialog({ request: new CopyItemsDialogRequest(this.item()) }),
     );
   }
-
 
   rename() {
     this.store.dispatch(

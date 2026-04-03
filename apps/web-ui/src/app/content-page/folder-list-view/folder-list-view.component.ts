@@ -38,7 +38,6 @@ import { RenameItemsDialogComponent } from './rename-items-dialog/rename-items-d
 import { MoveItemsDialogComponent } from './move-items-dialog/move-items-dialog.component';
 import { CopyItemsDialogComponent } from './copy-items-dialog/copy-items-dialog.component';
 
-
 @Component({
   standalone: true,
   selector: 'app-files-view',
@@ -55,7 +54,6 @@ import { CopyItemsDialogComponent } from './copy-items-dialog/copy-items-dialog.
     RenameItemsDialogComponent,
     MoveItemsDialogComponent,
     CopyItemsDialogComponent,
-
   ],
   templateUrl: './folder-list-view.component.html',
   providers: [REMOTE_PATH$_PROVIDER, FolderListViewStore],

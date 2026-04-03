@@ -50,17 +50,21 @@
             </svg>
             <span class="whitespace-nowrap">
               @if (job.kind === 'upload-file') {
-                Uploaded {{ job.file.name }}
+                Uploaded file {{ job.file.name }}
               } @else if (job.kind === 'delete-file') {
-                Deleted {{ job.path }}
+                Deleted file {{ job.path }}
               } @else if (job.kind === 'delete-folder') {
-                Deleted {{ job.path }}
+                Deleted folder {{ job.path }}
               } @else if (job.kind === 'move-file') {
-                Moved {{ job.fromPath }} to {{ job.toPath }}
+                Moved file {{ job.fromPath }} to {{ job.toPath }}
               } @else if (job.kind === 'move-folder') {
-                Moved {{ job.fromPath }} to {{ job.toPath }}
+                Moved folder {{ job.fromPath }} to {{ job.toPath }}
               } @else if (job.kind === 'mkdir') {
-                Created {{ job.dirPath }}
+                Created folder {{ job.dirPath }}
+              } @else if (job.kind === 'copy-file') {
+                Copied file {{ job.fromPath }} to {{ job.toPath }}
+              } @else if (job.kind === 'copy-folder') {
+                Copied folder {{ job.fromPath }} to {{ job.toPath }}
               }
             </span>
           </span>
