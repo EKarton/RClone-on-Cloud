@@ -1,149 +1,197 @@
 # RClone-Cloud Web API
 
-The **RClone-Cloud Web API** is a secure, stateless HTTP interface to [rclone](https://rclone.org/). Built with Go 1.25, it securely manages your rclone remote configurations via MongoDB and exposes a curated list of remote control (`rc`) operations protected by Google OAuth2 and JWT-based authentication.
+A secure, stateless HTTP interface to rclone for managing remote storage configurations and operations via MongoDB, protected by Google OAuth2 and JWT authentication.
 
-## ✨ Features
+## Overview
 
-- **Restricted Rclone Proxy**: Safely exposes a subset of `rclone rc` operations (e.g., `operations/list`, `sync/copy`, `operations/deletefile`) while rejecting administrative or dangerous commands.
-- **MongoDB Config Storage**: Rclone configurations are entirely stateless to the container and are dynamically loaded from a MongoDB collection.
-- **Encrypted at Rest**: All remote configuration secrets and tokens in MongoDB are encrypted at rest using AES-256-GCM.
-- **Google OAuth2 Authentication**: Authenticate directly with Google. Access is strictly limited to an allowlist of permitted Google subject IDs.
-- **JWT Authorization**: The API issues its own short-lived, signed JWTs to authorized users. These are required as Bearer tokens to access the `rclone` endpoints.
-- **Docker Ready**: Designed to be lightweight and scalable as a simple Docker container.
+This API provides a centralized management layer for rclone remotes, enabling systems and users to interact with cloud storage providers through a hardened HTTP interface. It supports dynamic configuration loading from MongoDB and granular control over allowed rclone operations.
 
----
+## Features
 
-## 🛠️ Prerequisites
+- Authentication and authorization via Google SSO and JWT
+- Secure storage of encrypted rclone configurations in MongoDB
+- Restricted proxy for rclone remote control (RC) operations
+- Standardized JSON responses for all endpoints
+- Integrated OpenTelemetry for tracing and performance monitoring
 
-- **Go 1.25+** (if running locally)
-- **Docker** (if running via container)
-- **MongoDB 7.0+** (can use Atlas or run locally)
-- **Google Cloud Console Project** (for OAuth2 Client IDs)
+## Tech Stack
 
----
+- Language: Go 1.25+
+- Database: MongoDB 7.0+
+- Auth: JWT / Google OAuth2
+- Testing: Go test / Testcontainers
+- Observability: OpenTelemetry (OTLP)
 
-## 🚀 Getting Started
+## Project Structure
 
-### 1. Configure Google OAuth2
+```text
+.
+├── auth/               # Google OAuth2 and JWT implementation
+├── docs/               # Technical documentation and setup guides
+├── rclone/             # Rclone core integration and handlers
+│   ├── configs/        # MongoDB configuration storage logic
+├── shared/             # Shared utilities (CORS, JWT)
+├── telemetry/          # OpenTelemetry initialization
+├── Dockerfile          # Production container definition
+├── env.go              # Environment configuration loading
+├── main.go             # Application entrypoint
+└── README.md
+```
 
-Follow [this guide](./docs/setup_oauth2.md) to create a new Google Cloud project, configure the OAuth consent screen, and obtain your **Client ID** and **Client Secret**.
+## Prerequisites
 
-### 2. Generate JWT Keys
+- Go 1.25 or higher
+- MongoDB 7.0+
+- Docker (for containerized deployment and integration tests)
+- Google Cloud Project with OAuth2 credentials
 
-The API requires an asymmetric key pair to sign and verify its own JWTs. You can generate an RSA or Ed25519 key pair:
+## Getting Started
+
+1. Create a `.env` file in the `apps/web-api` directory.
+
+   ```env
+   RCLONE_CONFIG_MONGO_KEY=your-aes-256-key
+   RCLONE_CONFIG_MONGO_URI=mongodb://localhost:27017
+   RCLONE_CONFIG_MONGO_DB=rclone
+   RCLONE_CONFIG_MONGO_COL=configs
+
+   AUTH_ALLOWED_GOOGLE_IDS=id1,id2
+   AUTH_GOOGLE_CLIENT_ID=your-id.apps.googleusercontent.com
+   AUTH_GOOGLE_CLIENT_SECRET=your-secret
+   AUTH_GOOGLE_REDIRECT_URL=http://localhost:8080/auth/v1/google/callback
+
+   LISTEN_ADDR=:8080
+   CORS_ALLOWED_URLS=http://localhost:4200
+
+   AUTH_JWT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
+   AUTH_JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n..."
+
+   OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.nr-data.net
+   OTEL_EXPORTER_OTLP_HEADERS=api-key=your-key
+   ```
+
+2. Install dependencies, build the binary and run the application by running
+
+   ```bash
+   go mod download
+   go build -o rclone-cloud-web-api
+   ./rclone-cloud-web-api
+   ```
+
+   or run with Docker:
+
+   ```bash
+   docker build -t rclone-cloud-web-api .
+   docker run -d --name rclone-web-api --env-file .env -p 8080:8080 rclone-cloud-web-api
+   ```
+
+   The API will be available at:
+
+   ```text
+   http://localhost:8080
+   ```
+
+## Authentication
+
+The API utilizes a dual-layer authentication strategy:
+
+1. **Google OAuth2**: Used for initial user identification and onboarding.
+2. **JWT**: Short-lived tokens issued by the API after successful Google verification.
+
+Clients must include the JWT in the Authorization header:
+
+```http
+Authorization: Bearer <token>
+```
+
+## API Conventions
+
+- Base URL Prefix: `/api/v1/rclone/` for storage operations
+- Authentication Prefix: `/auth/v1/google/`
+- Content type: `application/json`
+- Date format: ISO 8601
+- Error Format: JSON with an "error" field
+
+## Endpoints
+
+| Method | Route                             | Description                      |
+| ------ | --------------------------------- | -------------------------------- |
+| GET    | /auth/v1/google/login             | Initiate Google OAuth2 flow      |
+| POST   | /auth/v1/google/callback          | Exchange Google code for API JWT |
+| POST   | /api/v1/rclone/rc/noop            | Rclone no-op check (heartbeat)   |
+| POST   | /api/v1/rclone/config/listremotes | List all configured remotes      |
+| POST   | /api/v1/rclone/operations/list    | List items in a remote path      |
+| POST   | /api/v1/rclone/sync/copy          | Copy items between remotes       |
+| GET    | /api/v1/rclone/[{remote}]/{path}  | Direct file/directory access     |
+
+## Example Request
 
 ```bash
-# Generate Ed25519 private key
-openssl genpkey -algorithm ed25519 -out private.pem
-# Extract the public key
-openssl pkey -in private.pem -pubout -out public.pem
+curl -X POST http://localhost:8080/api/v1/rclone/operations/list \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fs": "mys3:",
+    "remote": "backups/daily"
+  }'
 ```
 
-_(Note: When setting the environment variables, you must provide the raw, multiline PEM strings.)_
+## Example Response
 
-### 3. Environment Variables
-
-Create a `.env` file in the `apps/web-api` directory with the following variables:
-
-```env
-# Encryption key for MongoDB configs (must be a strong secret)
-RCLONE_CONFIG_MONGO_KEY=super-secret-aes-key-change-me
-
-# MongoDB Connection
-RCLONE_CONFIG_MONGO_URI=mongodb://localhost:27017
-RCLONE_CONFIG_MONGO_DB=rclone
-RCLONE_CONFIG_MONGO_COL=configs
-
-# Comma-separated list of allowed Google Account Subject IDs (Required for access)
-AUTH_ALLOWED_GOOGLE_IDS=10123456789,10987654321
-
-# Google OAuth2 Credentials
-AUTH_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
-AUTH_GOOGLE_CLIENT_SECRET=your-google-client-secret
-AUTH_GOOGLE_REDIRECT_URL=http://localhost:3000/auth/v1/google/callback
-
-# Server port
-LISTEN_ADDR=:3000
-
-# The URL to the frontend application
-CORS_ALLOWED_URLS=http://localhost:4200
-
-# Telemetry (OpenTelemetry configurations for New Relic or other OTLP providers)
-OTEL_SERVICE_NAME=rclone-cloud-web-api-local
-OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.nr-data.net:4318
-OTEL_EXPORTER_OTLP_HEADERS=api-key=YOUR_NR_LICENSE_KEY
-
-# JWT Keys (Ensure formatting is preserved if exporting via bash, or just paste the multi-line string into your deployment environment)
-AUTH_JWT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
-AUTH_JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n..."
+```json
+{
+  "list": [
+    {
+      "Path": "db_dump.sql",
+      "Name": "db_dump.sql",
+      "Size": 450231,
+      "MimeType": "application/sql",
+      "IsDir": false
+    }
+  ]
+}
 ```
 
-### 4. Telemetry Configuration
+## Error Handling
 
-The API uses OpenTelemetry for tracing. To hook it up to **New Relic**, set the following as environment variables:
+Example error response:
 
-- `OTEL_SERVICE_NAME`: The name of your service as it will appear in New Relic.
-- `OTEL_EXPORTER_OTLP_ENDPOINT`: The New Relic OTLP/HTTP endpoint (e.g., `https://otlp.nr-data.net:4318` for US or `https://otlp.eu.nr-data.net:4318` for EU).
-- `OTEL_EXPORTER_OTLP_HEADERS`: Must include your New Relic License Key (e.g., `api-key=YOUR_LICENSE_KEY`).
-
----
-
----
-
-## 💻 Development
-
-### Running Locally
-
-To run the server locally on your machine:
-
-```shell
-# Download dependencies
-go mod download
-
-# Run the API
-go run .
+```json
+{
+  "error": "unauthorized access for user id: 1015389426"
+}
 ```
 
-### Running Tests
+## Testing
 
-The test suite utilizes `testcontainers-go` to spin up ephemeral MongoDB instances to ensure the configuration storage and retrieval logic is fully tested. Ensure Docker is running locally before running the tests.
+Run unit and integration tests with:
 
-```shell
-# Run all tests with race detection
-go test -v -race ./...
-
-# View coverage
-go test -coverprofile=coverage.out ./...
-go tool cover -html=coverage.out
+```bash
+go test -v ./...
 ```
 
-### Running Linting
+## Observability
 
-We use `golangci-lint` to maintain code quality:
+- Metrics/Tracing: OpenTelemetry (OTLP) integrated for request tracking and performance monitoring.
+- Logs: Structured logging via standard output, compatible with cloud logging providers.
 
-```shell
-golangci-lint run ./...
-```
+## Deployment
 
----
+Deploy as a stateless container to Kubernetes, ECS, or similar platforms. Ensure the MongoDB instance is accessible and environment variables for encryption keys and OAuth2 are correctly provisioned via secrets management.
 
-## 🐳 Docker Deployment
+## Security Notes
 
-The API is bundled with a `Dockerfile` for seamless deployment.
+- Do not commit secrets or `.env` files to source control
+- Regularly rotate the `RCLONE_CONFIG_MONGO_KEY` and JWT asymmetric keys
+- Enforce HTTPS for all non-local traffic
+- Maintain a strict `AUTH_ALLOWED_GOOGLE_IDS` allowlist
 
-**1. Build the image:**
+## Roadmap
 
-```shell
-docker build -t rclone-cloud-web-api .
-```
+- [ ] Implement rate limiting for each endpoint
+- [ ] Generate OpenAPI documentation from route definitions
+- [ ] Implement health check endpoint (`/health`)
 
-**2. Run the container:**
-Make sure you pass in the `.env` file containing your secrets.
+## Contributing
 
-```shell
-docker run -d \
-  --name rclone-api \
-  --env-file .env \
-  -p 3000:3000 \
-  rclone-cloud-web-api
-```
+Please open an issue to discuss proposed changes before submitting a pull request. Ensure all contributions include appropriate unit tests and adhere to the project's Go linting standards.

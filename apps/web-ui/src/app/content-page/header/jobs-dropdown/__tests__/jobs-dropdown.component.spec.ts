@@ -59,8 +59,8 @@ describe('JobsDropdownComponent', () => {
 
     const jobDetails = fixture.nativeElement.querySelector('[data-testid="job-details"]');
     expect(jobDetails.children.length).toBe(2);
-    expect(jobDetails.children[0].textContent).toContain('Moving Documents to 2010');
-    expect(jobDetails.children[1].textContent).toContain('Moved Documents to 2010');
+    expect(jobDetails.children[0].textContent).toContain('Moving file Documents to 2010');
+    expect(jobDetails.children[1].textContent).toContain('Moved folder Documents to 2010');
   });
 
   it('should render the spinner icon when there are ongoing jobs', () => {

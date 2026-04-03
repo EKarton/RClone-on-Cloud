@@ -73,17 +73,21 @@
             <span class="loading loading-spinner size-5"></span>
             <span class="whitespace-nowrap">
               @if (job.kind === 'upload-file') {
-                Uploading {{ job.file.name }}
+                Uploading file {{ job.file.name }}
               } @else if (job.kind === 'delete-file') {
-                Deleting {{ job.path }}
+                Deleting file {{ job.path }}
               } @else if (job.kind === 'delete-folder') {
-                Deleting {{ job.path }}
+                Deleting folder {{ job.path }}
               } @else if (job.kind === 'move-file') {
-                Moving {{ job.fromPath }} to {{ job.toPath }}
+                Moving file {{ job.fromPath }} to {{ job.toPath }}
               } @else if (job.kind === 'move-folder') {
-                Moving {{ job.fromPath }} to {{ job.toPath }}
+                Moving folder {{ job.fromPath }} to {{ job.toPath }}
               } @else if (job.kind === 'mkdir') {
-                Creating {{ job.dirPath }}
+                Creating folder {{ job.dirPath }}
+              } @else if (job.kind === 'copy-file') {
+                Copying file {{ job.fromPath }} to {{ job.toPath }}
+              } @else if (job.kind === 'copy-folder') {
+                Copying folder {{ job.fromPath }} to {{ job.toPath }}
               }
             </span>
           </span>
@@ -114,6 +118,12 @@
                 Failed to move {{ job.fromPath }} to {{ job.toPath }}
               } @else if (job.kind === 'move-folder') {
                 Failed to move {{ job.fromPath }} to {{ job.toPath }}
+              } @else if (job.kind === 'copy-file') {
+                Failed to copy {{ job.fromPath }} to {{ job.toPath }}
+              } @else if (job.kind === 'copy-folder') {
+                Failed to copy {{ job.fromPath }} to {{ job.toPath }}
+              } @else if (job.kind === 'mkdir') {
+                Failed to create folder {{ job.dirPath }}
               }
             </span>
           </span>
