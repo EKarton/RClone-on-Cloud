@@ -55,6 +55,12 @@ export interface CopyFolderRequest {
   createEmptySrcDirs: boolean;
 }
 
+export interface MkdirRequest {
+  kind: 'mkdir';
+  remote: string;
+  dirPath: string;
+}
+
 export type JobRequest =
   | UploadFileRequest
   | DeleteFileRequest
@@ -62,7 +68,8 @@ export type JobRequest =
   | MoveFileRequest
   | MoveFolderRequest
   | CopyFileRequest
-  | CopyFolderRequest;
+  | CopyFolderRequest
+  | MkdirRequest;
 
 /** The type defs of this NgRx store. */
 export interface JobState {

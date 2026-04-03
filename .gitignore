@@ -36,3 +36,6 @@ rclone.conf
 .DS_Store
 tmp/
 .vscode/
+
+rclone-cloud
+rclone-cloud-web-api

@@ -16,6 +16,7 @@ import { ListFolderItem, ListFolderResponse } from '../../services/web-api/types
 import { dialogsActions } from '../../store/dialogs';
 import { REMOTE_PATH$ } from '../folder-list-view.tokens';
 import { FolderItemActionsDropdownComponent } from '../folder-item-actions-dropdown/folder-item-actions-dropdown.component';
+import { NoContentMessageComponent } from '../no-content-message/no-content-message.component';
 
 interface Item extends ListFolderItem {
   onClick: () => void;
@@ -30,6 +31,7 @@ interface Item extends ListFolderItem {
     HasFailedPipe,
     IsPendingPipe,
     FolderItemActionsDropdownComponent,
+    NoContentMessageComponent,
   ],
   templateUrl: './folder-list-cards.component.html',
 })

@@ -1,9 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, ElementRef, inject, viewChild } from '@angular/core';
 import { REMOTE_PATH$ } from '../folder-list-view.tokens';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { WebApiService } from '../../services/web-api/web-api.service';
-import { hasFailed, hasSucceed } from '../../../shared/results/results';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { jobsActions } from '../../store/jobs';
@@ -19,9 +18,7 @@ export class AddItemsDropdownComponent {
   readonly folderInput = viewChild<ElementRef<HTMLInputElement>>('folderInput');
   readonly createFolderDialog = viewChild<ElementRef<HTMLDialogElement>>('createFolderDialog');
 
-  private readonly webApiService = inject(WebApiService);
   private readonly remotePath = toSignal(inject(REMOTE_PATH$));
-  private readonly destroyRef = inject(DestroyRef);
   private readonly store = inject(Store);
 
   newFolderName = '';
@@ -109,6 +106,7 @@ export class AddItemsDropdownComponent {
     if (!folderName) {
       return;
     }
+
     const remotePath = this.remotePath();
     if (!remotePath) {
       return;
@@ -116,16 +114,15 @@ export class AddItemsDropdownComponent {
 
     const dirPath = this.joinRemotePath(remotePath.path ?? '', folderName);
 
-    this.webApiService
-      .mkdir(remotePath.remote, dirPath)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((result) => {
-        if (hasSucceed(result)) {
-          console.log('Folder created:', dirPath);
-        } else if (hasFailed(result)) {
-          console.error('Failed to create folder:', result.error);
-        }
-      });
+    this.store.dispatch(
+      jobsActions.submitJob({
+        request: {
+          kind: 'mkdir',
+          remote: remotePath.remote,
+          dirPath,
+        },
+      }),
+    );
   }
 
   private getWebkitRelativePath(file: File): string {

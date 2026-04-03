@@ -71,6 +71,14 @@ describe('FolderListTableComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="table-row-error"]')).toBeTruthy();
   });
 
+  it('should render no content message when content results are empty', () => {
+    const fixture = TestBed.createComponent(FolderListTableComponent);
+    fixture.componentRef.setInput('contentsResult', toSuccess<ListFolderResponse>({ items: [] }));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="no-content-message"]')).toBeTruthy();
+  });
+
   it('should render correctly when items are loaded', () => {
     const fixture = TestBed.createComponent(FolderListTableComponent);
     fixture.componentRef.setInput(

@@ -50,6 +50,14 @@ describe('FolderListCardsComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="item-skeleton"]')).toBeTruthy();
   });
 
+  it('should render no content message when content results are empty', () => {
+    fixture.componentRef.setInput('sortBy', 'name');
+    fixture.componentRef.setInput('contentsResult', toSuccess({ items: [] }));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="no-content-message"]')).toBeTruthy();
+  });
+
   it('should render error when content results failed', () => {
     fixture.componentRef.setInput('sortBy', 'name');
     fixture.componentRef.setInput('contentsResult', toFailure(new Error('test')));

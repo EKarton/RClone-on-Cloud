@@ -59,6 +59,8 @@
                 Moved {{ job.fromPath }} to {{ job.toPath }}
               } @else if (job.kind === 'move-folder') {
                 Moved {{ job.fromPath }} to {{ job.toPath }}
+              } @else if (job.kind === 'mkdir') {
+                Created {{ job.dirPath }}
               }
             </span>
           </span>
@@ -76,6 +78,8 @@
                 Moving {{ job.fromPath }} to {{ job.toPath }}
               } @else if (job.kind === 'move-folder') {
                 Moving {{ job.fromPath }} to {{ job.toPath }}
+              } @else if (job.kind === 'mkdir') {
+                Creating {{ job.dirPath }}
               }
             </span>
           </span>

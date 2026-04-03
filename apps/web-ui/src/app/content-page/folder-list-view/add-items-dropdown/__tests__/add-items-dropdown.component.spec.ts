@@ -201,7 +201,15 @@ describe('AddItemsDropdownComponent', () => {
     form.dispatchEvent(new Event('submit'));
     fixture.detectChanges();
 
-    expect(webApiService.mkdir).toHaveBeenCalledWith('my-remote', '/base/path/new-folder');
+    expect(store.dispatch).toHaveBeenCalledWith(
+      jobsActions.submitJob({
+        request: {
+          kind: 'mkdir',
+          remote: 'my-remote',
+          dirPath: '/base/path/new-folder',
+        },
+      }),
+    );
   });
 
   it('should trim the folder name before calling mkdir', async () => {
@@ -218,7 +226,15 @@ describe('AddItemsDropdownComponent', () => {
     form.dispatchEvent(new Event('submit'));
     fixture.detectChanges();
 
-    expect(webApiService.mkdir).toHaveBeenCalledWith('my-remote', '/base/path/new-folder');
+    expect(store.dispatch).toHaveBeenCalledWith(
+      jobsActions.submitJob({
+        request: {
+          kind: 'mkdir',
+          remote: 'my-remote',
+          dirPath: '/base/path/new-folder',
+        },
+      }),
+    );
   });
 
   it('should not call mkdir when the folder name is blank', async () => {
@@ -235,6 +251,6 @@ describe('AddItemsDropdownComponent', () => {
     form.dispatchEvent(new Event('submit'));
     fixture.detectChanges();
 
-    expect(webApiService.mkdir).not.toHaveBeenCalled();
+    expect(store.dispatch).not.toHaveBeenCalled();
   });
 });

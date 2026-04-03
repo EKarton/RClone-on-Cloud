@@ -14,6 +14,31 @@
       <div class="flex flex-wrap gap-4">
         @for (remote of remotesResult.data!.remotes; track remote) {
           <app-remote-card [remote]="remote"></app-remote-card>
+        } @empty {
+          <div
+            data-testid="remotes-empty"
+            class="flex w-full items-center justify-center px-4 py-10"
+          >
+            <div class="max-w-2xl text-center">
+              <h2 class="mb-3 text-2xl font-semibold">No remotes found</h2>
+
+              <p class="mb-6 text-base-content/70">To add a remote, run:</p>
+
+              <div class="mockup-code text-left">
+                <pre class="whitespace-pre-wrap break-words">
+                  <code>export MONGO_URL=mongodb+srv://...</code>
+                </pre>
+                <pre class="whitespace-pre-wrap break-words">
+                  <code>export MONGO_KEY=...</code>
+                </pre>
+                <pre class="whitespace-pre-wrap break-words">
+                  <code>rclone-cloud config</code>
+                </pre>
+              </div>
+
+              <p class="mt-6 text-base-content/70">and follow the instructions there.</p>
+            </div>
+          </div>
         }
       </div>
     }

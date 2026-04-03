@@ -51,6 +51,7 @@ export class WebApiService {
     );
   }
 
+  /** Creates a folder on a remote */
   mkdir(remote: string, dirPath: string): Observable<Result<void>> {
     const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/mkdir`;
     const requestBody = {
@@ -58,6 +59,17 @@ export class WebApiService {
       remote: dirPath,
     };
     return this.post<void>(url, requestBody);
+  }
+
+  /** Creates a folder on a remote asynchronously */
+  mkdirAsync(remote: string, dirPath: string): Observable<Result<AsyncJobResponse>> {
+    const url = `${environment.webApiEndpoint}/api/v1/rclone/operations/mkdir`;
+    const requestBody = {
+      fs: `${remote}:`,
+      remote: dirPath,
+      _async: true,
+    };
+    return this.post<AsyncJobResponse>(url, requestBody);
   }
 
   /** Lists the contents of a folder */

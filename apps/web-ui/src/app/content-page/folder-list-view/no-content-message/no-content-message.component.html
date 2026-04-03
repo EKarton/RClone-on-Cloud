@@ -1,0 +1,43 @@
+@if (isAtRoot$ | async) {
+  <div data-testid="no-items-at-root" class="flex w-full items-center justify-center">
+    <div class="max-w-2xl text-center">
+      <h2 class="mb-3 text-xl font-semibold">There is nothing in this remote.</h2>
+
+      <p class="mb-6 text-base-content/70">
+        You can click on the + button to upload new content, or run this command to add contents to
+        this remote:
+      </p>
+
+      <div class="mockup-code text-left">
+        <pre
+          class="whitespace-pre-wrap break-words"
+        ><code>export MONGO_URL=mongodb+srv://...</code></pre>
+        <pre class="whitespace-pre-wrap break-words"><code>export MONGO_KEY=...</code></pre>
+        <pre
+          class="whitespace-pre-wrap break-words"
+        ><code>rclone-cloud sync /path/to/folder {{ remoteName$ | async }}:</code></pre>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div data-testid="no-items-in-folder" class="flex w-full items-center justify-center">
+    <div class="max-w-2xl text-center">
+      <h2 class="mb-3 text-xl font-semibold">There is nothing in this folder.</h2>
+
+      <p class="mb-6 text-base-content/70">
+        You can click on the + button to upload new content, or run this command to add contents to
+        this folder:
+      </p>
+
+      <div class="mockup-code text-left">
+        <pre
+          class="whitespace-pre-wrap break-words"
+        ><code>export MONGO_URL=mongodb+srv://...</code></pre>
+        <pre class="whitespace-pre-wrap break-words"><code>export MONGO_KEY=...</code></pre>
+        <pre
+          class="whitespace-pre-wrap break-words"
+        ><code>rclone-cloud sync /path/to/folder {{ remoteName$ | async }}:{{ currentPath$ | async }}</code></pre>
+      </div>
+    </div>
+  </div>
+}

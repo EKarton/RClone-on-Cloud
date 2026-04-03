@@ -15,6 +15,7 @@ import { FileViewerRequest } from '../../file-viewer/file-viewer.request';
 import { ListFolderResponse } from '../../services/web-api/types/list-folder';
 import { dialogsActions } from '../../store/dialogs';
 import { REMOTE_PATH$ } from '../folder-list-view.tokens';
+import { NoContentMessageComponent } from '../no-content-message/no-content-message.component';
 
 export type SortField = 'name' | 'lastModified' | 'size' | 'mimeType';
 export type SortDirection = 'asc' | 'desc';
@@ -36,7 +37,14 @@ interface Item {
 @Component({
   standalone: true,
   selector: 'app-folder-list-table',
-  imports: [CommonModule, RouterModule, HasFailedPipe, IsPendingPipe, RangePipe],
+  imports: [
+    CommonModule,
+    RouterModule,
+    HasFailedPipe,
+    IsPendingPipe,
+    RangePipe,
+    NoContentMessageComponent,
+  ],
   templateUrl: './folder-list-table.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

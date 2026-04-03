@@ -62,4 +62,19 @@ describe('RemotesViewComponent', () => {
     const errorMessage = fixture.nativeElement.querySelector('[data-testid="remotes-error"]');
     expect(errorMessage.textContent).toContain('Error: API Error');
   });
+
+  it('should display a no remotes found message when there are no remotes to be found', () => {
+    const mockResponse: ListRemotesResponse = {
+      remotes: [],
+    };
+    webApiService.listRemotes.mockReturnValue(of(toSuccess(mockResponse)));
+
+    const fixture = TestBed.createComponent(RemotesViewComponent);
+    fixture.detectChanges();
+
+    const noRemotesFoundMessage = fixture.nativeElement.querySelector(
+      '[data-testid="remotes-empty"]',
+    );
+    expect(noRemotesFoundMessage).toBeTruthy();
+  });
 });

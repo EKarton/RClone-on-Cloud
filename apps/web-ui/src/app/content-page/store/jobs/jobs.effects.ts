@@ -103,6 +103,8 @@ export class JobsEffects {
           request.toPath,
           request.createEmptySrcDirs,
         );
+      case 'mkdir':
+        return this.webApiService.mkdirAsync(request.remote, request.dirPath);
       default:
         return throwError(() => new Error(`Job request type ${request.kind} not implemented`));
     }

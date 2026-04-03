@@ -198,6 +198,28 @@ describe('WebApiService', () => {
     });
   });
 
+  describe('mkdirAsync', () => {
+    it('should make an async POST request to create a folder', () => {
+      const mockResponse = { jobid: 123 };
+      const emissions: Result<AsyncJobResponse>[] = [];
+      service.mkdirAsync('my-remote', 'my-dir').subscribe((response) => {
+        emissions.push(response);
+      });
+
+      const req = httpMock.expectOne(
+        `${environment.webApiEndpoint}/api/v1/rclone/operations/mkdir`,
+      );
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({
+        fs: 'my-remote:',
+        remote: 'my-dir',
+        _async: true,
+      });
+      req.flush(mockResponse);
+      expect(emissions).toEqual([toPending(), toSuccess(mockResponse)]);
+    });
+  });
+
   describe('deleteFileAsync', () => {
     it('should make an async POST request to delete a file', () => {
       const mockResponse = { jobid: 123 };
