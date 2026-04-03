@@ -76,7 +76,7 @@ describe('FolderListTableComponent', () => {
     fixture.componentRef.setInput('contentsResult', toSuccess<ListFolderResponse>({ items: [] }));
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('[data-testid="no-content-message"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-no-content-message')).toBeTruthy();
   });
 
   it('should render correctly when items are loaded', () => {

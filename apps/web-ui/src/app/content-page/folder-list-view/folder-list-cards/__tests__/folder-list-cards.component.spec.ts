@@ -55,7 +55,7 @@ describe('FolderListCardsComponent', () => {
     fixture.componentRef.setInput('contentsResult', toSuccess({ items: [] }));
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('[data-testid="no-content-message"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-no-content-message')).toBeTruthy();
   });
 
   it('should render error when content results failed', () => {
