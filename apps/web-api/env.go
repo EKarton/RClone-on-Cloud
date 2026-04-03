@@ -26,7 +26,6 @@ type Env struct {
 
 	OtelServiceName      string
 	OtelServiceVersion   string
-	OtelEnvironment      string
 	OtelExporterEndpoint string
 	OtelExporterHeaders  string
 }
@@ -75,7 +74,6 @@ func LoadEnv() Env {
 		CORSAllowedURLs:      corsAllowedURLs,
 		OtelServiceName:      getEnv("OTEL_SERVICE_NAME", "rclone-cloud-web-api"),
 		OtelServiceVersion:   getEnv("OTEL_SERVICE_VERSION", "1.0.0"),
-		OtelEnvironment:      getEnv("OTEL_ENVIRONMENT", "development"),
 		OtelExporterEndpoint: os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
 		OtelExporterHeaders:  os.Getenv("OTEL_EXPORTER_OTLP_HEADERS"),
 	}

@@ -21,7 +21,6 @@ import (
 type Config struct {
 	ServiceName    string
 	ServiceVersion string
-	Environment    string
 	Endpoint       string
 	Headers        string // comma-separated pairs: key=value,key=value
 }
@@ -60,7 +59,6 @@ func InitTelemetry(ctx context.Context, cfg Config) func(context.Context) error 
 			resource.Default().SchemaURL(),
 			semconv.ServiceName(cfg.ServiceName),
 			semconv.ServiceVersion(cfg.ServiceVersion),
-			semconv.DeploymentEnvironment(cfg.Environment),
 		),
 	)
 	if err != nil {

@@ -30,7 +30,6 @@ func main() {
 	shutdown := telemetry.InitTelemetry(ctx, telemetry.Config{
 		ServiceName:    env.OtelServiceName,
 		ServiceVersion: env.OtelServiceVersion,
-		Environment:    env.OtelEnvironment,
 		Endpoint:       env.OtelExporterEndpoint,
 		Headers:        env.OtelExporterHeaders,
 	})

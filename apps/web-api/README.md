@@ -69,7 +69,7 @@ LISTEN_ADDR=:3000
 CORS_ALLOWED_URLS=http://localhost:4200
 
 # Telemetry (OpenTelemetry configurations for New Relic or other OTLP providers)
-OTEL_SERVICE_NAME=rclone-cloud-web-api
+OTEL_SERVICE_NAME=rclone-cloud-web-api-local
 OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.nr-data.net:4318
 OTEL_EXPORTER_OTLP_HEADERS=api-key=YOUR_NR_LICENSE_KEY
 
