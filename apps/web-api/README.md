@@ -62,8 +62,11 @@ AUTH_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 AUTH_GOOGLE_CLIENT_SECRET=your-google-client-secret
 AUTH_GOOGLE_REDIRECT_URL=http://localhost:3000/auth/v1/google/callback
 
-# Server Configuration
+# Server port
 LISTEN_ADDR=:3000
+
+# The URL to the frontend application
+CORS_ALLOWED_URLS=http://localhost:4200
 
 # Telemetry (OpenTelemetry configurations for New Relic or other OTLP providers)
 OTEL_SERVICE_NAME=rclone-cloud-web-api
