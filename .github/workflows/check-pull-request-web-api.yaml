@@ -7,14 +7,8 @@ name: Check pull request on Web API
 on:
   push:
     branches: [main]
-    paths:
-      - "apps/web-api/**"
-      - ".github/workflows/check-pull-request-web-api.yaml"
   pull_request:
     branches: [main]
-    paths:
-      - "apps/web-api/**"
-      - ".github/workflows/check-pull-request-web-api.yaml"
 
 jobs:
   build:

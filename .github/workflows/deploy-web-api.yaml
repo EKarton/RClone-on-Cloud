@@ -1,0 +1,33 @@
+##################################################################
+# A Github action used to deploy the Web API
+##################################################################
+
+name: Deploy Web API
+on:
+  workflow_run:
+    workflows: ["Publish Web API"]
+    types:
+      - completed
+
+jobs:
+  deploy-env-1:
+    name: Deploy to Environment 1
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy web app to environment 1
+        run: |
+          curl -f -X POST "${{ secrets.DEPLOY_ENV_1_HOOK_URL }}"
+
+  deploy-env-2:
+    name: Deploy to Environment 2
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy web app to environment 2
+        run: |
+          curl -f -X POST "${{ secrets.DEPLOY_ENV_2_HOOK_URL }}"
