@@ -40,7 +40,7 @@ It stores your RClone configs in MongoDB with AES-256-GCM encryption, and listen
 3. Migrate your rclone config file by running:
 
    ```bash
-   ./rclone-cloud migrate --from-file ~/.config/rclone/rclone.conf
+   ./rclone-cloud migrate --from-file ./rclone.conf
    ```
 
 4. Run any RClone command like you would with the RClone CLI, such as:
@@ -67,10 +67,10 @@ It stores your RClone configs in MongoDB with AES-256-GCM encryption, and listen
 ./rclone-cloud sync ./local-folder my-remote:cloud-folder -P
 
 # Migrate your rclone config file to MongoDB with AES-256-GCM encryption
-./rclone-cloud migrate --from-file <path>
+./rclone-cloud migrate --from-file ./rclone.conf
 
 # Export configurations to a file
-./rclone-cloud dump --to-file <path>
+./rclone-cloud dump --to-file ./exported-rclone.conf
 
 # Show help
 ./rclone-cloud --help
