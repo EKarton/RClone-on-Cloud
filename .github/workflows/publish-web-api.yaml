@@ -19,6 +19,11 @@ jobs:
     name: Build, package, and publish the Web API to Docker Hub
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: "Checkout GitHub Action"
         uses: actions/checkout@main
 

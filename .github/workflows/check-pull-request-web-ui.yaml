@@ -10,11 +10,19 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   check-linting:
     name: Check for linting errors in Web UI
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: Checkout branch
         uses: actions/checkout@v4
 
@@ -33,6 +41,11 @@ jobs:
     name: Runs all tests in Web UI
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: Checkout branch
         uses: actions/checkout@v4
 
@@ -51,6 +64,11 @@ jobs:
     name: Builds the Web UI app
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: Checkout branch
         uses: actions/checkout@v4
 

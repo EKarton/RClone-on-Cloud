@@ -17,6 +17,11 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: Deploy web app to demo environment
         run: |
           curl -f -X POST "${{ secrets.DEPLOY_DEMO_ENV_HOOK_URL }}"
@@ -28,6 +33,11 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: Deploy web app to production environment
         run: |
           curl -f -X POST "${{ secrets.DEPLOY_PROD_ENV_HOOK_URL }}"
