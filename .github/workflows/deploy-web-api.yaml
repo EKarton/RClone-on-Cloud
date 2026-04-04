@@ -10,24 +10,24 @@ on:
       - completed
 
 jobs:
-  deploy-env-1:
-    name: Deploy to Environment 1
+  deploy-demo-env:
+    name: Deploy to Demo Environment
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: read
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy web app to environment 1
+      - name: Deploy web app to demo environment
         run: |
-          curl -f -X POST "${{ secrets.DEPLOY_ENV_1_HOOK_URL }}"
+          curl -f -X POST "${{ secrets.DEPLOY_DEMO_ENV_HOOK_URL }}"
 
-  deploy-env-2:
-    name: Deploy to Environment 2
+  deploy-prod-env:
+    name: Deploy to Production Environment
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: read
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy web app to environment 2
+      - name: Deploy web app to production environment
         run: |
-          curl -f -X POST "${{ secrets.DEPLOY_ENV_2_HOOK_URL }}"
+          curl -f -X POST "${{ secrets.DEPLOY_PROD_ENV_HOOK_URL }}"
