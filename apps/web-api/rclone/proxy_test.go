@@ -62,6 +62,8 @@ func TestRCloneAPIHandler(t *testing.T) {
 			RegisteredClaims: jwt.RegisteredClaims{
 				ExpiresAt: jwt.NewNumericDate(expTime),
 				IssuedAt:  jwt.NewNumericDate(time.Now()),
+				Issuer:    "rclone-cloud-api",
+				Audience:  jwt.ClaimStrings{"rclone-cloud-ui"},
 			},
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)

@@ -83,6 +83,8 @@ func SignToken(privateKey any, ttl time.Duration, userID, email string) (string,
 			IssuedAt:  jwtv5.NewNumericDate(now),
 			ExpiresAt: jwtv5.NewNumericDate(now.Add(ttl)),
 			Subject:   userID,
+			Issuer:    "rclone-cloud-api",
+			Audience:  jwtv5.ClaimStrings{"rclone-cloud-ui"},
 		},
 	}
 
@@ -115,7 +117,7 @@ func VerifyToken(raw string, publicKey any) (*Claims, error) {
 			}
 		}
 		return publicKey, nil
-	})
+	}, jwtv5.WithIssuer("rclone-cloud-api"), jwtv5.WithAudience("rclone-cloud-ui"))
 
 	if err != nil {
 		return nil, err
