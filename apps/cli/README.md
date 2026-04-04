@@ -14,6 +14,8 @@ It stores your RClone configs in MongoDB with AES-256-GCM encryption, and listen
 ## Requirements
 
 - Go
+- A connection string to your MongoDB instance
+- Your 32 character MongoDB encryption key
 - Docker (not needed if you are not running test cases)
 - golangci-lint (not needed if you are not running linting)
 
@@ -31,7 +33,7 @@ It stores your RClone configs in MongoDB with AES-256-GCM encryption, and listen
 2. Set the environment variables:
 
    ```bash
-   export MONGO_URL="mongodb+srv://admin:password@cluster.mongodb.net/yourdb"
+   export MONGO_URL="mongodb+srv://..."
    export MONGO_KEY="your-32-character-encryption-key"
    ```
 
