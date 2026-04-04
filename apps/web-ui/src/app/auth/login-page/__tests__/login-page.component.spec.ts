@@ -73,7 +73,7 @@ describe('LoginPageComponent', () => {
       '/',
       undefined,
       true,
-      'None',
+      'Lax',
     );
     expect(cookieService.set).toHaveBeenCalledWith(
       'oauth_verifier',
@@ -82,7 +82,7 @@ describe('LoginPageComponent', () => {
       '/',
       undefined,
       true,
-      'None',
+      'Lax',
     );
   });
 });

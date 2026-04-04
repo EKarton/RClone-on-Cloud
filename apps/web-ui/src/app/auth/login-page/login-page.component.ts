@@ -20,8 +20,8 @@ export class LoginPageComponent implements OnInit {
     const codeVerifier = generateCodeVerifier();
     const codeChallenge = await generateCodeChallenge(codeVerifier);
 
-    this.cookieService.set('oauth_state', state, 300, '/', undefined, true, 'None');
-    this.cookieService.set('oauth_verifier', codeVerifier, 300, '/', undefined, true, 'None');
+    this.cookieService.set('oauth_state', state, 300, '/', undefined, true, 'Lax');
+    this.cookieService.set('oauth_verifier', codeVerifier, 300, '/', undefined, true, 'Lax');
 
     this.window.location.href = `${environment.loginUrl}?select_account=true&state=${state}&code_challenge_method=S256&challenge=${codeChallenge}`;
   }
