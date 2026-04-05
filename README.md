@@ -101,7 +101,7 @@ It also provides a mobile-responsive interface for managing your files on the go
    RCLONE_CONFIG_MONGO_DB=rclone
    RCLONE_CONFIG_MONGO_COL=configs
 
-   AUTH_GOOGLE_CLIENT_ID=<your-google-oauth-client-id>
+   AUTH_GOOGLE_CLIENT_ID=123
    AUTH_GOOGLE_CLIENT_SECRET=<your-google-oauth-client-secret>
    AUTH_ALLOWED_GOOGLE_IDS=<your-google-id>
    AUTH_GOOGLE_REDIRECT_URL=http://localhost:4200/auth/v1/google/callback
@@ -118,6 +118,13 @@ It also provides a mobile-responsive interface for managing your files on the go
    ```bash
    go mod download
    go run .
+   ```
+
+   or run via Docker:
+
+   ```bash
+   docker build -t rclone-cloud-web-api .
+   docker run -d --name rclone-web-api --env-file .env rclone-cloud-web-api
    ```
 
 #### Set up the Web UI:
@@ -141,6 +148,16 @@ It also provides a mobile-responsive interface for managing your files on the go
    ```bash
    npm run dev
    ```
+
+5. Now, on your browser, go to http://localhost:4200. Log in, and you should get a 403. In the logs, there will be a message like `Unauthorized user: XYZ`. Copy-paste XYZ and set it to the `AUTH_GOOGLE_CLIENT_ID` environment variable in your web api's `.env` file like:
+
+   ```env
+   ...
+   AUTH_GOOGLE_CLIENT_ID=XYZ
+   ...
+   ```
+
+6. Restart the server (if you launched your server with Docker, run `docker stop rclone-web-api`) and re-login to the web page. You should see a blank page in the Remotes page.
 
 #### Set up the CLI:
 
