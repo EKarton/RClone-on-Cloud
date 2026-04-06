@@ -103,7 +103,7 @@ require (
 	github.com/creasty/defaults v1.8.0 // indirect
 	github.com/cronokirby/saferith v0.33.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/diskfs/go-diskfs v1.9.1 // indirect
+	github.com/diskfs/go-diskfs v1.7.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/docker v28.5.2+incompatible // indirect
 	github.com/docker/go-connections v0.6.0 // indirect
@@ -294,4 +294,4 @@ require (
 	storj.io/uplink v1.13.1 // indirect
 )
 
-replace github.com/ekarton/RClone-Cloud/apps/web-api => ../web-api
+replace github.com/ekarton/RClone-Cloud/apps/web-api => ./../web-api
