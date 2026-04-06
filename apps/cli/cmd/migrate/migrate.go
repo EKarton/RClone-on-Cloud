@@ -2,7 +2,6 @@ package migrate
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/rclone/rclone/fs/config"
@@ -11,10 +10,10 @@ import (
 
 // Migrate reads an rclone.conf file and copies all sections/keys into the
 // global MongoDB-backed config (already set up by initConfig).
-func Migrate(configPath string) {
+func Migrate(configPath string) error {
 	// 1. Read the source .conf file independently
 	if err := config.SetConfigPath(configPath); err != nil {
-		log.Fatalf("set config path: %v", err)
+		return fmt.Errorf("set config path: %w", err)
 	}
 
 	// Temporarily install file-based storage to parse the .conf,
@@ -27,8 +26,7 @@ func Migrate(configPath string) {
 	// 2. Copy every section + key from file → global config
 	sections := fileStore.GetSectionList()
 	if len(sections) == 0 {
-		log.Println("No sections found — nothing to migrate.")
-		return
+		return fmt.Errorf("no sections found in %s — nothing to migrate", configPath)
 	}
 
 	for _, section := range sections {
@@ -37,16 +35,17 @@ func Migrate(configPath string) {
 			value, _ := fileStore.GetValue(section, key)
 			mongoStore.SetValue(section, key, value)
 		}
-		log.Printf("✓ %s (%d keys)", section, len(keys))
+		fmt.Printf("✓ %s (%d keys)\n", section, len(keys))
 	}
 
 	// 3. Flush to MongoDB
 	if err := mongoStore.Save(); err != nil {
-		log.Fatalf("save to mongodb: %v", err)
+		return fmt.Errorf("save to mongodb: %w", err)
 	}
 
 	fmt.Printf("Done — %d remotes migrated.\n", len(sections))
 
 	// 4. Restore the config path (undo the temporary change)
 	_ = os.Setenv("RCLONE_CONFIG", "")
+	return nil
 }

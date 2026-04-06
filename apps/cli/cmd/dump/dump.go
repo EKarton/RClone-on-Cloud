@@ -2,7 +2,6 @@ package dump
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"sort"
 	"strings"
@@ -12,7 +11,7 @@ import (
 
 // Dump serializes the global rclone config (already loaded from MongoDB by
 // initConfig) to an INI-style file at filePath.
-func Dump(filePath string) {
+func Dump(filePath string) error {
 	store := config.Data()
 
 	sections := store.GetSectionList()
@@ -31,8 +30,9 @@ func Dump(filePath string) {
 	}
 
 	if err := os.WriteFile(filePath, []byte(b.String()), 0600); err != nil {
-		log.Fatalf("write file: %v", err)
+		return fmt.Errorf("write file: %w", err)
 	}
 
 	fmt.Printf("✓ Config dumped to %s (%d remotes)\n", filePath, len(sections))
+	return nil
 }

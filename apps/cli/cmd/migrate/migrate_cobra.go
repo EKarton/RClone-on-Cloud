@@ -7,9 +7,10 @@ import (
 var MigrateCmd = &cobra.Command{
 	Use:   "migrate",
 	Short: "Migrate an existing rclone.conf to MongoDB",
-	Run: func(cmd *cobra.Command, args []string) {
+	Long:  "Migrate an existing rclone.conf to MongoDB",
+	RunE: func(cmd *cobra.Command, args []string) error {
 		filePath, _ := cmd.Flags().GetString("from-file")
-		Migrate(filePath)
+		return Migrate(filePath)
 	},
 }
 

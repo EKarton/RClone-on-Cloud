@@ -5,13 +5,18 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"io"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
 	_ "github.com/rclone/rclone/backend/all"
 	_ "github.com/rclone/rclone/cmd/all"
+	"github.com/rclone/rclone/fs"
+	"github.com/rclone/rclone/fs/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	mongodbcontainer "github.com/testcontainers/testcontainers-go/modules/mongodb"
@@ -19,38 +24,95 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-func TestRootCommand_ListRemotes(t *testing.T) {
+func TestMain(m *testing.M) {
+	// Initialize the root command once for all tests in this package.
+	setupRootCommand(Root)
+	os.Exit(m.Run())
+}
+
+func setupTestMongo(t *testing.T) (uri string, keyHex string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
-	// 1. Start MongoDB testcontainer
 	container, err := mongodbcontainer.Run(ctx, "mongo:7.0")
 	require.NoError(t, err)
 
-	defer func() {
-		if err := container.Terminate(ctx); err != nil {
-			t.Fatalf("failed to terminate container: %s", err)
+	t.Cleanup(func() {
+		if err := container.Terminate(context.Background()); err != nil {
+			t.Logf("failed to terminate container: %s", err)
 		}
-	}()
+	})
 
-	uri, err := container.ConnectionString(ctx)
+	uri, err = container.ConnectionString(ctx)
 	require.NoError(t, err)
 
-	// 2. Set up MongoStorage with fake data
 	encryptionKey := make([]byte, 32)
 	_, err = rand.Read(encryptionKey)
 	require.NoError(t, err)
-	keyHex := hex.EncodeToString(encryptionKey)
+	keyHex = hex.EncodeToString(encryptionKey)
 
+	return uri, keyHex
+}
+
+// captureOutput captures everything written to os.Stdout during the execution of fn.
+func captureOutput(fn func()) (string, error) {
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	outChan := make(chan string)
+	go func() {
+		var buf bytes.Buffer
+		_, _ = io.Copy(&buf, r)
+		outChan <- buf.String()
+	}()
+
+	fn()
+
+	_ = w.Close()
+	os.Stdout = oldStdout
+	output := <-outChan
+	return output, nil
+}
+
+// execute runs the root command with given arguments, capturing output via captureOutput.
+// It safely handles rclone's internal os.Exit() calls which trigger a panic in tests.
+func execute(t *testing.T, args ...string) string {
+	t.Helper()
+	Root.SetArgs(args)
+
+	var output string
+	var err error
+
+	defer func() {
+		if r := recover(); r != nil {
+			if s, ok := r.(string); ok && strings.Contains(s, "unexpected call to os.Exit") {
+				// Intercepted os.Exit(0) or similar
+				return
+			}
+			panic(r)
+		}
+	}()
+
+	output, err = captureOutput(func() {
+		_ = Root.Execute()
+	})
+	require.NoError(t, err)
+	return output
+}
+
+func TestRootCommand_ListRemotes(t *testing.T) {
+	uri, keyHex := setupTestMongo(t)
+
+	ctx := context.Background()
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
 	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, client.Disconnect(ctx))
-	}()
+	t.Cleanup(func() {
+		_ = client.Disconnect(ctx)
+	})
 
 	databaseName := "rclone-test"
 	collectionName := "configs"
-
 	coll := client.Database(databaseName).Collection(collectionName)
 	storage, err := mongodb.New(coll, keyHex)
 	require.NoError(t, err)
@@ -60,40 +122,81 @@ func TestRootCommand_ListRemotes(t *testing.T) {
 	storage.SetValue("test-remote-2", "type", "drive")
 	require.NoError(t, storage.Save())
 
-	// 3. Set up CLI args & capture output
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
+	// Force the global config state to our MongoDB store for this test
+	config.SetData(storage)
+	t.Cleanup(func() { config.SetData(nil) })
 
-	// Overwrite STDOUT to capture output
-	oldStdout := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	// Build the command line arguments
-	Root.SetArgs([]string{
+	output := execute(t,
 		"listremotes",
 		"--mongo-url", uri,
 		"--mongo-key", keyHex,
 		"--mongo-db", databaseName,
 		"--mongo-col", collectionName,
-	})
+	)
 
-	// Make sure everything is initialized as it would be inside main.go
-	setupRootCommand(Root)
-	AddBackendFlags()
-
-	err = Root.Execute()
-
-	// Close writer to flush pipe, restore stdout
-	_ = w.Close()
-	os.Stdout = oldStdout
-
-	// Read captured output
-	var buf bytes.Buffer
-	_, _ = buf.ReadFrom(r)
-	output := buf.String()
-
-	require.NoError(t, err)
 	assert.Contains(t, output, "test-remote-1:")
 	assert.Contains(t, output, "test-remote-2:")
+}
+
+func TestRootCommand_Sync(t *testing.T) {
+	uri, keyHex := setupTestMongo(t)
+
+	ctx := context.Background()
+	client, err := mongo.Connect(options.Client().ApplyURI(uri))
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = client.Disconnect(ctx)
+	})
+
+	databaseName := "rclone-sync-test"
+	collectionName := "configs"
+	coll := client.Database(databaseName).Collection(collectionName)
+	storage, err := mongodb.New(coll, keyHex)
+	require.NoError(t, err)
+
+	// Inject an in-memory remote
+	storage.SetValue("mem-remote", "type", "memory")
+	require.NoError(t, storage.Save())
+
+	// Force the global config state to our MongoDB store
+	config.SetData(storage)
+	t.Cleanup(func() { config.SetData(nil) })
+
+	// Create local temporary files
+	tempDir := t.TempDir()
+	sourceDir := filepath.Join(tempDir, "src")
+	require.NoError(t, os.MkdirAll(sourceDir, 0755))
+	
+	require.NoError(t, os.WriteFile(filepath.Join(sourceDir, "file1.txt"), []byte("hello world"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(sourceDir, "file2.txt"), []byte("rclone cloud test"), 0644))
+
+	// Manually set package-level variables for initConfig to find
+	mongoURL = uri
+	mongoKey = keyHex
+	mongoDB = databaseName
+	mongoColl = collectionName
+
+	// Run sync command via the execute helper which catches os.Exit
+	commonFlags := []string{
+		"--mongo-url", uri,
+		"--mongo-key", keyHex,
+		"--mongo-db", databaseName,
+		"--mongo-col", collectionName,
+	}
+	_ = execute(t, append([]string{"sync", sourceDir, "mem-remote:/"}, commonFlags...)...)
+
+	// Verify using fs.NewFs and List
+	f, err := fs.NewFs(ctx, "mem-remote:/")
+	require.NoError(t, err)
+	
+	entries, err := f.List(ctx, "")
+	require.NoError(t, err)
+
+	var names []string
+	for _, entry := range entries {
+		names = append(names, entry.Remote())
+	}
+
+	assert.Contains(t, names, "file1.txt")
+	assert.Contains(t, names, "file2.txt")
 }

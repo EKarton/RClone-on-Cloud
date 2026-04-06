@@ -5,25 +5,34 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"runtime/pprof"
 	"sort"
 	"strings"
 
+	"github.com/ekarton/RClone-Cloud/apps/cli/cmd/dump"
+	"github.com/ekarton/RClone-Cloud/apps/cli/cmd/migrate"
+	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
 	rclonecmd "github.com/rclone/rclone/cmd"
 	"github.com/rclone/rclone/fs"
+	"github.com/rclone/rclone/fs/accounting"
+	"github.com/rclone/rclone/fs/config"
 	"github.com/rclone/rclone/fs/config/configflags"
 	"github.com/rclone/rclone/fs/config/flags"
 	"github.com/rclone/rclone/fs/filter"
 	"github.com/rclone/rclone/fs/filter/filterflags"
+	fslog "github.com/rclone/rclone/fs/log"
 	"github.com/rclone/rclone/fs/log/logflags"
+	"github.com/rclone/rclone/fs/rc"
 	"github.com/rclone/rclone/fs/rc/rcflags"
+	"github.com/rclone/rclone/fs/rc/rcserver"
 	"github.com/rclone/rclone/lib/atexit"
+	"github.com/rclone/rclone/lib/terminal"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-
-	"github.com/ekarton/RClone-Cloud/apps/cli/cmd/dump"
-	"github.com/ekarton/RClone-Cloud/apps/cli/cmd/migrate"
 )
 
 // Root is the main rclone command
@@ -49,15 +58,190 @@ var (
 	version        bool
 )
 
+// MongoDB connection flags
+var (
+	mongoURL  string
+	mongoKey  string
+	mongoDB   string
+	mongoColl string
+)
+
 // root help command
-var helpCommand = &cobra.Command{
-	Use:   "help",
-	Short: Root.Short,
-	Long:  Root.Long,
-	Run: func(command *cobra.Command, args []string) {
-		Root.SetOut(os.Stdout)
-		_ = Root.Usage()
-	},
+var (
+	backendFlags map[string]struct{}
+	helpCommand  = &cobra.Command{
+		Use:   "help",
+		Short: Root.Short,
+		Long:  Root.Long,
+		RunE: func(command *cobra.Command, args []string) error {
+			Root.SetOut(os.Stdout)
+			return Root.Usage()
+		},
+	}
+)
+
+// AddBackendFlags creates flags for all the backend options
+func AddBackendFlags() {
+	backendFlags = map[string]struct{}{}
+	for _, fsInfo := range fs.Registry {
+		flags.AddFlagsFromOptions(pflag.CommandLine, fsInfo.Prefix, fsInfo.Options)
+		// Store the backend flag names for the help generator
+		for i := range fsInfo.Options {
+			opt := &fsInfo.Options[i]
+			name := opt.FlagName(fsInfo.Prefix)
+			backendFlags[name] = struct{}{}
+		}
+	}
+}
+
+// initConfig is run by cobra after initialising the flags
+func initConfig() {
+	// Set the global options from the flags
+	err := fs.GlobalOptionsInit()
+	if err != nil {
+		fs.Fatalf(nil, "Failed to initialise global options: %v", err)
+	}
+
+	ctx := context.Background()
+	ci := fs.GetConfig(ctx)
+
+	// Start the logger
+	fslog.InitLogging()
+
+	// Finish parsing any command line flags
+	configflags.SetFlags(ci)
+
+	// Load the config from MongoDB
+	// Flag takes precedence over env var
+	mongoURI := mongoURL
+	if mongoURI == "" {
+		mongoURI = os.Getenv("MONGO_URL")
+	}
+	if mongoURI == "" {
+		fs.Fatalf(nil, "MongoDB URI is not set; use --mongo-url or MONGO_URL")
+	}
+	encKey := mongoKey
+	if encKey == "" {
+		encKey = os.Getenv("MONGO_KEY")
+	}
+	if encKey == "" {
+		fs.Fatalf(nil, "MongoDB encryption key is not set; use --mongo-key or MONGO_KEY")
+	}
+
+	mongoClient, err := mongo.Connect(options.Client().ApplyURI(mongoURI))
+	if err != nil {
+		fs.Fatalf(nil, "Failed to connect to MongoDB: %v", err)
+	}
+
+	mongoStore, err := mongodb.New(
+		mongoClient.Database(mongoDB).Collection(mongoColl),
+		encKey,
+	)
+	if err != nil {
+		fs.Fatalf(nil, "Failed to initialize MongoDB config storage: %v", err)
+	}
+	if err := mongoStore.Load(); err != nil {
+		fs.Fatalf(nil, "Failed to load config from MongoDB: %v", err)
+	}
+	config.SetData(mongoStore)
+
+	// Start watching for external config changes
+	if err := mongoStore.StartWatching(ctx); err != nil {
+		fs.Logf(nil, "Warning: could not start config change stream: %v", err)
+	}
+
+	// Register cleanup for MongoDB resources
+	atexit.Register(func() {
+		mongoStore.StopWatching()
+		if err := mongoClient.Disconnect(context.Background()); err != nil {
+			fs.Logf(nil, "mongo disconnect: %v", err)
+		}
+	})
+
+	// Start accounting
+	accounting.Start(ctx)
+
+	// Configure console
+	if ci.NoConsole {
+		// Hide the console window
+		terminal.HideConsole()
+	} else {
+		// Enable color support on stdout if possible.
+		// This enables virtual terminal processing on Windows 10,
+		// adding native support for ANSI/VT100 escape sequences.
+		terminal.EnableColorsStdout()
+	}
+
+	// Write the args for debug purposes
+	fs.Debugf("rclone-cloud", "Version %q starting with parameters %q", fs.Version, os.Args)
+
+	// Inform user about systemd log support now that we have a logger
+	if fslog.Opt.LogSystemdSupport {
+		fs.Debugf("rclone-cloud", "systemd logging support activated")
+	}
+
+	// Start the remote control server if configured
+	_, err = rcserver.Start(ctx, &rc.Opt)
+	if err != nil {
+		fs.Fatalf(nil, "Failed to start remote control: %v", err)
+	}
+
+	// Start the metrics server if configured and not running the "rc" command
+	if len(os.Args) >= 2 && os.Args[1] != "rc" {
+		_, err = rcserver.MetricsStart(ctx, &rc.Opt)
+		if err != nil {
+			fs.Fatalf(nil, "Failed to start metrics server: %v", err)
+		}
+	}
+
+	// Setup CPU profiling if desired
+	cpuProfileFlag := pflag.Lookup("cpuprofile")
+	if cpuProfileFlag != nil && cpuProfileFlag.Value.String() != "" {
+		cpuProfile := cpuProfileFlag.Value.String()
+		fs.Infof(nil, "Creating CPU profile %q\n", cpuProfile)
+		f, err := os.Create(cpuProfile)
+		if err != nil {
+			err = fs.CountError(ctx, err)
+			fs.Fatal(nil, fmt.Sprint(err))
+		}
+		err = pprof.StartCPUProfile(f)
+		if err != nil {
+			err = fs.CountError(ctx, err)
+			fs.Fatal(nil, fmt.Sprint(err))
+		}
+		atexit.Register(func() {
+			pprof.StopCPUProfile()
+			err := f.Close()
+			if err != nil {
+				err = fs.CountError(ctx, err)
+				fs.Fatal(nil, fmt.Sprint(err))
+			}
+		})
+	}
+
+	// Setup memory profiling if desired
+	memProfileFlag := pflag.Lookup("memprofile")
+	if memProfileFlag != nil && memProfileFlag.Value.String() != "" {
+		memProfile := memProfileFlag.Value.String()
+		atexit.Register(func() {
+			fs.Infof(nil, "Saving Memory profile %q\n", memProfile)
+			f, err := os.Create(memProfile)
+			if err != nil {
+				err = fs.CountError(ctx, err)
+				fs.Fatal(nil, fmt.Sprint(err))
+			}
+			err = pprof.WriteHeapProfile(f)
+			if err != nil {
+				err = fs.CountError(ctx, err)
+				fs.Fatal(nil, fmt.Sprint(err))
+			}
+			err = f.Close()
+			if err != nil {
+				err = fs.CountError(ctx, err)
+				fs.Fatal(nil, fmt.Sprint(err))
+			}
+		})
+	}
 }
 
 // to filter the flags with
@@ -71,7 +255,7 @@ var (
 var helpFlags = &cobra.Command{
 	Use:   "flags [<filter>]",
 	Short: "Show the global flags for rclone",
-	Run: func(command *cobra.Command, args []string) {
+	RunE: func(command *cobra.Command, args []string) error {
 		command.Flags()
 		if GeneratingDocs {
 			Root.SetUsageTemplate(docFlagsTemplate)
@@ -79,7 +263,7 @@ var helpFlags = &cobra.Command{
 			if len(args) > 0 {
 				re, err := filter.GlobStringToRegexp(args[0], false, true)
 				if err != nil {
-					fs.Fatalf(nil, "Invalid flag filter: %v", err)
+					return fmt.Errorf("invalid flag filter: %w", err)
 				}
 				fs.Debugf(nil, "Flag filter: %s", re.String())
 				filterFlagsRe = re
@@ -91,7 +275,7 @@ var helpFlags = &cobra.Command{
 			}
 			Root.SetOut(os.Stdout)
 		}
-		_ = command.Usage()
+		return command.Usage()
 	},
 }
 
@@ -99,8 +283,9 @@ var helpFlags = &cobra.Command{
 var helpBackends = &cobra.Command{
 	Use:   "backends",
 	Short: "List the backends available",
-	Run: func(command *cobra.Command, args []string) {
+	RunE: func(command *cobra.Command, args []string) error {
 		showBackends()
+		return nil
 	},
 }
 
@@ -108,28 +293,27 @@ var helpBackends = &cobra.Command{
 var helpBackend = &cobra.Command{
 	Use:   "backend <name>",
 	Short: "List full info about a backend",
-	Run: func(command *cobra.Command, args []string) {
+	RunE: func(command *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			Root.SetOut(os.Stdout)
-			_ = command.Usage()
-			return
+			return command.Usage()
 		}
 		showBackend(args[0])
+		return nil
 	},
 }
 
 // runRoot implements the main rclone command with no subcommands
-func runRoot(cmd *cobra.Command, args []string) {
+func runRoot(cmd *cobra.Command, args []string) error {
 	if version {
 		rclonecmd.ShowVersion()
-		resolveExitCode(nil)
-	} else {
-		_ = cmd.Usage()
-		if len(args) > 0 {
-			_, _ = fmt.Fprintf(os.Stderr, "Command not found.\n")
-		}
-		resolveExitCode(errorCommandNotFound)
+		return nil
 	}
+	_ = cmd.Usage()
+	if len(args) > 0 {
+		return errorCommandNotFound
+	}
+	return nil
 }
 
 // setupRootCommand sets default usage, help, and error handling for
@@ -143,8 +327,11 @@ func setupRootCommand(rootCmd *cobra.Command) {
 	filterflags.AddFlags(pflag.CommandLine)
 	rcflags.AddFlags(pflag.CommandLine)
 	logflags.AddFlags(pflag.CommandLine)
+	AddBackendFlags()
 
-	Root.Run = runRoot
+	Root.RunE = runRoot
+	Root.SilenceUsage = true
+	Root.SilenceErrors = true
 	Root.Flags().BoolVarP(&version, "version", "V", false, "Print the version number")
 	Root.PersistentFlags().StringVar(&mongoURL, "mongo-url", "", "MongoDB connection URI (env: MONGO_URL)")
 	Root.PersistentFlags().StringVar(&mongoKey, "mongo-key", "", "MongoDB encryption key (env: MONGO_KEY)")

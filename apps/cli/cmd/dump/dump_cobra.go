@@ -7,9 +7,10 @@ import (
 var DumpCmd = &cobra.Command{
 	Use:   "dump",
 	Short: "Dump MongoDB configs to an INI file",
-	Run: func(cmd *cobra.Command, args []string) {
+	Long:  "Dump MongoDB configs to an INI file",
+	RunE: func(cmd *cobra.Command, args []string) error {
 		filePath, _ := cmd.Flags().GetString("to-file")
-		Dump(filePath)
+		return Dump(filePath)
 	},
 }
 
