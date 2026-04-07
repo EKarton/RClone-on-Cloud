@@ -1,198 +1,28 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"io"
-	"os"
 	"regexp"
-	"runtime/pprof"
 	"sort"
 	"strings"
 
-	"github.com/ekarton/RClone-Cloud/apps/cli/cmd/dump"
-	"github.com/ekarton/RClone-Cloud/apps/cli/cmd/migrate"
-	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
-	rclonecmd "github.com/rclone/rclone/cmd"
 	"github.com/rclone/rclone/fs"
-	"github.com/rclone/rclone/fs/accounting"
-	"github.com/rclone/rclone/fs/config"
-	"github.com/rclone/rclone/fs/config/configflags"
 	"github.com/rclone/rclone/fs/config/flags"
 	"github.com/rclone/rclone/fs/filter"
-	"github.com/rclone/rclone/fs/filter/filterflags"
-	fslog "github.com/rclone/rclone/fs/log"
-	"github.com/rclone/rclone/fs/log/logflags"
-	"github.com/rclone/rclone/fs/rc"
-	"github.com/rclone/rclone/fs/rc/rcflags"
-	"github.com/rclone/rclone/fs/rc/rcserver"
-	"github.com/rclone/rclone/lib/atexit"
-	"github.com/rclone/rclone/lib/terminal"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
 
 var GeneratingDocs = false
 
-type MongoConfig struct {
-	URL        string
-	Key        string
-	DB         string
-	Collection string
-}
-
-type Runtime struct {
-	Init func(ctx context.Context, cfg MongoConfig) error
-}
-
-type rootOptions struct {
-	version   bool
-	mongoURL  string
-	mongoKey  string
-	mongoDB   string
-	mongoColl string
-}
-
 type helpState struct {
 	backendFlags         map[string]struct{}
 	filterFlagsGroup     string
 	filterFlagsRe        *regexp.Regexp
 	filterFlagsNamesOnly bool
-}
-
-func defaultRuntime() Runtime {
-	return Runtime{
-		Init: initRuntime,
-	}
-}
-
-func Execute(args []string) error {
-	cmd := NewRootCommand(defaultRuntime())
-	cmd.SetArgs(args)
-	return cmd.Execute()
-}
-
-func NewRootCommand(rt Runtime) *cobra.Command {
-	opts := &rootOptions{
-		mongoDB:   "rclone",
-		mongoColl: "configs",
-	}
-	state := &helpState{
-		backendFlags: map[string]struct{}{},
-	}
-
-	root := &cobra.Command{
-		Use:   "rclone-cloud",
-		Short: "Show help for Rclone on Cloud commands, flags and backends.",
-		Long: `Rclone on Cloud syncs files to and from cloud storage providers as well as
-mounting them, listing them in lots of different ways.
-
-See the home page (https://rclone.org/) for installation, usage,
-documentation, changelog and configuration walkthroughs.`,
-		Args:              cobra.NoArgs,
-		DisableAutoGenTag: true,
-		SilenceUsage:      true,
-		SilenceErrors:     true,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			cfg := MongoConfig{
-				URL:        opts.mongoURL,
-				Key:        opts.mongoKey,
-				DB:         opts.mongoDB,
-				Collection: opts.mongoColl,
-			}
-			return rt.Init(cmd.Context(), cfg)
-		},
-		PersistentPostRun: func(cmd *cobra.Command, args []string) {
-			fs.Debugf("rclone-cloud", "Version %q finishing with parameters %q", fs.Version, os.Args)
-			atexit.Run()
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if opts.version {
-				rclonecmd.ShowVersion()
-				return nil
-			}
-			return cmd.Usage()
-		},
-	}
-
-	setupRootCommand(root, opts, state)
-	return root
-}
-
-func setupRootCommand(root *cobra.Command, opts *rootOptions, state *helpState) {
-	ci := fs.GetConfig(context.Background())
-
-	configflags.AddFlags(ci, root.PersistentFlags())
-	filterflags.AddFlags(root.PersistentFlags())
-	rcflags.AddFlags(root.PersistentFlags())
-	logflags.AddFlags(root.PersistentFlags())
-	addBackendFlags(state, root.PersistentFlags())
-
-	root.Flags().BoolVarP(&opts.version, "version", "V", false, "Print the version number")
-	root.PersistentFlags().StringVar(&opts.mongoURL, "mongo-url", "", "MongoDB connection URI (env: MONGO_URL)")
-	root.PersistentFlags().StringVar(&opts.mongoKey, "mongo-key", "", "MongoDB encryption key (env: MONGO_KEY)")
-	root.PersistentFlags().StringVar(&opts.mongoDB, "mongo-db", "rclone", "MongoDB database name")
-	root.PersistentFlags().StringVar(&opts.mongoColl, "mongo-col", "configs", "MongoDB collection name")
-
-	cobra.AddTemplateFunc("showGlobalFlags", func(cmd *cobra.Command) bool {
-		return cmd.CalledAs() == "flags" || cmd.Annotations["groups"] != ""
-	})
-	cobra.AddTemplateFunc("showCommands", func(cmd *cobra.Command) bool {
-		return cmd.CalledAs() != "flags"
-	})
-	cobra.AddTemplateFunc("showLocalFlags", func(cmd *cobra.Command) bool {
-		return cmd.CalledAs() != "rclone" && cmd.CalledAs() != ""
-	})
-	cobra.AddTemplateFunc("flagGroups", func(cmd *cobra.Command) []*flags.Group {
-		backendGroup := flags.All.NewGroup("Backend", "Backend-only flags (these can be set in the config file also)")
-		allRegistered := flags.All.AllRegistered()
-
-		cmd.InheritedFlags().VisitAll(func(flag *pflag.Flag) {
-			if _, ok := state.backendFlags[flag.Name]; ok {
-				backendGroup.Add(flag)
-				return
-			}
-			if _, ok := allRegistered[flag]; ok {
-				return
-			}
-			fs.Errorf(nil, "Flag --%s is unknown", flag.Name)
-		})
-
-		groups := flags.All.
-			Filter(state.filterFlagsGroup, state.filterFlagsRe, state.filterFlagsNamesOnly).
-			Include(cmd.Annotations["groups"])
-		return groups.Groups
-	})
-
-	root.SetUsageTemplate(usageTemplate)
-
-	helpCommand := newHelpCommand(root)
-	helpFlags := newHelpFlagsCommand(root, state)
-	helpBackends := newHelpBackendsCommand()
-	helpBackend := newHelpBackendCommand()
-
-	root.SetHelpCommand(helpCommand)
-	root.AddCommand(helpCommand)
-	root.AddCommand(migrate.MigrateCmd)
-	root.AddCommand(dump.DumpCmd)
-
-	for _, c := range rclonecmd.Root.Commands() {
-		if c.Name() == "migrate" || c.Name() == "dump" || c.Name() == "help" {
-			continue
-		}
-		root.AddCommand(c)
-	}
-
-	helpCommand.AddCommand(helpFlags)
-	helpFlagsFlags := helpFlags.Flags()
-	flags.StringVarP(helpFlagsFlags, &state.filterFlagsGroup, "group", "", "", "Only include flags from specific group", "")
-	flags.BoolVarP(helpFlagsFlags, &state.filterFlagsNamesOnly, "name", "", false, "Apply filter only on flag names", "")
-	helpCommand.AddCommand(helpBackends)
-	helpCommand.AddCommand(helpBackend)
 }
 
 func newHelpCommand(root *cobra.Command) *cobra.Command {
@@ -276,123 +106,6 @@ func addBackendFlags(state *helpState, flagSet *pflag.FlagSet) {
 			state.backendFlags[opt.FlagName(fsInfo.Prefix)] = struct{}{}
 		}
 	}
-}
-
-func initRuntime(ctx context.Context, cfg MongoConfig) error {
-	if err := fs.GlobalOptionsInit(); err != nil {
-		return fmt.Errorf("failed to initialise global options: %w", err)
-	}
-
-	ci := fs.GetConfig(ctx)
-
-	fslog.InitLogging()
-	configflags.SetFlags(ci)
-
-	mongoURI := cfg.URL
-	if mongoURI == "" {
-		mongoURI = os.Getenv("MONGO_URL")
-	}
-	if mongoURI == "" {
-		return fmt.Errorf("MongoDB URI is not set; use --mongo-url or MONGO_URL")
-	}
-
-	encKey := cfg.Key
-	if encKey == "" {
-		encKey = os.Getenv("MONGO_KEY")
-	}
-	if encKey == "" {
-		return fmt.Errorf("MongoDB encryption key is not set; use --mongo-key or MONGO_KEY")
-	}
-
-	mongoClient, err := mongo.Connect(options.Client().ApplyURI(mongoURI))
-	if err != nil {
-		return fmt.Errorf("failed to connect to MongoDB: %w", err)
-	}
-
-	mongoStore, err := mongodb.New(
-		mongoClient.Database(cfg.DB).Collection(cfg.Collection),
-		encKey,
-	)
-	if err != nil {
-		_ = mongoClient.Disconnect(context.Background())
-		return fmt.Errorf("failed to initialize MongoDB config storage: %w", err)
-	}
-
-	if err := mongoStore.Load(); err != nil {
-		_ = mongoClient.Disconnect(context.Background())
-		return fmt.Errorf("failed to load config from MongoDB: %w", err)
-	}
-	config.SetData(mongoStore)
-
-	if err := mongoStore.StartWatching(ctx); err != nil {
-		fs.Logf(nil, "Warning: could not start config change stream: %v", err)
-	}
-
-	atexit.Register(func() {
-		mongoStore.StopWatching()
-		if err := mongoClient.Disconnect(context.Background()); err != nil {
-			fs.Logf(nil, "mongo disconnect: %v", err)
-		}
-	})
-
-	accounting.Start(ctx)
-
-	if ci.NoConsole {
-		terminal.HideConsole()
-	} else {
-		terminal.EnableColorsStdout()
-	}
-
-	fs.Debugf("rclone-cloud", "Version %q starting with parameters %q", fs.Version, os.Args)
-
-	if fslog.Opt.LogSystemdSupport {
-		fs.Debugf("rclone-cloud", "systemd logging support activated")
-	}
-
-	if _, err = rcserver.Start(ctx, &rc.Opt); err != nil {
-		return fmt.Errorf("failed to start remote control: %w", err)
-	}
-
-	if len(os.Args) >= 2 && os.Args[1] != "rc" {
-		if _, err = rcserver.MetricsStart(ctx, &rc.Opt); err != nil {
-			return fmt.Errorf("failed to start metrics server: %w", err)
-		}
-	}
-
-	cpuProfileFlag := pflag.Lookup("cpuprofile")
-	if cpuProfileFlag != nil && cpuProfileFlag.Value.String() != "" {
-		cpuProfile := cpuProfileFlag.Value.String()
-		f, err := os.Create(cpuProfile)
-		if err != nil {
-			return err
-		}
-		if err := pprof.StartCPUProfile(f); err != nil {
-			_ = f.Close()
-			return err
-		}
-		atexit.Register(func() {
-			pprof.StopCPUProfile()
-			_ = f.Close()
-		})
-	}
-
-	memProfileFlag := pflag.Lookup("memprofile")
-	if memProfileFlag != nil && memProfileFlag.Value.String() != "" {
-		memProfile := memProfileFlag.Value.String()
-		atexit.Register(func() {
-			f, err := os.Create(memProfile)
-			if err != nil {
-				fs.Errorf(nil, "memory profile create error: %v", err)
-				return
-			}
-			defer func() { _ = f.Close() }()
-			if err := pprof.WriteHeapProfile(f); err != nil {
-				fs.Errorf(nil, "memory profile write error: %v", err)
-			}
-		})
-	}
-
-	return nil
 }
 
 var usageTemplate = `Usage:{{if .Runnable}}
