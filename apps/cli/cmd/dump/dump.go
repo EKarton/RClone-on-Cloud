@@ -20,12 +20,16 @@ func Dump(out io.Writer, filePath string) error {
 
 	var b strings.Builder
 	for _, section := range sections {
-		fmt.Fprintf(&b, "[%s]\n", section)
+		if _, err := fmt.Fprintf(&b, "[%s]\n", section); err != nil {
+			return err
+		}
 		keys := store.GetKeyList(section)
 		sort.Strings(keys)
 		for _, key := range keys {
 			value, _ := store.GetValue(section, key)
-			fmt.Fprintf(&b, "%s = %s\n", key, value)
+			if _, err := fmt.Fprintf(&b, "%s = %s\n", key, value); err != nil {
+				return err
+			}
 		}
 		b.WriteString("\n")
 	}
@@ -34,6 +38,8 @@ func Dump(out io.Writer, filePath string) error {
 		return fmt.Errorf("write file: %w", err)
 	}
 
-	fmt.Fprintf(out, "✓ Config dumped to %s (%d remotes)\n", filePath, len(sections))
+	if _, err := fmt.Fprintf(out, "✓ Config dumped to %s (%d remotes)\n", filePath, len(sections)); err != nil {
+		return err
+	}
 	return nil
 }

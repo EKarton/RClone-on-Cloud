@@ -14,7 +14,7 @@ import (
 func Migrate(out io.Writer, configPath string) error {
 	// 1. Read the source .conf file independently
 	originalConfig := os.Getenv("RCLONE_CONFIG")
-	defer os.Setenv("RCLONE_CONFIG", originalConfig)
+	defer func() { _ = os.Setenv("RCLONE_CONFIG", originalConfig) }()
 
 	if err := config.SetConfigPath(configPath); err != nil {
 		return fmt.Errorf("set config path: %w", err)
@@ -39,7 +39,9 @@ func Migrate(out io.Writer, configPath string) error {
 			value, _ := fileStore.GetValue(section, key)
 			mongoStore.SetValue(section, key, value)
 		}
-		fmt.Fprintf(out, "✓ %s (%d keys)\n", section, len(keys))
+		if _, err := fmt.Fprintf(out, "✓ %s (%d keys)\n", section, len(keys)); err != nil {
+			return err
+		}
 	}
 
 	// 3. Flush to MongoDB
@@ -47,7 +49,9 @@ func Migrate(out io.Writer, configPath string) error {
 		return fmt.Errorf("save to mongodb: %w", err)
 	}
 
-	fmt.Fprintf(out, "Done — %d remotes migrated.\n", len(sections))
+	if _, err := fmt.Fprintf(out, "Done — %d remotes migrated.\n", len(sections)); err != nil {
+		return err
+	}
 
 	return nil
 }

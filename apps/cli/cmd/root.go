@@ -129,14 +129,10 @@ func setupRootCommand(root *cobra.Command, opts *rootOptions, state *helpState) 
 			Include(cmd.Annotations["groups"])
 		return groups.Groups
 	})
-
 	root.SetUsageTemplate(usageTemplate)
 
 	helpCommand := newHelpCommand(root)
 	helpFlags := newHelpFlagsCommand(root, state)
-	helpBackends := newHelpBackendsCommand()
-	helpBackend := newHelpBackendCommand()
-
 	root.SetHelpCommand(helpCommand)
 	root.AddCommand(helpCommand)
 	root.AddCommand(migrate.MigrateCmd)
@@ -153,8 +149,8 @@ func setupRootCommand(root *cobra.Command, opts *rootOptions, state *helpState) 
 	helpFlagsFlags := helpFlags.Flags()
 	flags.StringVarP(helpFlagsFlags, &state.filterFlagsGroup, "group", "", "", "Only include flags from specific group", "")
 	flags.BoolVarP(helpFlagsFlags, &state.filterFlagsNamesOnly, "name", "", false, "Apply filter only on flag names", "")
-	helpCommand.AddCommand(helpBackends)
-	helpCommand.AddCommand(helpBackend)
+	helpCommand.AddCommand(newHelpBackendsCommand())
+	helpCommand.AddCommand(newHelpBackendCommand())
 }
 
 func ResolveExitCode(err error) int {
