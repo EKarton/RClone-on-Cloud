@@ -21,7 +21,6 @@ import (
 	"github.com/rclone/rclone/lib/atexit"
 	"github.com/rclone/rclone/lib/exitcode"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 type rootOptions struct {
@@ -42,9 +41,6 @@ func NewRootCommand(rt Runtime) *cobra.Command {
 	opts := &rootOptions{
 		mongoDB:   "rclone",
 		mongoColl: "configs",
-	}
-	state := &helpState{
-		backendFlags: map[string]struct{}{},
 	}
 
 	root := &cobra.Command{
@@ -81,18 +77,20 @@ documentation, changelog and configuration walkthroughs.`,
 		},
 	}
 
-	setupRootCommand(root, opts, state)
+	setupRootCommand(root, opts)
 	return root
 }
 
-func setupRootCommand(root *cobra.Command, opts *rootOptions, state *helpState) {
+func setupRootCommand(root *cobra.Command, opts *rootOptions) {
 	ci := fs.GetConfig(context.Background())
 
 	configflags.AddFlags(ci, root.PersistentFlags())
 	filterflags.AddFlags(root.PersistentFlags())
 	rcflags.AddFlags(root.PersistentFlags())
 	logflags.AddFlags(root.PersistentFlags())
-	addBackendFlags(state, root.PersistentFlags())
+	for _, fsInfo := range fs.Registry {
+		flags.AddFlagsFromOptions(root.PersistentFlags(), fsInfo.Prefix, fsInfo.Options)
+	}
 
 	root.Flags().BoolVarP(&opts.version, "version", "V", false, "Print the version number")
 	root.PersistentFlags().StringVar(&opts.mongoURL, "mongo-url", "", "MongoDB connection URI (env: MONGO_URL)")
@@ -100,57 +98,15 @@ func setupRootCommand(root *cobra.Command, opts *rootOptions, state *helpState) 
 	root.PersistentFlags().StringVar(&opts.mongoDB, "mongo-db", "rclone", "MongoDB database name")
 	root.PersistentFlags().StringVar(&opts.mongoColl, "mongo-col", "configs", "MongoDB collection name")
 
-	cobra.AddTemplateFunc("showGlobalFlags", func(cmd *cobra.Command) bool {
-		return cmd.CalledAs() == "flags" || cmd.Annotations["groups"] != ""
-	})
-	cobra.AddTemplateFunc("showCommands", func(cmd *cobra.Command) bool {
-		return cmd.CalledAs() != "flags"
-	})
-	cobra.AddTemplateFunc("showLocalFlags", func(cmd *cobra.Command) bool {
-		return cmd.CalledAs() != "rclone" && cmd.CalledAs() != ""
-	})
-	cobra.AddTemplateFunc("flagGroups", func(cmd *cobra.Command) []*flags.Group {
-		backendGroup := flags.All.NewGroup("Backend", "Backend-only flags (these can be set in the config file also)")
-		allRegistered := flags.All.AllRegistered()
-
-		cmd.InheritedFlags().VisitAll(func(flag *pflag.Flag) {
-			if _, ok := state.backendFlags[flag.Name]; ok {
-				backendGroup.Add(flag)
-				return
-			}
-			if _, ok := allRegistered[flag]; ok {
-				return
-			}
-			fs.Errorf(nil, "Flag --%s is unknown", flag.Name)
-		})
-
-		groups := flags.All.
-			Filter(state.filterFlagsGroup, state.filterFlagsRe, state.filterFlagsNamesOnly).
-			Include(cmd.Annotations["groups"])
-		return groups.Groups
-	})
-	root.SetUsageTemplate(usageTemplate)
-
-	helpCommand := newHelpCommand(root)
-	helpFlags := newHelpFlagsCommand(root, state)
-	root.SetHelpCommand(helpCommand)
-	root.AddCommand(helpCommand)
 	root.AddCommand(migrate.MigrateCmd)
 	root.AddCommand(dump.DumpCmd)
 
-	for _, c := range rclonecmd.Root.Commands() {
-		if c.Name() == "migrate" || c.Name() == "dump" || c.Name() == "help" {
+	for _, rcloneCmd := range rclonecmd.Root.Commands() {
+		if rcloneCmd.Name() == "migrate" || rcloneCmd.Name() == "dump" {
 			continue
 		}
-		root.AddCommand(c)
+		root.AddCommand(rcloneCmd)
 	}
-
-	helpCommand.AddCommand(helpFlags)
-	helpFlagsFlags := helpFlags.Flags()
-	flags.StringVarP(helpFlagsFlags, &state.filterFlagsGroup, "group", "", "", "Only include flags from specific group", "")
-	flags.BoolVarP(helpFlagsFlags, &state.filterFlagsNamesOnly, "name", "", false, "Apply filter only on flag names", "")
-	helpCommand.AddCommand(newHelpBackendsCommand())
-	helpCommand.AddCommand(newHelpBackendCommand())
 }
 
 func ResolveExitCode(err error) int {
