@@ -2,6 +2,7 @@ package dump_test
 
 import (
 	"context"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -62,7 +63,7 @@ func TestDumpConfig(t *testing.T) {
 	// 4. Run the Dump command
 	tempDir := t.TempDir()
 	dumpPath := filepath.Join(tempDir, "dump.conf")
-	err = dump.Dump(dumpPath)
+	err = dump.Dump(io.Discard, dumpPath)
 	require.NoError(t, err)
 
 	// 5. Verify the output file

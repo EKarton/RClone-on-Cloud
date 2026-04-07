@@ -10,7 +10,7 @@ var DumpCmd = &cobra.Command{
 	Long:  "Dump MongoDB configs to an INI file",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		filePath, _ := cmd.Flags().GetString("to-file")
-		return Dump(filePath)
+		return Dump(cmd.OutOrStdout(), filePath)
 	},
 }
 

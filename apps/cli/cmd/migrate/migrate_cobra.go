@@ -10,7 +10,7 @@ var MigrateCmd = &cobra.Command{
 	Long:  "Migrate an existing rclone.conf to MongoDB",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		filePath, _ := cmd.Flags().GetString("from-file")
-		return Migrate(filePath)
+		return Migrate(cmd.OutOrStdout(), filePath)
 	},
 }
 
