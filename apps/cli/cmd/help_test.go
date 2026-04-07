@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func setupTestMongo(t *testing.T) (uri string, keyHex string) {
+func setupTestMongo(t *testing.T) (uri string, client *mongo.Client, keyHex string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
@@ -45,12 +45,18 @@ func setupTestMongo(t *testing.T) (uri string, keyHex string) {
 	uri, err = container.ConnectionString(ctx)
 	require.NoError(t, err)
 
+	client, err = mongo.Connect(options.Client().ApplyURI(uri))
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = client.Disconnect(ctx)
+	})
+
 	encryptionKey := make([]byte, 32)
 	_, err = rand.Read(encryptionKey)
 	require.NoError(t, err)
 	keyHex = hex.EncodeToString(encryptionKey)
 
-	return uri, keyHex
+	return uri, client, keyHex
 }
 
 // captureOutput captures everything written to os.Stdout during the execution of fn.
@@ -101,15 +107,7 @@ func execute(t *testing.T, args ...string) string {
 }
 
 func TestRootCommand_ListRemotes(t *testing.T) {
-	uri, keyHex := setupTestMongo(t)
-
-	ctx := context.Background()
-	client, err := mongo.Connect(options.Client().ApplyURI(uri))
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		_ = client.Disconnect(ctx)
-	})
-
+	uri, client, keyHex := setupTestMongo(t)
 	databaseName := "rclone-test"
 	collectionName := "configs"
 	coll := client.Database(databaseName).Collection(collectionName)
@@ -137,16 +135,8 @@ func TestRootCommand_ListRemotes(t *testing.T) {
 	assert.Contains(t, output, "test-remote-2:")
 }
 
-func TestRootCommand_Sync(t *testing.T) {
-	uri, keyHex := setupTestMongo(t)
-
-	ctx := context.Background()
-	client, err := mongo.Connect(options.Client().ApplyURI(uri))
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		_ = client.Disconnect(ctx)
-	})
-
+func TestRootCommand_SyncAndListContent(t *testing.T) {
+	uri, client, keyHex := setupTestMongo(t)
 	databaseName := "rclone-sync-test"
 	collectionName := "configs"
 	coll := client.Database(databaseName).Collection(collectionName)
