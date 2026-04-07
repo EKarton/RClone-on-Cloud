@@ -5,17 +5,14 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
 	_ "github.com/rclone/rclone/backend/all"
 	_ "github.com/rclone/rclone/cmd/all"
-	"github.com/rclone/rclone/fs"
 	"github.com/rclone/rclone/fs/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,12 +20,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
-
-func TestMain(m *testing.M) {
-	// Initialize the root command once for all tests in this package.
-	setupRootCommand(Root)
-	os.Exit(m.Run())
-}
 
 func setupTestMongo(t *testing.T) (uri string, client *mongo.Client, keyHex string) {
 	t.Helper()
@@ -42,10 +33,7 @@ func setupTestMongo(t *testing.T) (uri string, client *mongo.Client, keyHex stri
 	t.Cleanup(func() {
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cleanupCancel()
-
-		if err := container.Terminate(cleanupCtx); err != nil {
-			t.Logf("failed to terminate container: %s", err)
-		}
+		require.NoError(t, container.Terminate(cleanupCtx))
 	})
 
 	uri, err = container.ConnectionString(ctx)
@@ -57,105 +45,73 @@ func setupTestMongo(t *testing.T) (uri string, client *mongo.Client, keyHex stri
 	t.Cleanup(func() {
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cleanupCancel()
-
-		if err := client.Disconnect(cleanupCtx); err != nil {
-			t.Logf("failed to disconnect mongo client: %s", err)
-		}
+		require.NoError(t, client.Disconnect(cleanupCtx))
 	})
 
 	encryptionKey := make([]byte, 32)
 	_, err = rand.Read(encryptionKey)
 	require.NoError(t, err)
-	keyHex = hex.EncodeToString(encryptionKey)
 
-	return uri, client, keyHex
+	return uri, client, hex.EncodeToString(encryptionKey)
 }
 
-// captureOutput captures everything written to os.Stdout during the execution of fn.
-func captureOutput(fn func()) (string, error) {
-	oldStdout := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	outChan := make(chan string)
-	go func() {
-		var buf bytes.Buffer
-		_, _ = io.Copy(&buf, r)
-		outChan <- buf.String()
-	}()
-
-	fn()
-
-	_ = w.Close()
-	os.Stdout = oldStdout
-	output := <-outChan
-	return output, nil
-}
-
-// execute runs the root command with given arguments, capturing output via captureOutput.
-// It safely handles rclone's internal os.Exit() calls which trigger a panic in tests.
-func execute(t *testing.T, args ...string) string {
+func executeCommand(t *testing.T, args ...string) (string, string, error) {
 	t.Helper()
-	Root.SetArgs(args)
 
-	var output string
-	var err error
+	cmd := NewRootCommand(defaultRuntime())
 
-	defer func() {
-		if r := recover(); r != nil {
-			if s, ok := r.(string); ok && strings.Contains(s, "unexpected call to os.Exit") {
-				// Intercepted os.Exit(0) or similar
-				return
-			}
-			panic(r)
-		}
-	}()
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.SetOut(&stdout)
+	cmd.SetErr(&stderr)
+	cmd.SetArgs(args)
 
-	output, err = captureOutput(func() {
-		_ = Root.Execute()
-	})
-	require.NoError(t, err)
-	return output
+	err := cmd.Execute()
+	return stdout.String(), stderr.String(), err
 }
 
 func TestRootCommand_ListRemotes(t *testing.T) {
 	uri, client, keyHex := setupTestMongo(t)
 	databaseName := "rclone-test"
 	collectionName := "configs"
+
 	coll := client.Database(databaseName).Collection(collectionName)
 	storage, err := mongodb.New(coll, keyHex)
 	require.NoError(t, err)
 
-	// Inject fake remotes
 	storage.SetValue("test-remote-1", "type", "s3")
 	storage.SetValue("test-remote-2", "type", "drive")
 	require.NoError(t, storage.Save())
 
-	// Force the global config state to our MongoDB store for this test
 	config.SetData(storage)
 	t.Cleanup(func() { config.SetData(nil) })
 
-	output := execute(t,
+	stdout, stderr, err := executeCommand(
+		t,
 		"listremotes",
 		"--mongo-url", uri,
 		"--mongo-key", keyHex,
 		"--mongo-db", databaseName,
 		"--mongo-col", collectionName,
 	)
-
-	assert.Contains(t, output, "test-remote-1:")
-	assert.Contains(t, output, "test-remote-2:")
+	require.NoError(t, err)
+	assert.Empty(t, stderr)
+	assert.Contains(t, stdout, "test-remote-1:")
+	assert.Contains(t, stdout, "test-remote-2:")
 }
 
 func TestRootCommand_Sync(t *testing.T) {
 	uri, client, keyHex := setupTestMongo(t)
 	databaseName := "rclone-sync-test"
 	collectionName := "configs"
+
 	coll := client.Database(databaseName).Collection(collectionName)
 	storage, err := mongodb.New(coll, keyHex)
 	require.NoError(t, err)
 
-	storage.SetValue("mem-remote", "type", "memory")
+	remoteDir := t.TempDir()
+	storage.SetValue("mem-remote", "type", "local")
+	storage.SetValue("mem-remote", "path", remoteDir)
 	require.NoError(t, storage.Save())
 
 	config.SetData(storage)
@@ -163,9 +119,9 @@ func TestRootCommand_Sync(t *testing.T) {
 
 	tempDir := t.TempDir()
 	sourceDir := filepath.Join(tempDir, "src")
-	require.NoError(t, os.MkdirAll(sourceDir, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(sourceDir, "file1.txt"), []byte("hello world"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(sourceDir, "file2.txt"), []byte("rclone cloud test"), 0644))
+	require.NoError(t, os.MkdirAll(sourceDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(sourceDir, "file1.txt"), []byte("hello world"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(sourceDir, "file2.txt"), []byte("rclone cloud test"), 0o644))
 
 	commonFlags := []string{
 		"--mongo-url", uri,
@@ -173,20 +129,51 @@ func TestRootCommand_Sync(t *testing.T) {
 		"--mongo-db", databaseName,
 		"--mongo-col", collectionName,
 	}
-	_ = execute(t, append([]string{"sync", sourceDir, "mem-remote:/"}, commonFlags...)...)
 
-	ctx := context.Background()
-	f, err := fs.NewFs(ctx, "mem-remote:/")
+	_, _, err = executeCommand(t, append([]string{"sync", sourceDir, "mem-remote:/"}, commonFlags...)...)
 	require.NoError(t, err)
 
-	entries, err := f.List(ctx, "")
+	stdout, stderr, err := executeCommand(t, append([]string{"ls", "mem-remote:/"}, commonFlags...)...)
+	require.NoError(t, err)
+	assert.Empty(t, stderr)
+	assert.Contains(t, stdout, "file1.txt")
+	assert.Contains(t, stdout, "file2.txt")
+}
+
+func TestRootCommand_List(t *testing.T) {
+	uri, client, keyHex := setupTestMongo(t)
+	databaseName := "rclone-list-test"
+	collectionName := "configs"
+
+	coll := client.Database(databaseName).Collection(collectionName)
+	storage, err := mongodb.New(coll, keyHex)
 	require.NoError(t, err)
 
-	var names []string
-	for _, entry := range entries {
-		names = append(names, entry.Remote())
+	remoteDir := t.TempDir()
+	storage.SetValue("mem-remote", "type", "local")
+	storage.SetValue("mem-remote", "path", remoteDir)
+	require.NoError(t, storage.Save())
+
+	config.SetData(storage)
+	t.Cleanup(func() { config.SetData(nil) })
+
+	srcDir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(srcDir, "fileA.txt"), []byte("data A"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(srcDir, "fileB.txt"), []byte("data B"), 0o644))
+
+	commonFlags := []string{
+		"--mongo-url", uri,
+		"--mongo-key", keyHex,
+		"--mongo-db", databaseName,
+		"--mongo-col", collectionName,
 	}
 
-	assert.Contains(t, names, "file1.txt")
-	assert.Contains(t, names, "file2.txt")
+	_, _, err = executeCommand(t, append([]string{"sync", srcDir, "mem-remote:/"}, commonFlags...)...)
+	require.NoError(t, err)
+
+	stdout, stderr, err := executeCommand(t, append([]string{"ls", "mem-remote:/"}, commonFlags...)...)
+	require.NoError(t, err)
+	assert.Empty(t, stderr)
+	assert.Contains(t, stdout, "fileA.txt")
+	assert.Contains(t, stdout, "fileB.txt")
 }

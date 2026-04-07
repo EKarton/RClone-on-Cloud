@@ -14,46 +14,42 @@ import (
 	"github.com/rclone/rclone/lib/exitcode"
 )
 
-func resolveExitCode(err error) {
+func ResolveExitCode(err error) int {
 	ctx := context.Background()
 	ci := fs.GetConfig(ctx)
 	atexit.Run()
 
 	if err == nil {
-		if ci.ErrorOnNoTransfer {
-			if accounting.GlobalStats().GetTransfers() == 0 {
-				os.Exit(exitcode.NoFilesTransferred)
-			}
+		if ci.ErrorOnNoTransfer && accounting.GlobalStats().GetTransfers() == 0 {
+			return exitcode.NoFilesTransferred
 		}
-		os.Exit(exitcode.Success)
+		return exitcode.Success
 	}
-
-	// Print the error to stderr
-	fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 
 	switch {
 	case errors.Is(err, fs.ErrorDirNotFound):
-		os.Exit(exitcode.DirNotFound)
+		return exitcode.DirNotFound
 	case errors.Is(err, fs.ErrorObjectNotFound):
-		os.Exit(exitcode.FileNotFound)
+		return exitcode.FileNotFound
 	case errors.Is(err, accounting.ErrorMaxTransferLimitReached):
-		os.Exit(exitcode.TransferExceeded)
+		return exitcode.TransferExceeded
 	case errors.Is(err, fssync.ErrorMaxDurationReached):
-		os.Exit(exitcode.DurationExceeded)
+		return exitcode.DurationExceeded
 	case fserrors.ShouldRetry(err):
-		os.Exit(exitcode.RetryError)
+		return exitcode.RetryError
 	case fserrors.IsNoRetryError(err), fserrors.IsNoLowLevelRetryError(err):
-		os.Exit(exitcode.NoRetryError)
+		return exitcode.NoRetryError
 	case fserrors.IsFatalError(err):
-		os.Exit(exitcode.FatalError)
+		return exitcode.FatalError
 	default:
-		os.Exit(exitcode.UsageError)
+		return exitcode.UsageError
 	}
 }
 
-// Main runs rclone interpreting flags and commands out of os.Args
 func Main() {
-	setupRootCommand(Root)
-	err := Root.Execute()
-	resolveExitCode(err)
+	err := Execute(os.Args[1:])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+	}
+	os.Exit(ResolveExitCode(err))
 }
