@@ -44,6 +44,7 @@ mounting them, listing them in lots of different ways.
 
 See the home page (https://rclone.org/) for installation, usage,
 documentation, changelog and configuration walkthroughs.`,
+	Args: cobra.NoArgs,
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 		fs.Debugf("rclone-cloud", "Version %q finishing with parameters %q", fs.Version, os.Args)
 		atexit.Run()
@@ -66,7 +67,7 @@ var (
 	mongoColl string
 )
 
-// root help command
+// Root help command
 var (
 	backendFlags map[string]struct{}
 	helpCommand  = &cobra.Command{
@@ -309,11 +310,7 @@ func runRoot(cmd *cobra.Command, args []string) error {
 		rclonecmd.ShowVersion()
 		return nil
 	}
-	_ = cmd.Usage()
-	if len(args) > 0 {
-		return errorCommandNotFound
-	}
-	return nil
+	return cmd.Usage()
 }
 
 // setupRootCommand sets default usage, help, and error handling for

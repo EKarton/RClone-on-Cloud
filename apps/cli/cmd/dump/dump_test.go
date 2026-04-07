@@ -62,7 +62,8 @@ func TestDumpConfig(t *testing.T) {
 	// 4. Run the Dump command
 	tempDir := t.TempDir()
 	dumpPath := filepath.Join(tempDir, "dump.conf")
-	dump.Dump(dumpPath)
+	err = dump.Dump(dumpPath)
+	require.NoError(t, err)
 
 	// 5. Verify the output file
 	content, err := os.ReadFile(dumpPath)

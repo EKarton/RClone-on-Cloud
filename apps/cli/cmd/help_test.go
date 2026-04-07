@@ -15,7 +15,6 @@ import (
 	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
 	_ "github.com/rclone/rclone/backend/all"
 	_ "github.com/rclone/rclone/cmd/all"
-	"github.com/rclone/rclone/fs"
 	"github.com/rclone/rclone/fs/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -166,17 +165,10 @@ func TestRootCommand_Sync(t *testing.T) {
 	tempDir := t.TempDir()
 	sourceDir := filepath.Join(tempDir, "src")
 	require.NoError(t, os.MkdirAll(sourceDir, 0755))
-	
 	require.NoError(t, os.WriteFile(filepath.Join(sourceDir, "file1.txt"), []byte("hello world"), 0644))
 	require.NoError(t, os.WriteFile(filepath.Join(sourceDir, "file2.txt"), []byte("rclone cloud test"), 0644))
 
-	// Manually set package-level variables for initConfig to find
-	mongoURL = uri
-	mongoKey = keyHex
-	mongoDB = databaseName
-	mongoColl = collectionName
-
-	// Run sync command via the execute helper which catches os.Exit
+	// Run sync command
 	commonFlags := []string{
 		"--mongo-url", uri,
 		"--mongo-key", keyHex,
@@ -185,18 +177,8 @@ func TestRootCommand_Sync(t *testing.T) {
 	}
 	_ = execute(t, append([]string{"sync", sourceDir, "mem-remote:/"}, commonFlags...)...)
 
-	// Verify using fs.NewFs and List
-	f, err := fs.NewFs(ctx, "mem-remote:/")
-	require.NoError(t, err)
-	
-	entries, err := f.List(ctx, "")
-	require.NoError(t, err)
-
-	var names []string
-	for _, entry := range entries {
-		names = append(names, entry.Remote())
-	}
-
-	assert.Contains(t, names, "file1.txt")
-	assert.Contains(t, names, "file2.txt")
+	// Run ls command to assert that the files are there
+	lsOutput := execute(t, append([]string{"ls", "mem-remote:/"}, commonFlags...)...)
+	assert.Contains(t, lsOutput, "file1.txt")
+	assert.Contains(t, lsOutput, "file2.txt")
 }

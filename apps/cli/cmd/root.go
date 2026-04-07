@@ -14,14 +14,6 @@ import (
 	"github.com/rclone/rclone/lib/exitcode"
 )
 
-// // Globals
-var (
-	// Errors
-	errorCommandNotFound    = errors.New("command not found")
-	errorNotEnoughArguments = errors.New("not enough arguments")
-	errorTooManyArguments   = errors.New("too many arguments")
-)
-
 func resolveExitCode(err error) {
 	ctx := context.Background()
 	ci := fs.GetConfig(ctx)
@@ -54,10 +46,8 @@ func resolveExitCode(err error) {
 		os.Exit(exitcode.NoRetryError)
 	case fserrors.IsFatalError(err):
 		os.Exit(exitcode.FatalError)
-	case errors.Is(err, errorCommandNotFound), errors.Is(err, errorNotEnoughArguments), errors.Is(err, errorTooManyArguments):
-		os.Exit(exitcode.UsageError)
 	default:
-		os.Exit(exitcode.UncategorizedError)
+		os.Exit(exitcode.UsageError)
 	}
 }
 
