@@ -126,11 +126,11 @@ documentation, changelog and configuration walkthroughs.`,
 func setupRootCommand(root *cobra.Command, opts *rootOptions, state *helpState) {
 	ci := fs.GetConfig(context.Background())
 
-	configflags.AddFlags(ci, pflag.CommandLine)
-	filterflags.AddFlags(pflag.CommandLine)
-	rcflags.AddFlags(pflag.CommandLine)
-	logflags.AddFlags(pflag.CommandLine)
-	addBackendFlags(state, pflag.CommandLine)
+	configflags.AddFlags(ci, root.PersistentFlags())
+	filterflags.AddFlags(root.PersistentFlags())
+	rcflags.AddFlags(root.PersistentFlags())
+	logflags.AddFlags(root.PersistentFlags())
+	addBackendFlags(state, root.PersistentFlags())
 
 	root.Flags().BoolVarP(&opts.version, "version", "V", false, "Print the version number")
 	root.PersistentFlags().StringVar(&opts.mongoURL, "mongo-url", "", "MongoDB connection URI (env: MONGO_URL)")
@@ -249,8 +249,7 @@ func newHelpBackendsCommand() *cobra.Command {
 		Use:   "backends",
 		Short: "List the backends available",
 		RunE: func(command *cobra.Command, args []string) error {
-			showBackends(command.OutOrStdout())
-			return nil
+			return showBackends(command.OutOrStdout())
 		},
 	}
 }
@@ -455,17 +454,30 @@ split into groups.
 {{end}}{{end}}
 `
 
-func showBackends(out io.Writer) {
-	fmt.Fprintln(out, "All rclone backends:")
-	fmt.Fprintln(out)
-
-	for _, backend := range fs.Registry {
-		fmt.Fprintf(out, "  %-12s %s\n", backend.Prefix, backend.Description)
+func showBackends(out io.Writer) error {
+	if _, err := fmt.Fprintln(out, "All rclone backends:"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintln(out); err != nil {
+		return err
 	}
 
-	fmt.Fprintln(out)
-	fmt.Fprintln(out, "To see more info about a particular backend use:")
-	fmt.Fprintln(out, "  rclone help backend <name>")
+	for _, backend := range fs.Registry {
+		if _, err := fmt.Fprintf(out, "  %-12s %s\n", backend.Prefix, backend.Description); err != nil {
+			return err
+		}
+	}
+
+	if _, err := fmt.Fprintln(out); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintln(out, "To see more info about a particular backend use:"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintln(out, "  rclone help backend <name>"); err != nil {
+		return err
+	}
+	return nil
 }
 
 func quoteString(v any) string {
