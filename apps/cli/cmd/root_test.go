@@ -16,7 +16,6 @@ import (
 	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
 	_ "github.com/rclone/rclone/backend/all"
 	_ "github.com/rclone/rclone/cmd/all"
-	"github.com/rclone/rclone/fs"
 	"github.com/rclone/rclone/fs/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -110,12 +109,12 @@ func executeCommand(t *testing.T, args ...string) (stdout string, stderr string,
 				}
 				return
 			}
-			panic(r) // re-panic if it's not an os.Exit panic
+			panic(r)
 		}
 	}()
 
 	err = cmd.Execute()
-	return // stdout and stderr are populated in the defer block
+	return
 }
 
 func TestRootCommand_ListRemotes(t *testing.T) {
@@ -147,7 +146,7 @@ func TestRootCommand_ListRemotes(t *testing.T) {
 	assert.Contains(t, stdout, "test-remote-2:")
 }
 
-func TestRootCommand_Sync(t *testing.T) {
+func TestRootCommand_SyncAndList(t *testing.T) {
 	uri, client, keyHex := setupTestMongo(t)
 	databaseName := "rclone-sync-test"
 	collectionName := "configs"
@@ -178,18 +177,17 @@ func TestRootCommand_Sync(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, stderr)
 
-	ctx := context.Background()
-	f, err := fs.NewFs(ctx, "mem-remote:/")
-	require.NoError(t, err)
-
-	entries, err := f.List(ctx, "")
-	require.NoError(t, err)
-
-	var names []string
-	for _, entry := range entries {
-		names = append(names, entry.Remote())
-	}
-
-	assert.Contains(t, names, "file1.txt")
-	assert.Contains(t, names, "file2.txt")
+	listStdout, listStderr, listErr := executeCommand(
+		t,
+		"ls",
+		"mem-remote:/",
+		"--mongo-url", uri,
+		"--mongo-key", keyHex,
+		"--mongo-db", databaseName,
+		"--mongo-col", collectionName,
+	)
+	require.NoError(t, listErr)
+	assert.Empty(t, listStderr)
+	assert.Contains(t, listStdout, "file1.txt")
+	assert.Contains(t, listStdout, "file2.txt")
 }
