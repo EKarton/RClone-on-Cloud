@@ -4,7 +4,7 @@ go 1.26.1
 
 require (
 	github.com/ekarton/RClone-Cloud/apps/web-api v0.0.0-20260406211845-3b0d3f448146
-	github.com/rclone/rclone v1.73.3
+	github.com/rclone/rclone v1.73.5
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
