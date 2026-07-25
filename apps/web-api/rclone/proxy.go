@@ -9,8 +9,10 @@ import (
 
 	sharedjwt "github.com/ekarton/RClone-Cloud/apps/web-api/shared/jwt"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/rclone/rclone/fs"
 	"github.com/rclone/rclone/fs/config"
 	"github.com/rclone/rclone/fs/rc"
+	"github.com/rclone/rclone/fs/rc/jobs"
 )
 
 // RCloneAPIHandler owns the JWT-protected RClone API.
@@ -21,10 +23,17 @@ type RCloneAPIHandler struct {
 // NewRCloneAPIHandler prepares the JWT-protected RClone API handler
 // and initializes the global RClone system state.
 func NewRCloneAPIHandler(pubKeyPEM string, store config.Storage) (*RCloneAPIHandler, error) {
-	// Initialize global rclone state
+	// Initialize global rclone state — match rclone rcd behavior
 	config.SetData(store)
 	rc.Opt.Enabled = true
 	rc.Opt.NoAuth = true
+	rc.Opt.Serve = true  // equivalent to --rc-serve
+	jobs.SetOpt(&rc.Opt) // configure job expiry (matches rcserver.Start)
+
+	// Always enable comprehensive debug logging and HTTP payload/header dumps
+	ci := fs.GetConfig(context.Background())
+	ci.LogLevel = fs.LogLevelDebug
+	ci.Dump = fs.DumpHeaders | fs.DumpBodies | fs.DumpRequests | fs.DumpResponses
 
 	publicKey, err := sharedjwt.LoadPublicKey(pubKeyPEM)
 	if err != nil {
