@@ -14,7 +14,11 @@ export interface TokenResponse {
 export class WebApiService {
   private readonly httpClient = inject(HttpClient);
 
-  fetchAccessToken(code: string, codeVerifier: string, state: string): Observable<Result<TokenResponse>> {
+  fetchAccessToken(
+    code: string,
+    codeVerifier: string,
+    state: string,
+  ): Observable<Result<TokenResponse>> {
     const url = `${environment.webApiEndpoint}/auth/v1/google/callback`;
     return this.httpClient
       .post<TokenResponse>(
@@ -24,7 +28,7 @@ export class WebApiService {
           code_verifier: codeVerifier,
           state,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       )
       .pipe(toResult());
   }
