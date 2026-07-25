@@ -45,10 +45,10 @@ export class CallbackPageComponent implements OnInit, OnDestroy {
       this.cookieService.delete('oauth_state');
       return true;
     }),
-    switchMap(({ code }) => {
+    switchMap(({ code, state }) => {
       const codeVerifier = this.cookieService.get('oauth_verifier');
       this.cookieService.delete('oauth_verifier');
-      return this.webApiService.fetchAccessToken(code!, codeVerifier);
+      return this.webApiService.fetchAccessToken(code!, codeVerifier, state!);
     }),
     shareReplay(1),
   );

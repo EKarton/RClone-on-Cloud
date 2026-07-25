@@ -29,21 +29,22 @@ describe('WebApiService', () => {
   });
 
   it('should fetch access token', () => {
-    const mockCode = 'test-auth-code';
-    const mockCodeVerifier = 'test-code-verifier';
+    const mockCode = 'auth-code-123';
+    const mockCodeVerifier = 'verifier-xyz';
+    const mockState = 'state-abc';
     const mockResponse: TokenResponse = {
       token: 'mockAccessToken',
     };
 
     const emissions: Result<TokenResponse>[] = [];
-    service.fetchAccessToken(mockCode, mockCodeVerifier).subscribe((response) => {
+    service.fetchAccessToken(mockCode, mockCodeVerifier, mockState).subscribe((response) => {
       emissions.push(response);
     });
 
     const req = httpMock.expectOne(`${environment.webApiEndpoint}/auth/v1/google/callback`);
 
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ code: mockCode, code_verifier: mockCodeVerifier });
+    expect(req.request.body).toEqual({ code: mockCode, code_verifier: mockCodeVerifier, state: mockState });
 
     req.flush(mockResponse);
 
@@ -51,11 +52,12 @@ describe('WebApiService', () => {
   });
 
   it('should handle error response', () => {
-    const mockCode = 'test-auth-code';
-    const mockCodeVerifier = 'test-code-verifier';
+    const mockCode = 'auth-code-invalid';
+    const mockCodeVerifier = 'verifier-invalid';
+    const mockState = 'state-invalid';
 
     const emissions: Result<TokenResponse>[] = [];
-    service.fetchAccessToken(mockCode, mockCodeVerifier).subscribe({
+    service.fetchAccessToken(mockCode, mockCodeVerifier, mockState).subscribe({
       next: (response) => {
         emissions.push(response);
       },

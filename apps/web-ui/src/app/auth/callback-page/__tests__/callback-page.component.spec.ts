@@ -77,7 +77,7 @@ describe('CallbackPageComponent', () => {
 
     fixture.detectChanges(); // Trigger ngOnInit
 
-    expect(webApiService.fetchAccessToken).toHaveBeenCalledWith('test-auth-code', 'test-verifier');
+    expect(webApiService.fetchAccessToken).toHaveBeenCalledWith('test-auth-code', 'test-verifier', 'valid-state');
     expect(store.dispatch).toHaveBeenCalledWith(authActions.setAuthToken({ authToken: mockToken }));
     expect(cookieService.delete).toHaveBeenCalledWith('oauth_state');
     expect(router.navigate).toHaveBeenCalledWith(['/remotes']);

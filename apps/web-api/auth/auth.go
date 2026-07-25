@@ -2,6 +2,9 @@ package auth
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -40,6 +43,7 @@ type ErrorResponse struct {
 type CallbackRequest struct {
 	Code         string `json:"code"`
 	CodeVerifier string `json:"code_verifier"`
+	State        string `json:"state"`
 }
 
 // --- Interfaces for testability ---
@@ -65,13 +69,14 @@ func (g *googleIDTokenValidator) Validate(ctx context.Context, idToken string, a
 
 // Handler serves the Google OAuth2 login flow and issues JWTs.
 type Handler struct {
-	oauthConfig      *oauth2.Config
-	privateKey       any
-	tokenTTL         time.Duration
-	exchanger        TokenExchanger
-	idValidator      IDTokenValidator
-	allowedGoogleIDs map[string]bool
+	oauthConfig       *oauth2.Config
+	privateKey        any
+	tokenTTL          time.Duration
+	exchanger         TokenExchanger
+	idValidator        IDTokenValidator
+	allowedGoogleIDs  map[string]bool
 	allowAllGoogleIDs bool
+	hmacKey           []byte
 }
 
 // Config holds the parameters needed to create a Handler.
@@ -107,14 +112,18 @@ func NewHandler(cfg Config) (*Handler, error) {
 		allowedGoogleIDs[id] = true
 	}
 
+	// Derive an HMAC key from the private key PEM for signing state cookies.
+	hmacKey := deriveHMACKey(cfg.PrivateKeyPEM)
+
 	return &Handler{
-		oauthConfig:      oauthCfg,
-		privateKey:       privateKey,
-		tokenTTL:         defaultTokenTTL,
-		exchanger:        oauthCfg,
-		idValidator:      &googleIDTokenValidator{},
-		allowedGoogleIDs: allowedGoogleIDs,
+		oauthConfig:       oauthCfg,
+		privateKey:        privateKey,
+		tokenTTL:          defaultTokenTTL,
+		exchanger:         oauthCfg,
+		idValidator:       &googleIDTokenValidator{},
+		allowedGoogleIDs:  allowedGoogleIDs,
 		allowAllGoogleIDs: allowAll,
+		hmacKey:           hmacKey,
 	}, nil
 }
 
@@ -145,25 +154,63 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	url := h.oauthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.SetAuthURLParam("code_challenge", challenge), oauth2.SetAuthURLParam("code_challenge_method", codeChallengeMethod))
+
+	// Set a signed, HttpOnly cookie with the state value for CSRF validation in the callback.
+	signedState := h.signState(state)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "oauth_state",
+		Value:    signedState,
+		Path:     "/",
+		MaxAge:   300, // 5 minutes
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
 	http.Redirect(w, r, url, http.StatusFound)
 }
 
 // HandleCallback handles the redirect from Google after user consent.
 func (h *Handler) handleCallback(w http.ResponseWriter, r *http.Request) {
-	// 1. In a production environment, you should verify the state for CSRF protection.
-	// However, we are removing the state cookie as requested.
-
-	// 2. Exchange authorization code for token
-	var code string
+	// 1. Parse JSON body
 	var req CallbackRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err == nil {
-		code = req.Code
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, "invalid request body", http.StatusBadRequest)
+		return
 	}
 
+	code := req.Code
 	if code == "" {
 		writeError(w, "missing code parameter", http.StatusBadRequest)
 		return
 	}
+
+	// 2. Validate CSRF state: the state from the POST body must match the
+	// HMAC signature stored in the HttpOnly cookie set during login.
+	stateCookie, err := r.Cookie("oauth_state")
+	if err != nil || stateCookie.Value == "" {
+		writeError(w, "missing oauth_state cookie", http.StatusForbidden)
+		return
+	}
+	if req.State == "" {
+		writeError(w, "missing state parameter", http.StatusBadRequest)
+		return
+	}
+	if !h.verifyState(req.State, stateCookie.Value) {
+		writeError(w, "invalid state parameter", http.StatusForbidden)
+		return
+	}
+
+	// Clear the state cookie after successful validation.
+	http.SetCookie(w, &http.Cookie{
+		Name:     "oauth_state",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
 
 	oauthToken, err := h.exchanger.Exchange(r.Context(), code, oauth2.VerifierOption(req.CodeVerifier))
 	if err != nil {
@@ -224,4 +271,24 @@ func writeError(w http.ResponseWriter, msg string, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(ErrorResponse{Error: msg})
+}
+
+// deriveHMACKey derives a fixed HMAC key from the private key PEM.
+// This avoids needing a separate secret for cookie signing.
+func deriveHMACKey(privateKeyPEM string) []byte {
+	h := sha256.Sum256([]byte(privateKeyPEM))
+	return h[:]
+}
+
+// signState computes an HMAC-SHA256 of the state value.
+func (h *Handler) signState(state string) string {
+	mac := hmac.New(sha256.New, h.hmacKey)
+	mac.Write([]byte(state))
+	return hex.EncodeToString(mac.Sum(nil))
+}
+
+// verifyState checks that the provided state matches the HMAC signature.
+func (h *Handler) verifyState(state, signature string) bool {
+	expected := h.signState(state)
+	return hmac.Equal([]byte(expected), []byte(signature))
 }
