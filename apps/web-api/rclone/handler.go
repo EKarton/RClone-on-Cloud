@@ -3,6 +3,7 @@ package rclone
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"mime"
 	"net/http"
 	"regexp"
@@ -62,6 +63,7 @@ func NewRCHandler() *RCHandler {
 // ServeHTTP implements http.Handler.
 func (h *RCHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimLeft(r.URL.Path, "/")
+	log.Printf("[rclone] %s /%s", r.Method, path)
 
 	switch r.Method {
 	case "POST":
@@ -85,6 +87,7 @@ func (h *RCHandler) handleGet(w http.ResponseWriter, r *http.Request, path strin
 }
 
 func (h *RCHandler) serveRemote(w http.ResponseWriter, r *http.Request, path string, fsName string) {
+	log.Printf("[rclone] GET remote=%q path=%q", fsName, path)
 	ctx, span := tracer.Start(r.Context(), "serveRemote", trace.WithAttributes(
 		attribute.String("rclone.fs", fsName),
 		attribute.String("rclone.path", path),
@@ -186,6 +189,7 @@ func (h *RCHandler) handlePost(w http.ResponseWriter, r *http.Request, path stri
 	// rclone's internal auth would require libhttp.Server state.
 
 	inOrig := in.Copy()
+	log.Printf("[rclone] RC POST /%s input=%+v", path, inOrig)
 
 	if call.NeedsRequest {
 		in["_request"] = r
@@ -210,6 +214,11 @@ func (h *RCHandler) handlePost(w http.ResponseWriter, r *http.Request, path stri
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	if job != nil {
+		log.Printf("[rclone] RC POST /%s SUCCESS job_id=%d output=%+v", path, job.ID, out)
+	} else {
+		log.Printf("[rclone] RC POST /%s SUCCESS output=%+v", path, out)
+	}
 	err = rc.WriteJSON(w, out)
 	if err != nil {
 		fs.Errorf(nil, "rc: handler: failed to write JSON output: %v", err)
@@ -217,6 +226,7 @@ func (h *RCHandler) handlePost(w http.ResponseWriter, r *http.Request, path stri
 }
 
 func (h *RCHandler) writeError(path string, in rc.Params, w http.ResponseWriter, err error, status int) {
+	log.Printf("[rclone] %q error (status %d): %v", path, status, err)
 	fs.Errorf(nil, "rc: %q: error: %v", path, err)
 	params, status := rc.Error(path, in, err, status)
 	w.Header().Set("Content-Type", "application/json")
