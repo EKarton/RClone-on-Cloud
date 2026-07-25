@@ -5,7 +5,7 @@ go 1.26.1
 require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/joho/godotenv v1.5.1
-	github.com/rclone/rclone v1.73.3
+	github.com/rclone/rclone v1.73.5
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go/modules/mongodb v0.41.0
 	go.mongodb.org/mongo-driver/v2 v2.5.0
