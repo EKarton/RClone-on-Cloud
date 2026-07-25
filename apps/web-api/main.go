@@ -100,7 +100,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	authHandler.RegisterRoutes(mux)
-	health.RegisterRoutes(mux)
+	health.RegisterRoutes(mux, client)
 	rcloneHandler.RegisterRoutes(mux)
 
 	// Wrap with OpenTelemetry instrumentation
