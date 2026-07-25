@@ -35,8 +35,6 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/Azure/go-ntlmssp v0.1.1 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.7.2 // indirect
-	github.com/CalebQ42/fuse v0.1.0 // indirect
-	github.com/CalebQ42/squashfs v0.7.2 // indirect
 	github.com/FilenCloudDienste/filen-sdk-go v0.0.39 // indirect
 	github.com/Files-com/files-sdk-go/v3 v3.3.205 // indirect
 	github.com/IBM/go-sdk-core/v5 v5.23.1 // indirect
@@ -103,14 +101,12 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/diskfs/go-diskfs v1.7.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/djherbis/times v1.6.0 // indirect
 	github.com/docker/docker v28.5.2+incompatible // indirect
 	github.com/docker/go-connections v0.6.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dromara/dongle v1.0.1 // indirect
 	github.com/dropbox/dropbox-sdk-go-unofficial/v6 v6.0.5 // indirect
 	github.com/ebitengine/purego v0.10.2 // indirect
-	github.com/elliotwutingfeng/asciiset v0.0.0-20230602022725-51bbb787efab // indirect
 	github.com/emersion/go-message v0.18.2 // indirect
 	github.com/emersion/go-vcard v0.0.0-20260618161152-d854b7e0e2d3 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
@@ -204,7 +200,6 @@ require (
 	github.com/putdotio/go-putio/putio v0.0.0-20200123120452-16d982cac2b8 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.61.0 // indirect
-	github.com/rasky/go-lzo v0.0.0-20200203143853-96a758eda86e // indirect
 	github.com/rclone/Proton-API-Bridge v1.0.4 // indirect
 	github.com/rclone/go-proton-api v1.0.3 // indirect
 	github.com/relvacode/iso8601 v1.8.0 // indirect
@@ -220,7 +215,6 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/t3rm1n4l/go-mega v0.0.0-20260717075258-c6acd6a5bd04 // indirect
 	github.com/testcontainers/testcontainers-go v0.41.0 // indirect
-	github.com/therootcompany/xz v1.0.1 // indirect
 	github.com/tklauser/go-sysconf v0.4.0 // indirect
 	github.com/tklauser/numcpus v0.12.0 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
