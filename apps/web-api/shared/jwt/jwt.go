@@ -2,8 +2,10 @@ package jwt
 
 import (
 	"crypto/ed25519"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -157,4 +159,13 @@ func ensurePEMNewlines(pemStr string) string {
 	footer := pemStr[footerStart:]
 
 	return header + "\n" + content + "\n" + footer
+}
+
+// GenerateRefreshToken generates a cryptographically secure random 32-byte token and returns its hex encoding.
+func GenerateRefreshToken() (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
 }

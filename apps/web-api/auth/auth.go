@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,7 +21,7 @@ import (
 
 const (
 	// defaultTokenTTL is how long issued JWTs are valid.
-	defaultTokenTTL = 1 * time.Hour
+	defaultTokenTTL = 15 * time.Minute
 )
 
 // GoogleUserInfo holds the fields we extract from the verified Google ID token.
@@ -31,7 +32,8 @@ type GoogleUserInfo struct {
 
 // TokenResponse is the JSON returned to the client after successful login.
 type TokenResponse struct {
-	Token string `json:"token"`
+	Token        string `json:"token"`
+	RefreshToken string `json:"refresh_token,omitempty"`
 }
 
 // ErrorResponse is the standard error JSON we return.
@@ -46,11 +48,22 @@ type CallbackRequest struct {
 	State        string `json:"state"`
 }
 
+// RefreshRequest is the JSON body for the refresh request.
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
 // --- Interfaces for testability ---
 
 // TokenExchanger exchanges an authorization code for an OAuth2 token.
 type TokenExchanger interface {
 	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
+}
+
+// TokenStore manages refresh tokens.
+type TokenStore interface {
+	Store(ctx context.Context, userID, email, refreshToken string) error
+	ValidateAndRevoke(ctx context.Context, refreshToken string) (string, string, error)
 }
 
 // IDTokenValidator validates a Google ID token and returns the payload.
@@ -73,10 +86,11 @@ type Handler struct {
 	privateKey        any
 	tokenTTL          time.Duration
 	exchanger         TokenExchanger
-	idValidator        IDTokenValidator
+	idValidator       IDTokenValidator
 	allowedGoogleIDs  map[string]bool
 	allowAllGoogleIDs bool
 	hmacKey           []byte
+	tokenStore        TokenStore
 }
 
 // Config holds the parameters needed to create a Handler.
@@ -89,7 +103,7 @@ type Config struct {
 }
 
 // NewHandler creates an auth Handler from the given config.
-func NewHandler(cfg Config) (*Handler, error) {
+func NewHandler(cfg Config, store TokenStore) (*Handler, error) {
 	privateKey, err := sharedjwt.LoadPrivateKey(cfg.PrivateKeyPEM)
 	if err != nil {
 		return nil, fmt.Errorf("load private key: %w", err)
@@ -124,6 +138,7 @@ func NewHandler(cfg Config) (*Handler, error) {
 		allowedGoogleIDs:  allowedGoogleIDs,
 		allowAllGoogleIDs: allowAll,
 		hmacKey:           hmacKey,
+		tokenStore:        store,
 	}, nil
 }
 
@@ -131,6 +146,7 @@ func NewHandler(cfg Config) (*Handler, error) {
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /auth/v1/google/login", h.handleLogin)
 	mux.HandleFunc("POST /auth/v1/google/callback", h.handleCallback)
+	mux.HandleFunc("POST /auth/v1/google/refresh", h.handleRefresh)
 }
 
 // handleLogin redirects the user to Google's consent screen.
@@ -244,7 +260,7 @@ func (h *Handler) handleCallback(w http.ResponseWriter, r *http.Request) {
 	// SECURITY: Ensure the user is explicitly authorized to access the API by their Google ID (sub).
 	if !h.allowAllGoogleIDs && !h.allowedGoogleIDs[userID] {
 		log.Printf("unauthorized login attempt from user ID: %s (email: %s)", userID, email)
-		writeError(w, fmt.Sprintf("unauthorized access for user id: %s", userID), http.StatusForbidden)
+		writeError(w, "unauthorized access", http.StatusForbidden)
 		return
 	}
 
@@ -256,10 +272,81 @@ func (h *Handler) handleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 6. Generate and store Refresh Token
+	var refreshToken string
+	if h.tokenStore != nil {
+		rt, err := sharedjwt.GenerateRefreshToken()
+		if err != nil {
+			log.Printf("refresh token generation failed: %v", err)
+			writeError(w, "could not issue refresh token", http.StatusInternalServerError)
+			return
+		}
+		if err := h.tokenStore.Store(r.Context(), userID, email, rt); err != nil {
+			log.Printf("refresh token storage failed: %v", err)
+			writeError(w, "could not store refresh token", http.StatusInternalServerError)
+			return
+		}
+		refreshToken = rt
+	}
+
 	log.Printf("granted token for user: %s", userID)
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(TokenResponse{Token: signedToken})
+	_ = json.NewEncoder(w).Encode(TokenResponse{
+		Token:        signedToken,
+		RefreshToken: refreshToken,
+	})
+}
+
+// handleRefresh handles exchanging a valid refresh token for a new access token.
+func (h *Handler) handleRefresh(w http.ResponseWriter, r *http.Request) {
+	var req RefreshRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	if req.RefreshToken == "" {
+		writeError(w, "missing refresh token", http.StatusBadRequest)
+		return
+	}
+	if h.tokenStore == nil {
+		writeError(w, "refresh tokens not supported", http.StatusInternalServerError)
+		return
+	}
+
+	// Validate and revoke the old refresh token
+	userID, email, err := h.tokenStore.ValidateAndRevoke(r.Context(), req.RefreshToken)
+	if err != nil {
+		writeError(w, "invalid or expired refresh token", http.StatusUnauthorized)
+		return
+	}
+
+	// Generate a new refresh token (rotation)
+	newRefreshToken, err := sharedjwt.GenerateRefreshToken()
+	if err != nil {
+		log.Printf("refresh token generation failed: %v", err)
+		writeError(w, "could not issue new refresh token", http.StatusInternalServerError)
+		return
+	}
+	if err := h.tokenStore.Store(r.Context(), userID, email, newRefreshToken); err != nil {
+		log.Printf("refresh token storage failed: %v", err)
+		writeError(w, "could not store new refresh token", http.StatusInternalServerError)
+		return
+	}
+
+	// Issue a new access token
+	signedToken, err := h.signJWT(userID, email)
+	if err != nil {
+		log.Printf("jwt signing failed during refresh: %v", err)
+		writeError(w, "could not issue new token", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(TokenResponse{
+		Token:        signedToken,
+		RefreshToken: newRefreshToken,
+	})
 }
 
 // signJWT creates a signed JWT with the given user info.

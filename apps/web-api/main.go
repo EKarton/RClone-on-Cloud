@@ -81,13 +81,14 @@ func main() {
 	}()
 
 	// -- Google OAuth2 --
+	tokenStore := auth.NewInMemoryTokenStore()
 	authHandler, err := auth.NewHandler(auth.Config{
 		GoogleClientID:     env.GoogleClientID,
 		GoogleClientSecret: env.GoogleClientSecret,
 		RedirectURL:        env.GoogleRedirectURL,
 		PrivateKeyPEM:      env.JWTPrivateKeyPEM,
 		AllowedGoogleIDs:   env.AllowedGoogleIDs,
-	})
+	}, tokenStore)
 	if err != nil {
 		log.Fatalf("init auth: %v", err)
 	}
