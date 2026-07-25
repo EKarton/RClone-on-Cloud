@@ -222,22 +222,20 @@ remote = %s
 	})
 
 	t.Run("sync/copy", func(t *testing.T) {
-		// Set up a source directory with a file.
+		// Set up a source directory with a file inside the test remote.
 		srcDir := filepath.Join(tempDir, "sync_copy_src")
 		require.NoError(t, os.MkdirAll(srcDir, 0755))
 		require.NoError(t, os.WriteFile(filepath.Join(srcDir, "sc.txt"), []byte("sync-copy"), 0644))
 
-		dstDir := filepath.Join(tempDir, "sync_copy_dst")
-
-		resp := postJSON(t, "sync/copy", fmt.Sprintf(`{
-			"srcFs": "%s",
-			"dstFs": "%s"
-		}`, srcDir, dstDir))
+		resp := postJSON(t, "sync/copy", `{
+			"srcFs": "localtest:sync_copy_src",
+			"dstFs": "localtest:sync_copy_dst"
+		}`)
 		defer func() { _ = resp.Body.Close() }()
 
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
-		data, err := os.ReadFile(filepath.Join(dstDir, "sc.txt"))
+		data, err := os.ReadFile(filepath.Join(tempDir, "sync_copy_dst", "sc.txt"))
 		require.NoError(t, err)
 		assert.Equal(t, "sync-copy", string(data))
 
@@ -247,22 +245,20 @@ remote = %s
 	})
 
 	t.Run("sync/move", func(t *testing.T) {
-		// Set up a source directory with a file.
+		// Set up a source directory with a file inside the test remote.
 		srcDir := filepath.Join(tempDir, "sync_move_src")
 		require.NoError(t, os.MkdirAll(srcDir, 0755))
 		require.NoError(t, os.WriteFile(filepath.Join(srcDir, "sm.txt"), []byte("sync-move"), 0644))
 
-		dstDir := filepath.Join(tempDir, "sync_move_dst")
-
-		resp := postJSON(t, "sync/move", fmt.Sprintf(`{
-			"srcFs": "%s",
-			"dstFs": "%s"
-		}`, srcDir, dstDir))
+		resp := postJSON(t, "sync/move", `{
+			"srcFs": "localtest:sync_move_src",
+			"dstFs": "localtest:sync_move_dst"
+		}`)
 		defer func() { _ = resp.Body.Close() }()
 
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
-		data, err := os.ReadFile(filepath.Join(dstDir, "sm.txt"))
+		data, err := os.ReadFile(filepath.Join(tempDir, "sync_move_dst", "sm.txt"))
 		require.NoError(t, err)
 		assert.Equal(t, "sync-move", string(data))
 
@@ -378,6 +374,109 @@ remote = %s
 				defer func() { _ = resp.Body.Close() }()
 				assert.NotEqual(t, http.StatusForbidden, resp.StatusCode,
 					"method %q should not be blocked by the allowlist", allowed)
+			})
+		}
+	})
+
+	// --- Path traversal rejection tests (C-1 and C-2 fixes) ---
+
+	t.Run("POST Path Traversal Rejection", func(t *testing.T) {
+		tests := []struct {
+			name   string
+			method string
+			body   string
+		}{
+			{
+				name:   "bare root path as fs",
+				method: "operations/list",
+				body:   `{"fs": "/", "remote": ""}`,
+			},
+			{
+				name:   "bare /etc/ path as fs",
+				method: "operations/list",
+				body:   `{"fs": "/etc/", "remote": ""}`,
+			},
+			{
+				name:   "bare /tmp/ path for destructive op",
+				method: "operations/purge",
+				body:   `{"fs": "/tmp/", "remote": "sensitive-data"}`,
+			},
+			{
+				name:   "traversal in remote param",
+				method: "operations/list",
+				body:   `{"fs": "localtest:", "remote": "../../etc"}`,
+			},
+			{
+				name:   "bare paths for sync/copy srcFs and dstFs",
+				method: "sync/copy",
+				body:   `{"srcFs": "/", "dstFs": "/tmp/"}`,
+			},
+			{
+				name:   "connection string remote",
+				method: "operations/list",
+				body:   `{"fs": ":local:/etc/", "remote": ""}`,
+			},
+			{
+				name:   "unknown remote name",
+				method: "operations/list",
+				body:   `{"fs": "notconfigured:", "remote": ""}`,
+			},
+			{
+				name:   "traversal in srcRemote",
+				method: "operations/copyfile",
+				body:   `{"srcFs": "localtest:", "srcRemote": "../../../etc/passwd", "dstFs": "localtest:", "dstRemote": "stolen.txt"}`,
+			},
+			{
+				name:   "traversal in dstRemote",
+				method: "operations/movefile",
+				body:   `{"srcFs": "localtest:", "srcRemote": "hello.txt", "dstFs": "localtest:", "dstRemote": "../../tmp/evil"}`,
+			},
+		}
+
+		for _, tc := range tests {
+			tc := tc
+			t.Run(tc.name, func(t *testing.T) {
+				resp := postJSON(t, tc.method, tc.body)
+				defer func() { _ = resp.Body.Close() }()
+
+				assert.Equal(t, http.StatusForbidden, resp.StatusCode,
+					"expected 403 Forbidden for path traversal attempt")
+			})
+		}
+	})
+
+	t.Run("GET Path Traversal Rejection", func(t *testing.T) {
+		tests := []struct {
+			name string
+			path string
+		}{
+			{
+				name: "bare path as remote name",
+				path: "/[/etc/]passwd",
+			},
+			{
+				name: "traversal in path",
+				path: "/[localtest:]../../etc/passwd",
+			},
+			{
+				name: "unknown remote",
+				path: "/[notconfigured:]secret.txt",
+			},
+			{
+				name: "connection string remote",
+				path: "/[:local:/etc/]passwd",
+			},
+		}
+
+		for _, tc := range tests {
+			tc := tc
+			t.Run(tc.name, func(t *testing.T) {
+				resp, err := client.Get(baseURL + tc.path)
+				require.NoError(t, err)
+				defer func() { _ = resp.Body.Close() }()
+
+				assert.Equal(t, http.StatusForbidden, resp.StatusCode,
+					"expected 403 Forbidden for path traversal attempt via GET")
 			})
 		}
 	})

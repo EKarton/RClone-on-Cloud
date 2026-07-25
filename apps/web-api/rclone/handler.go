@@ -6,11 +6,13 @@ import (
 	"log"
 	"mime"
 	"net/http"
+	"path/filepath"
 	"regexp"
 	"strings"
 
 	"github.com/rclone/rclone/fs"
 	"github.com/rclone/rclone/fs/cache"
+	"github.com/rclone/rclone/fs/config"
 	"github.com/rclone/rclone/fs/list"
 	"github.com/rclone/rclone/fs/rc"
 	"github.com/rclone/rclone/fs/rc/jobs"
@@ -52,6 +54,82 @@ var allowedMethods = map[string]struct{}{
 	"job/stop":              {},
 }
 
+// fsParamKeys are the rc.Params keys that specify an rclone filesystem
+// (i.e. a remote reference such as "myremote:subpath").
+var fsParamKeys = []string{"fs", "srcFs", "dstFs"}
+
+// remoteParamKeys are the rc.Params keys that specify a path within a remote.
+var remoteParamKeys = []string{"remote", "srcRemote", "dstRemote"}
+
+// validateFsParam checks that an fs value (e.g. "myremote:", "myremote:sub/path")
+// references a remote that is present in the rclone configuration.
+// Bare filesystem paths (no colon) and on-the-fly connection strings (empty name
+// before the colon, like ":local:/etc") are rejected.
+func validateFsParam(value string) error {
+	// rclone remote references always contain a colon, e.g. "myremote:" or "myremote:sub/path".
+	colonIdx := strings.Index(value, ":")
+	if colonIdx < 0 {
+		return fmt.Errorf("invalid fs parameter %q: must reference a configured remote (e.g. \"myremote:\")", value)
+	}
+
+	remoteName := value[:colonIdx]
+	if remoteName == "" {
+		return fmt.Errorf("invalid fs parameter %q: empty remote name", value)
+	}
+
+	// Check that the remote name exists in the rclone configuration.
+	for _, section := range config.FileSections() {
+		if section == remoteName {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("invalid fs parameter %q: remote %q is not configured", value, remoteName)
+}
+
+// validateRemoteParam checks that a path within a remote does not contain
+// path traversal sequences that could escape the remote's root.
+func validateRemoteParam(value string) error {
+	cleaned := filepath.ToSlash(value)
+	for _, part := range strings.Split(cleaned, "/") {
+		if part == ".." {
+			return fmt.Errorf("invalid remote parameter %q: path traversal is not allowed", value)
+		}
+	}
+	return nil
+}
+
+// validateRCParams validates all fs and remote parameters in the given rc.Params.
+func validateRCParams(in rc.Params) error {
+	for _, key := range fsParamKeys {
+		raw, ok := in[key]
+		if !ok {
+			continue
+		}
+		value, ok := raw.(string)
+		if !ok {
+			continue
+		}
+		if err := validateFsParam(value); err != nil {
+			return err
+		}
+	}
+	for _, key := range remoteParamKeys {
+		raw, ok := in[key]
+		if !ok {
+			continue
+		}
+		value, ok := raw.(string)
+		if !ok {
+			continue
+		}
+		if err := validateRemoteParam(value); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // RCHandler dispatches requests directly to rclone's rc/jobs system.
 type RCHandler struct{}
 
@@ -80,7 +158,19 @@ func (h *RCHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *RCHandler) handleGet(w http.ResponseWriter, r *http.Request, path string) {
 	fsMatchResult := fsMatch.FindStringSubmatch(path)
 	if fsMatchResult != nil {
-		h.serveRemote(w, r, fsMatchResult[2], fsMatchResult[1])
+		fsName := fsMatchResult[1]
+		remotePath := fsMatchResult[2]
+
+		if err := validateFsParam(fsName); err != nil {
+			h.writeError(path, nil, w, err, http.StatusForbidden)
+			return
+		}
+		if err := validateRemoteParam(remotePath); err != nil {
+			h.writeError(path, nil, w, err, http.StatusForbidden)
+			return
+		}
+
+		h.serveRemote(w, r, remotePath, fsName)
 		return
 	}
 	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -187,6 +277,12 @@ func (h *RCHandler) handlePost(w http.ResponseWriter, r *http.Request, path stri
 
 	// Note: We are bypassing the internal rclone auth checks since we use our own JWT middleware.
 	// rclone's internal auth would require libhttp.Server state.
+
+	// Validate fs/remote parameters against configured remotes and reject path traversal.
+	if err := validateRCParams(in); err != nil {
+		h.writeError(path, in, w, err, http.StatusForbidden)
+		return
+	}
 
 	inOrig := in.Copy()
 	log.Printf("[rclone] RC POST /%s input=%+v", path, inOrig)
