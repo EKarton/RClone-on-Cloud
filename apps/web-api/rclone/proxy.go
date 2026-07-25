@@ -33,7 +33,6 @@ func NewRCloneAPIHandler(pubKeyPEM string, store config.Storage) (*RCloneAPIHand
 	// Always enable comprehensive debug logging and HTTP payload/header dumps
 	ci := fs.GetConfig(context.Background())
 	ci.LogLevel = fs.LogLevelDebug
-	ci.Dump = fs.DumpHeaders | fs.DumpBodies | fs.DumpRequests | fs.DumpResponses
 
 	publicKey, err := sharedjwt.LoadPublicKey(pubKeyPEM)
 	if err != nil {
