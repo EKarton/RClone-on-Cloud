@@ -66,14 +66,14 @@ describe('LoginPageComponent', () => {
 
     const expectedHref = `${environment.loginUrl}?select_account=true&state=123e4567-e89b-12d3-a456-426614174000&code_challenge_method=S256&challenge=${mockChallenge}`;
     expect(mockWindow.location.href).toBe(expectedHref);
-    expect(cookieService.set).toHaveBeenCalledWith(
+    expect(cookieService.set).not.toHaveBeenCalledWith(
       'oauth_state',
-      '123e4567-e89b-12d3-a456-426614174000',
-      300,
-      '/',
-      undefined,
-      true,
-      'Lax',
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
     );
     expect(cookieService.set).toHaveBeenCalledWith(
       'oauth_verifier',

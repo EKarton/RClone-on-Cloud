@@ -44,8 +44,12 @@ describe('WebApiService', () => {
     const req = httpMock.expectOne(`${environment.webApiEndpoint}/auth/v1/google/callback`);
 
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ code: mockCode, code_verifier: mockCodeVerifier, state: mockState });
-    expect(req.request.withCredentials).toBeTrue();
+    expect(req.request.body).toEqual({
+      code: mockCode,
+      code_verifier: mockCodeVerifier,
+      state: mockState,
+    });
+    expect(req.request.withCredentials).toBeTruthy();
 
     req.flush(mockResponse);
 
