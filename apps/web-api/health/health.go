@@ -36,7 +36,7 @@ func (h *Handler) handleHealth(w http.ResponseWriter, r *http.Request) {
 
 	if h.pinger != nil {
 		if err := h.pinger.Ping(ctx, readpref.Primary()); err != nil {
-			http.Error(w, fmt.Sprintf("DB connection unhealthy: %v", err), http.StatusServiceUnavailable)
+			http.Error(w, fmt.Sprintf("MongoDB unhealthy: %v", err), http.StatusServiceUnavailable)
 			return
 		}
 	}
