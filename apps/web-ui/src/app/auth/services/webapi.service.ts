@@ -17,11 +17,15 @@ export class WebApiService {
   fetchAccessToken(code: string, codeVerifier: string, state: string): Observable<Result<TokenResponse>> {
     const url = `${environment.webApiEndpoint}/auth/v1/google/callback`;
     return this.httpClient
-      .post<TokenResponse>(url, {
-        code,
-        code_verifier: codeVerifier,
-        state,
-      })
+      .post<TokenResponse>(
+        url,
+        {
+          code,
+          code_verifier: codeVerifier,
+          state,
+        },
+        { withCredentials: true }
+      )
       .pipe(toResult());
   }
 }

@@ -334,7 +334,7 @@ func (s *MongoStorage) processChangeStream(ctx context.Context, cs *mongo.Change
 			FullDocument bson.M `bson:"fullDocument"`
 		}
 		if err := cs.Decode(&event); err != nil {
-			log.Fatalln("change stream decode error: ", err)
+			log.Printf("change stream decode error: %v", err)
 			continue
 		}
 
@@ -353,7 +353,7 @@ func (s *MongoStorage) processChangeStream(ctx context.Context, cs *mongo.Change
 	}
 	// cs.Next returns false when the context is cancelled or an error occurs.
 	if err := cs.Err(); err != nil && ctx.Err() == nil {
-		log.Fatalln("change stream: cursor: ", err)
+		log.Printf("change stream cursor error: %v", err)
 	}
 }
 

@@ -164,7 +164,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   300, // 5 minutes
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
 	})
 
 	http.Redirect(w, r, url, http.StatusFound)
@@ -209,7 +209,7 @@ func (h *Handler) handleCallback(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   -1,
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
 	})
 
 	oauthToken, err := h.exchanger.Exchange(r.Context(), code, oauth2.VerifierOption(req.CodeVerifier))

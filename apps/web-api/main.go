@@ -13,6 +13,7 @@ import (
 	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone"
 	mongocfg "github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
 	"github.com/ekarton/RClone-Cloud/apps/web-api/shared/cors"
+	"github.com/ekarton/RClone-Cloud/apps/web-api/shared/security"
 	"github.com/ekarton/RClone-Cloud/apps/web-api/telemetry"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -106,9 +107,12 @@ func main() {
 	// Wrap with OpenTelemetry instrumentation
 	otelHandler := otelhttp.NewHandler(mux, "http.request")
 
+	handler := cors.NewMiddleware(env.CORSAllowedURLs)(otelHandler)
+	handler = security.NewRateLimitMiddleware(handler)
+
 	server := &http.Server{
 		Addr:    env.ListenAddr,
-		Handler: cors.NewMiddleware(env.CORSAllowedURLs)(otelHandler),
+		Handler: handler,
 	}
 	go func() {
 		log.Printf("API listening on %s", env.ListenAddr)

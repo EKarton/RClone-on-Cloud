@@ -257,6 +257,7 @@ func (h *RCHandler) handlePost(w http.ResponseWriter, r *http.Request, path stri
 			return
 		}
 
+		r.Body = http.MaxBytesReader(w, r.Body, 10<<20) // 10 MB limit
 		err := json.NewDecoder(r.Body).Decode(&in)
 		if err != nil && err.Error() != "EOF" {
 			h.writeError(path, in, w, fmt.Errorf("failed to read input JSON: %w", err), http.StatusBadRequest)

@@ -23,6 +23,6 @@ export const appConfig: ApplicationConfig = {
 
     provideEffects(ThemeEffects),
 
-    provideStoreDevtools({ maxAge: 25, logOnly: !isDevMode() }),
+    ...(isDevMode() ? [provideStoreDevtools({ maxAge: 25 })] : []),
   ],
 };

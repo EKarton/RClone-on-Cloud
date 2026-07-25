@@ -45,6 +45,7 @@ describe('WebApiService', () => {
 
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ code: mockCode, code_verifier: mockCodeVerifier, state: mockState });
+    expect(req.request.withCredentials).toBeTrue();
 
     req.flush(mockResponse);
 
