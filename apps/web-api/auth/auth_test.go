@@ -84,7 +84,7 @@ func newTestHandler(t *testing.T, exchanger TokenExchanger, validator IDTokenVal
 		AllowedGoogleIDs:   []string{"google-user-123", "user-456"},
 	}
 
-	h, err := NewHandler(cfg)
+	h, err := NewHandler(cfg, nil)
 	require.NoError(t, err)
 
 	// Override real dependencies with the mocks if provided
@@ -500,7 +500,7 @@ func TestCallbackWildcardSuccess(t *testing.T) {
 		PrivateKeyPEM:      pem,
 		AllowedGoogleIDs:   []string{"*"},
 	}
-	h, err := NewHandler(cfg)
+	h, err := NewHandler(cfg, nil)
 	require.NoError(t, err)
 	h.exchanger = exchanger
 	h.idValidator = validator
