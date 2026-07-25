@@ -392,11 +392,12 @@ func TestSignAndVerifyJWT(t *testing.T) {
 	assert.Equal(t, "user-456", claims.UserID)
 	assert.Equal(t, "test@test.com", claims.Email)
 
-	// Verify expiration is roughly 1 hour from now
-	exp, err := claims.GetExpirationTime()
+	// Verify expiration is roughly 15 minutes from now
+	_, err = claims.GetExpirationTime()
 	require.NoError(t, err)
-	diff := time.Until(exp.Time)
-	assert.InDelta(t, float64(time.Hour), float64(diff), float64(5*time.Second))
+	expectedTTL := 15 * time.Minute
+	actualTTL := claims.ExpiresAt.Time.Sub(claims.IssuedAt.Time)
+	assert.InDelta(t, expectedTTL, actualTTL, float64(5*time.Second))
 }
 
 func TestCallbackMissingSub(t *testing.T) {
