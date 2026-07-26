@@ -28,7 +28,7 @@ func main() {
 
 	env := LoadEnv()
 
-	// -- Telemetry --
+	// Start telemetry
 	shutdown := telemetry.InitTelemetry(ctx, telemetry.Config{
 		ServiceName:    env.OtelServiceName,
 		ServiceVersion: env.OtelServiceVersion,
@@ -41,13 +41,11 @@ func main() {
 			log.Printf("error shutting down telemetry: %v", err)
 		}
 	}()
-
-	// Go runtime metrics
 	if err := runtime.Start(); err != nil {
 		log.Printf("failed to start runtime metrics: %v", err)
 	}
 
-	// -- MongoDB --
+	// Connect to MongoDB
 	mongoOpts := options.Client().ApplyURI(env.MongoURI).SetMonitor(otelmongo.NewMonitor())
 	client, err := mongo.Connect(mongoOpts)
 	if err != nil {
@@ -60,7 +58,7 @@ func main() {
 		}
 	}()
 
-	// -- Rclone config (encrypted in MongoDB) --
+	// Get RClone config (encrypted in MongoDB)
 	store, err := mongocfg.New(client.Database(env.MongoDB).Collection(env.MongoCol), env.MongoKey)
 	if err != nil {
 		log.Fatalf("init storage: %v", err)
@@ -80,7 +78,7 @@ func main() {
 		}
 	}()
 
-	// -- Google OAuth2 --
+	// Setup Google OAuth2
 	tokenStore := auth.NewInMemoryTokenStore()
 	authHandler, err := auth.NewHandler(auth.Config{
 		GoogleClientID:     env.GoogleClientID,
@@ -93,8 +91,7 @@ func main() {
 		log.Fatalf("init auth: %v", err)
 	}
 
-	// -- Rclone API (Direct integration, JWT-protected) --
-	// This also initializes the global RClone system state.
+	// Create RClone API
 	rcloneHandler, err := rclone.NewRCloneAPIHandler(env.JWTPublicKeyPEM, store)
 	if err != nil {
 		log.Fatalf("init rclone handler: %v", err)
@@ -105,9 +102,10 @@ func main() {
 	health.RegisterRoutes(mux, client)
 	rcloneHandler.RegisterRoutes(mux)
 
-	// Wrap with OpenTelemetry instrumentation
+	// Wrap mux with OpenTelemetry instrumentation
 	otelHandler := otelhttp.NewHandler(mux, "http.request")
 
+	// Add CORS and rate limiting
 	handler := cors.NewMiddleware(env.CORSAllowedURLs)(otelHandler)
 	handler = security.NewRateLimitMiddleware(handler)
 

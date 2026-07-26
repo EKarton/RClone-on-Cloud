@@ -9,22 +9,22 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
-// Pinger defines the interface for pinging MongoDB.
+// Defines the interface for pinging MongoDB.
 type Pinger interface {
 	Ping(ctx context.Context, rp *readpref.ReadPref) error
 }
 
-// Handler handles health check requests.
+// Handles health check requests.
 type Handler struct {
 	pinger Pinger
 }
 
-// NewHandler creates a new health check handler with the provided Pinger.
+// Creates a new health check handler with the provided Pinger.
 func NewHandler(pinger Pinger) *Handler {
 	return &Handler{pinger: pinger}
 }
 
-// RegisterRoutes mounts the /health endpoint on the provided mux using the given Pinger.
+// Mounts the /health endpoint on the provided mux with a given Pinger.
 func RegisterRoutes(mux *http.ServeMux, pinger Pinger) {
 	handler := NewHandler(pinger)
 	mux.HandleFunc("GET /health", handler.handleHealth)

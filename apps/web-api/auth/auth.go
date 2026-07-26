@@ -19,67 +19,63 @@ import (
 )
 
 const (
-	// defaultTokenTTL is how long issued JWTs are valid.
+	// Determines how long issued JWTs are valid.
 	defaultTokenTTL = 15 * time.Minute
 )
 
-// GoogleUserInfo holds the fields we extract from the verified Google ID token.
+// Holds the fields we extract from the verified Google ID token.
 type GoogleUserInfo struct {
 	Sub   string `json:"sub"`
 	Email string `json:"email"`
 }
 
-// TokenResponse is the JSON returned to the client after successful login.
+// The JSON returned to the client after successful login.
 type TokenResponse struct {
 	Token        string `json:"token"`
 	RefreshToken string `json:"refresh_token,omitempty"`
 }
 
-// ErrorResponse is the standard error JSON we return.
+// The standard error JSON we return.
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-// CallbackRequest is the JSON body for the callback request.
+// The JSON body for the callback request.
 type CallbackRequest struct {
 	Code         string `json:"code"`
 	CodeVerifier string `json:"code_verifier"`
 	State        string `json:"state"`
 }
 
-// RefreshRequest is the JSON body for the refresh request.
+// The JSON body for the refresh request.
 type RefreshRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// --- Interfaces for testability ---
-
-// TokenExchanger exchanges an authorization code for an OAuth2 token.
+// Exchanges an authorization code for an OAuth2 token.
 type TokenExchanger interface {
 	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
 }
 
-// TokenStore manages refresh tokens.
+// Manages refresh tokens.
 type TokenStore interface {
 	Store(ctx context.Context, userID, email, refreshToken string) error
 	ValidateAndRevoke(ctx context.Context, refreshToken string) (string, string, error)
 }
 
-// IDTokenValidator validates a Google ID token and returns the payload.
+// Validates a Google ID token and returns the payload.
 type IDTokenValidator interface {
 	Validate(ctx context.Context, idToken string, audience string) (*idtoken.Payload, error)
 }
 
-// googleIDTokenValidator is the production implementation.
+// The production implementation of IDTokenValidator.
 type googleIDTokenValidator struct{}
 
 func (g *googleIDTokenValidator) Validate(ctx context.Context, idToken string, audience string) (*idtoken.Payload, error) {
 	return idtoken.Validate(ctx, idToken, audience)
 }
 
-// --- Handler ---
-
-// Handler serves the Google OAuth2 login flow and issues JWTs.
+// Serves the Google OAuth2 login flow and issues JWTs.
 type Handler struct {
 	oauthConfig       *oauth2.Config
 	privateKey        any
@@ -92,7 +88,7 @@ type Handler struct {
 	tokenStore        TokenStore
 }
 
-// Config holds the parameters needed to create a Handler.
+// Holds the parameters needed to create a Handler.
 type Config struct {
 	GoogleClientID     string
 	GoogleClientSecret string
@@ -101,7 +97,7 @@ type Config struct {
 	AllowedGoogleIDs   []string
 }
 
-// NewHandler creates an auth Handler from the given config.
+// Creates an auth Handler from the given config.
 func NewHandler(cfg Config, store TokenStore) (*Handler, error) {
 	privateKey, err := sharedjwt.LoadPrivateKey(cfg.PrivateKeyPEM)
 	if err != nil {
@@ -141,14 +137,14 @@ func NewHandler(cfg Config, store TokenStore) (*Handler, error) {
 	}, nil
 }
 
-// RegisterRoutes mounts /auth/login and /auth/callback on the given mux.
+// Mounts /auth/login and /auth/callback on the given mux.
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /auth/v1/google/login", h.handleLogin)
 	mux.HandleFunc("POST /auth/v1/google/callback", h.handleCallback)
 	mux.HandleFunc("POST /auth/v1/google/refresh", h.handleRefresh)
 }
 
-// handleLogin redirects the user to Google's consent screen.
+// Redirects the user to Google's consent screen.
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	state := r.URL.Query().Get("state")
 	if state == "" {
@@ -185,7 +181,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url, http.StatusFound)
 }
 
-// HandleCallback handles the redirect from Google after user consent.
+// Handles the redirect from Google after user consent.
 func (h *Handler) handleCallback(w http.ResponseWriter, r *http.Request) {
 	// 1. Parse JSON body
 	var req CallbackRequest
@@ -297,7 +293,7 @@ func (h *Handler) handleCallback(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// handleRefresh handles exchanging a valid refresh token for a new access token.
+// Handles exchanging a valid refresh token for a new access token.
 func (h *Handler) handleRefresh(w http.ResponseWriter, r *http.Request) {
 	var req RefreshRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -348,7 +344,7 @@ func (h *Handler) handleRefresh(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// signJWT creates a signed JWT with the given user info.
+// Creates a signed JWT with the given user info.
 func (h *Handler) signJWT(userID, email string) (string, error) {
 	return sharedjwt.SignToken(h.privateKey, h.tokenTTL, userID, email)
 }
@@ -359,21 +355,21 @@ func writeError(w http.ResponseWriter, msg string, status int) {
 	_ = json.NewEncoder(w).Encode(ErrorResponse{Error: msg})
 }
 
-// deriveHMACKey derives a fixed HMAC key from the private key PEM.
+// Derives a fixed HMAC key from the private key PEM.
 // This avoids needing a separate secret for cookie signing.
 func deriveHMACKey(privateKeyPEM string) []byte {
 	h := sha256.Sum256([]byte(privateKeyPEM))
 	return h[:]
 }
 
-// signState computes an HMAC-SHA256 of the state value.
+// Computes an HMAC-SHA256 of the state value.
 func (h *Handler) signState(state string) string {
 	mac := hmac.New(sha256.New, h.hmacKey)
 	mac.Write([]byte(state))
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
-// verifyState checks that the provided state matches the HMAC signature.
+// Checks that the provided state matches the HMAC signature.
 func (h *Handler) verifyState(state, signature string) bool {
 	expected := h.signState(state)
 	return hmac.Equal([]byte(expected), []byte(signature))

@@ -49,7 +49,7 @@ func getVisitor(ip string) *rate.Limiter {
 	return v.limiter
 }
 
-// NewRateLimitMiddleware limits requests per IP address to prevent DoS attacks.
+// Creates a handler that limits requests per IP address.
 func NewRateLimitMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ip, _, err := net.SplitHostPort(r.RemoteAddr)
