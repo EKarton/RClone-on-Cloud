@@ -1,6 +1,6 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
-import { filter, interval } from 'rxjs';
+import { filter, interval, Subscription } from 'rxjs';
 
 import { WINDOW } from '../../app.tokens';
 
@@ -9,7 +9,12 @@ export class AppUpdateService {
   private readonly swUpdate = inject(SwUpdate);
   private readonly window = inject(WINDOW);
 
-  initialize() {
+  readonly updateAvailable = signal(false);
+  readonly unrecoverableError = signal(false);
+
+  private readonly subscriptions = new Subscription();
+
+  initialize(): void {
     if (!this.swUpdate.isEnabled) {
       return;
     }
@@ -20,24 +25,27 @@ export class AppUpdateService {
       this.swUpdate.checkForUpdate();
     });
 
-    this.swUpdate.versionUpdates
-      .pipe(filter((event): event is VersionReadyEvent => event.type === 'VERSION_READY'))
-      .subscribe(() => {
-        const updateNow = this.window.confirm(
-          'A new version of RClone on Cloud is available. Reload now?',
-        );
+    this.subscriptions.add(
+      this.swUpdate.versionUpdates
+        .pipe(filter((event): event is VersionReadyEvent => event.type === 'VERSION_READY'))
+        .subscribe(() => {
+          this.updateAvailable.set(true);
+        }),
+    );
 
-        if (updateNow) {
-          this.window.location.reload();
-        }
-      });
+    this.subscriptions.add(
+      this.swUpdate.unrecoverable.subscribe((event) => {
+        console.error('Unrecoverable service-worker state:', event.reason);
+        this.unrecoverableError.set(true);
+      }),
+    );
+  }
 
-    this.swUpdate.unrecoverable.subscribe((event) => {
-      console.error('Unrecoverable service-worker state:', event.reason);
+  reload(): void {
+    this.window.location.reload();
+  }
 
-      this.window.alert('RClone on Cloud needs to reload because an update could not be applied.');
-
-      this.window.location.reload();
-    });
+  shutdown() {
+    this.subscriptions.unsubscribe();
   }
 }

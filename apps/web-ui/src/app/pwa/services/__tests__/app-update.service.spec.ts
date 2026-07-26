@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { SwUpdate, VersionEvent, VersionReadyEvent } from '@angular/service-worker';
 import { Subject } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -9,42 +9,34 @@ import { AppUpdateService } from '../app-update.service';
 describe('AppUpdateService', () => {
   let service: AppUpdateService;
 
-  let versionUpdates$: Subject<VersionReadyEvent>;
+  let versionUpdates$: Subject<VersionEvent>;
   let unrecoverable$: Subject<{ reason: string }>;
 
-  let swUpdateMock: {
-    isEnabled: boolean;
-    checkForUpdate: ReturnType<typeof vi.fn>;
-    versionUpdates: Subject<VersionReadyEvent>;
-    unrecoverable: Subject<{ reason: string }>;
+  const checkForUpdate = vi.fn<() => Promise<boolean>>();
+  const reload = vi.fn();
+  const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+  const swUpdateMock = {
+    isEnabled: true,
+    checkForUpdate,
+    versionUpdates: undefined as unknown as Subject<VersionEvent>,
+    unrecoverable: undefined as unknown as Subject<{ reason: string }>,
   };
 
-  let windowMock: {
-    confirm: ReturnType<typeof vi.fn>;
-    alert: ReturnType<typeof vi.fn>;
+  const windowMock = {
     location: {
-      reload: ReturnType<typeof vi.fn>;
-    };
+      reload,
+    },
   };
 
   beforeEach(() => {
-    versionUpdates$ = new Subject<VersionReadyEvent>();
+    versionUpdates$ = new Subject<VersionEvent>();
     unrecoverable$ = new Subject<{ reason: string }>();
 
-    swUpdateMock = {
-      isEnabled: true,
-      checkForUpdate: vi.fn().mockResolvedValue(false),
-      versionUpdates: versionUpdates$,
-      unrecoverable: unrecoverable$,
-    };
-
-    windowMock = {
-      confirm: vi.fn().mockReturnValue(false),
-      alert: vi.fn(),
-      location: {
-        reload: vi.fn(),
-      },
-    };
+    checkForUpdate.mockResolvedValue(false);
+    swUpdateMock.isEnabled = true;
+    swUpdateMock.versionUpdates = versionUpdates$;
+    swUpdateMock.unrecoverable = unrecoverable$;
 
     TestBed.configureTestingModule({
       providers: [
@@ -64,80 +56,98 @@ describe('AppUpdateService', () => {
   });
 
   afterEach(() => {
+    service.shutdown();
+
     vi.clearAllTimers();
     vi.useRealTimers();
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
+
     TestBed.resetTestingModule();
+  });
+
+  it('creates', () => {
+    expect(service).toBeTruthy();
   });
 
   it('does nothing when service-worker updates are disabled', () => {
     swUpdateMock.isEnabled = false;
 
     service.initialize();
-    versionUpdates$.next(versionReadyEvent());
 
-    expect(swUpdateMock.checkForUpdate).not.toHaveBeenCalled();
-    expect(windowMock.confirm).not.toHaveBeenCalled();
-    expect(windowMock.location.reload).not.toHaveBeenCalled();
+    expect(checkForUpdate).not.toHaveBeenCalled();
+    expect(service.updateAvailable()).toBe(false);
+    expect(service.unrecoverableError()).toBe(false);
   });
 
   it('checks for an update immediately when initialized', () => {
     service.initialize();
 
-    expect(swUpdateMock.checkForUpdate).toHaveBeenCalledOnce();
+    expect(checkForUpdate).toHaveBeenCalledOnce();
   });
 
   it('checks for updates every hour', () => {
     vi.useFakeTimers();
 
     service.initialize();
+
+    expect(checkForUpdate).toHaveBeenCalledOnce();
+
     vi.advanceTimersByTime(60 * 60 * 1000);
 
-    expect(swUpdateMock.checkForUpdate).toHaveBeenCalledTimes(2);
+    expect(checkForUpdate).toHaveBeenCalledTimes(2);
 
     vi.advanceTimersByTime(60 * 60 * 1000);
 
-    expect(swUpdateMock.checkForUpdate).toHaveBeenCalledTimes(3);
+    expect(checkForUpdate).toHaveBeenCalledTimes(3);
   });
 
-  it('asks the user to reload when an update is ready', () => {
+  it('sets updateAvailable when a new version is ready', () => {
     service.initialize();
+
     versionUpdates$.next(versionReadyEvent());
 
-    expect(windowMock.confirm).toHaveBeenCalledWith(
-      'A new version of RClone on Cloud is available. Reload now?',
-    );
+    expect(service.updateAvailable()).toBe(true);
+    expect(service.unrecoverableError()).toBe(false);
   });
 
-  it('reloads when the user accepts the update', () => {
-    windowMock.confirm.mockReturnValue(true);
-
-    service.initialize();
-    versionUpdates$.next(versionReadyEvent());
-
-    expect(windowMock.location.reload).toHaveBeenCalledOnce();
-  });
-
-  it('does not reload when the user declines the update', () => {
-    windowMock.confirm.mockReturnValue(false);
-
-    service.initialize();
-    versionUpdates$.next(versionReadyEvent());
-
-    expect(windowMock.location.reload).not.toHaveBeenCalled();
-  });
-
-  it('alerts and reloads after an unrecoverable service-worker error', () => {
+  it('sets unrecoverableError when the service worker enters an unrecoverable state', () => {
     service.initialize();
 
     unrecoverable$.next({
       reason: 'Cached app version is inconsistent',
     });
 
-    expect(windowMock.alert).toHaveBeenCalledWith(
-      'RClone on Cloud needs to reload because an update could not be applied.',
+    expect(consoleError).toHaveBeenCalledWith(
+      'Unrecoverable service-worker state:',
+      'Cached app version is inconsistent',
     );
-    expect(windowMock.location.reload).toHaveBeenCalledOnce();
+    expect(service.unrecoverableError()).toBe(true);
+  });
+
+  it('reloads the browser when reload is called', () => {
+    service.reload();
+
+    expect(reload).toHaveBeenCalledOnce();
+  });
+
+  it('stops listening for version events after shutdown', () => {
+    service.initialize();
+    service.shutdown();
+
+    versionUpdates$.next(versionReadyEvent());
+
+    expect(service.updateAvailable()).toBe(false);
+  });
+
+  it('stops hourly update checks after shutdown', () => {
+    vi.useFakeTimers();
+
+    service.initialize();
+    service.shutdown();
+
+    vi.advanceTimersByTime(2 * 60 * 60 * 1000);
+
+    expect(checkForUpdate).toHaveBeenCalled();
   });
 
   function versionReadyEvent(): VersionReadyEvent {

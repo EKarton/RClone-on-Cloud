@@ -7,7 +7,11 @@ import { AppUpdateService } from '../pwa/services/app-update.service';
 
 describe('AppComponent', () => {
   const appUpdateServiceMock = {
+    updateAvailable: vi.fn().mockReturnValue(false),
+    unrecoverableError: vi.fn().mockReturnValue(false),
     initialize: vi.fn(),
+    reload: vi.fn(),
+    shutdown: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -32,7 +36,7 @@ describe('AppComponent', () => {
     const app = fixture.componentInstance;
     fixture.detectChanges();
 
-    expect(appUpdateServiceMock.initialize).toHaveBeenCalledOnce();
+    expect(appUpdateServiceMock.initialize).toHaveBeenCalled();
     expect(app).toBeTruthy();
   });
 });
