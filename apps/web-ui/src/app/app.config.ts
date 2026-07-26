@@ -1,6 +1,7 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, isDevMode } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 import { provideEffects } from '@ngrx/effects';
 import { provideState, provideStore } from '@ngrx/store';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
@@ -16,6 +17,11 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withInterceptors([webApiAuthRequestInterceptor, webApiHttpCacheInterceptor])),
     provideRouter(routes),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+      updateViaCache: 'none',
+    }),
     provideStore({}),
 
     provideState(themeFeature),
