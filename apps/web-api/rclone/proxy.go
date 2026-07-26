@@ -2,6 +2,7 @@ package rclone
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 
 	sharedjwt "github.com/ekarton/RClone-Cloud/apps/web-api/shared/jwt"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/rclone/rclone/fs"
 	"github.com/rclone/rclone/fs/config"
 	"github.com/rclone/rclone/fs/rc"
 	"github.com/rclone/rclone/fs/rc/jobs"
@@ -29,10 +29,6 @@ func NewRCloneAPIHandler(pubKeyPEM string, store config.Storage) (*RCloneAPIHand
 	rc.Opt.NoAuth = true
 	rc.Opt.Serve = true  // equivalent to --rc-serve
 	jobs.SetOpt(&rc.Opt) // configure job expiry (matches rcserver.Start)
-
-	// Always enable comprehensive debug logging and HTTP payload/header dumps
-	ci := fs.GetConfig(context.Background())
-	ci.LogLevel = fs.LogLevelDebug
 
 	publicKey, err := sharedjwt.LoadPublicKey(pubKeyPEM)
 	if err != nil {
@@ -89,7 +85,9 @@ func extractBearer(r *http.Request) (string, bool) {
 
 func jsonError(w http.ResponseWriter, msg string, status int) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("WWW-Authenticate", `Bearer realm="rclone-api"`)
+	if status == http.StatusUnauthorized {
+		w.Header().Set("WWW-Authenticate", `Bearer realm="rclone-api"`)
+	}
 	w.WriteHeader(status)
-	_, _ = fmt.Fprintf(w, `{"error":"%s"}`, msg)
+	_ = json.NewEncoder(w).Encode(map[string]string{"error": msg})
 }

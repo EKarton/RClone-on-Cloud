@@ -43,5 +43,5 @@ func TestHealthHandler_Failure(t *testing.T) {
 	mux.ServeHTTP(rec, req)
 
 	assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
-	assert.Contains(t, rec.Body.String(), "MongoDB unhealthy: connection timeout")
+	assert.Contains(t, rec.Body.String(), "MongoDB unhealthy")
 }

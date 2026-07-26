@@ -72,21 +72,22 @@ describe('CallbackPageComponent', () => {
     const mockToken = 'mockToken';
     webApiService.fetchAccessToken.mockReturnValue(of(toSuccess({ token: mockToken })));
 
-    cookieService.set('oauth_state', 'valid-state');
     cookieService.set('oauth_verifier', 'test-verifier');
 
     fixture.detectChanges(); // Trigger ngOnInit
 
-    expect(webApiService.fetchAccessToken).toHaveBeenCalledWith('test-auth-code', 'test-verifier');
+    expect(webApiService.fetchAccessToken).toHaveBeenCalledWith(
+      'test-auth-code',
+      'test-verifier',
+      'valid-state',
+    );
     expect(store.dispatch).toHaveBeenCalledWith(authActions.setAuthToken({ authToken: mockToken }));
-    expect(cookieService.delete).toHaveBeenCalledWith('oauth_state');
     expect(router.navigate).toHaveBeenCalledWith(['/remotes']);
   });
 
   it('should navigate to custom redirect path if set in localStorage', () => {
     const mockToken = 'mockToken';
     webApiService.fetchAccessToken.mockReturnValue(of(toSuccess({ token: mockToken })));
-    cookieService.set('oauth_state', 'valid-state');
     cookieService.set('oauth_verifier', 'test-verifier');
     mockLocalStorageGetItem.mockImplementation((key: string) => {
       if (key === 'auth_redirect_path') {
@@ -104,7 +105,6 @@ describe('CallbackPageComponent', () => {
     webApiService.fetchAccessToken.mockReturnValue(
       of(toFailure<TokenResponse>(new Error('error'))),
     );
-    cookieService.set('oauth_state', 'valid-state');
     cookieService.set('oauth_verifier', 'test-verifier');
 
     fixture.detectChanges();
@@ -114,18 +114,7 @@ describe('CallbackPageComponent', () => {
   });
 
   it('should redirect back to home if state parameter is missing', () => {
-    cookieService.set('oauth_state', 'valid-state');
     queryParamMapSubject.next(convertToParamMap({ code: 'test-auth-code' }));
-    fixture.detectChanges();
-
-    expect(router.navigate).toHaveBeenCalledWith(['/']);
-    expect(webApiService.fetchAccessToken).not.toHaveBeenCalled();
-  });
-
-  it('should redirect back to home if state parameter does not match stored state', () => {
-    queryParamMapSubject.next(
-      convertToParamMap({ code: 'test-auth-code', state: 'invalid-state' }),
-    );
     fixture.detectChanges();
 
     expect(router.navigate).toHaveBeenCalledWith(['/']);

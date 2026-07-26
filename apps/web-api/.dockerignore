@@ -1,7 +1,6 @@
 .git
+node_modules
 .env
-bin
-coverage.out
-*.go.test
-**/node_modules
-.DS_Store
+apps/web-ui
+dist
+*.md

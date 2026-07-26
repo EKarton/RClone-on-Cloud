@@ -36,19 +36,16 @@ export class CallbackPageComponent implements OnInit, OnDestroy {
 
   readonly authTokenResult$ = this.authParams$.pipe(
     filter(({ code, state }) => {
-      const storedState = this.cookieService.get('oauth_state');
-
-      if (!code || !state || state !== storedState) {
+      if (!code || !state) {
         this.router.navigate(['/']);
         return false;
       }
-      this.cookieService.delete('oauth_state');
       return true;
     }),
-    switchMap(({ code }) => {
+    switchMap(({ code, state }) => {
       const codeVerifier = this.cookieService.get('oauth_verifier');
       this.cookieService.delete('oauth_verifier');
-      return this.webApiService.fetchAccessToken(code!, codeVerifier);
+      return this.webApiService.fetchAccessToken(code!, codeVerifier, state!);
     }),
     shareReplay(1),
   );

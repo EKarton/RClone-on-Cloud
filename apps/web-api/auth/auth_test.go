@@ -84,7 +84,7 @@ func newTestHandler(t *testing.T, exchanger TokenExchanger, validator IDTokenVal
 		AllowedGoogleIDs:   []string{"google-user-123", "user-456"},
 	}
 
-	h, err := NewHandler(cfg)
+	h, err := NewHandler(cfg, nil)
 	require.NoError(t, err)
 
 	// Override real dependencies with the mocks if provided
@@ -99,6 +99,13 @@ func newTestHandler(t *testing.T, exchanger TokenExchanger, validator IDTokenVal
 	h.RegisterRoutes(mux)
 
 	return h, mux
+}
+
+// addStateCookie computes the HMAC signature for the given state and adds
+// both the state parameter to the request body and the signed cookie.
+func addStateCookie(r *http.Request, h *Handler, state string) {
+	signed := h.signState(state)
+	r.AddCookie(&http.Cookie{Name: "oauth_state", Value: signed})
 }
 
 func TestLoginRedirect(t *testing.T) {
@@ -117,6 +124,18 @@ func TestLoginRedirect(t *testing.T) {
 	location := resp.Header.Get("Location")
 	assert.Contains(t, location, "accounts.google.com")
 	assert.Contains(t, location, "state=test-state")
+
+	// Verify that the login handler sets the oauth_state cookie.
+	var stateCookie *http.Cookie
+	for _, c := range resp.Cookies() {
+		if c.Name == "oauth_state" {
+			stateCookie = c
+			break
+		}
+	}
+	require.NotNil(t, stateCookie, "expected oauth_state cookie to be set")
+	assert.True(t, stateCookie.HttpOnly)
+	assert.NotEmpty(t, stateCookie.Value)
 }
 
 func TestLoginRedirectMissingState(t *testing.T) {
@@ -139,10 +158,11 @@ func TestLoginRedirectMissingState(t *testing.T) {
 }
 
 func TestCallbackMissingCode(t *testing.T) {
-	_, mux := newTestHandler(t, &mockExchanger{}, &mockValidator{})
+	h, mux := newTestHandler(t, &mockExchanger{}, &mockValidator{})
 
-	body, _ := json.Marshal(CallbackRequest{Code: "", CodeVerifier: "test-verifier"})
-	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=abc", bytes.NewReader(body))
+	body, _ := json.Marshal(CallbackRequest{Code: "", CodeVerifier: "test-verifier", State: "abc"})
+	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback", bytes.NewReader(body))
+	addStateCookie(req, h, "abc")
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -162,11 +182,12 @@ func TestCallbackInvalidGoogleToken(t *testing.T) {
 	exchanger := &mockExchanger{
 		err: assert.AnError,
 	}
-	_, mux := newTestHandler(t, exchanger, &mockValidator{})
+	h, mux := newTestHandler(t, exchanger, &mockValidator{})
 
-	body, _ := json.Marshal(CallbackRequest{Code: "badcode", CodeVerifier: "test-verifier"})
-	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=abc", bytes.NewReader(body))
+	body, _ := json.Marshal(CallbackRequest{Code: "badcode", CodeVerifier: "test-verifier", State: "abc"})
+	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
+	addStateCookie(req, h, "abc")
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -190,12 +211,12 @@ func TestCallbackNoIDToken(t *testing.T) {
 		Expiry:      time.Now().Add(1 * time.Hour),
 	}
 	exchanger := &mockExchanger{token: oauthToken}
-	_, mux := newTestHandler(t, exchanger, &mockValidator{})
+	h, mux := newTestHandler(t, exchanger, &mockValidator{})
 
-	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier"})
-	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=abc", bytes.NewReader(body))
+	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier", State: "abc"})
+	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	req.AddCookie(&http.Cookie{Name: "oauth_state", Value: "abc"})
+	addStateCookie(req, h, "abc")
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -220,11 +241,12 @@ func TestCallbackIDTokenValidationFails(t *testing.T) {
 
 	exchanger := &mockExchanger{token: oauthToken}
 	validator := &mockValidator{err: assert.AnError}
-	_, mux := newTestHandler(t, exchanger, validator)
+	h, mux := newTestHandler(t, exchanger, validator)
 
-	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier"})
-	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=abc", bytes.NewReader(body))
+	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier", State: "abc"})
+	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
+	addStateCookie(req, h, "abc")
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -264,11 +286,12 @@ func TestCallbackSuccess(t *testing.T) {
 			},
 		},
 	}
-	_, mux := newTestHandler(t, exchanger, validator)
+	h, mux := newTestHandler(t, exchanger, validator)
 
-	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier"})
-	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=abc", bytes.NewReader(body))
+	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier", State: "abc"})
+	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
+	addStateCookie(req, h, "abc")
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -332,11 +355,12 @@ func TestSignAndVerifyJWT(t *testing.T) {
 			},
 		},
 	}
-	_, mux := newTestHandler(t, exchanger, validator)
+	h, mux := newTestHandler(t, exchanger, validator)
 
-	body, _ := json.Marshal(CallbackRequest{Code: "c", CodeVerifier: "v"})
-	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=s", bytes.NewReader(body))
+	body, _ := json.Marshal(CallbackRequest{Code: "c", CodeVerifier: "v", State: "s"})
+	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
+	addStateCookie(req, h, "s")
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -368,11 +392,12 @@ func TestSignAndVerifyJWT(t *testing.T) {
 	assert.Equal(t, "user-456", claims.UserID)
 	assert.Equal(t, "test@test.com", claims.Email)
 
-	// Verify expiration is roughly 1 hour from now
-	exp, err := claims.GetExpirationTime()
+	// Verify expiration is roughly 15 minutes from now
+	_, err = claims.GetExpirationTime()
 	require.NoError(t, err)
-	diff := time.Until(exp.Time)
-	assert.InDelta(t, float64(time.Hour), float64(diff), float64(5*time.Second))
+	expectedTTL := 15 * time.Minute
+	actualTTL := claims.ExpiresAt.Time.Sub(claims.IssuedAt.Time)
+	assert.InDelta(t, expectedTTL, actualTTL, float64(5*time.Second))
 }
 
 func TestCallbackMissingSub(t *testing.T) {
@@ -393,11 +418,12 @@ func TestCallbackMissingSub(t *testing.T) {
 			},
 		},
 	}
-	_, mux := newTestHandler(t, exchanger, validator)
+	h, mux := newTestHandler(t, exchanger, validator)
 
-	body, _ := json.Marshal(CallbackRequest{Code: "c", CodeVerifier: "v"})
-	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback?state=s", bytes.NewReader(body))
+	body, _ := json.Marshal(CallbackRequest{Code: "c", CodeVerifier: "v", State: "s"})
+	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
+	addStateCookie(req, h, "s")
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -430,11 +456,12 @@ func TestCallbackJSONBodySuccess(t *testing.T) {
 			},
 		},
 	}
-	_, mux := newTestHandler(t, exchanger, validator)
+	h, mux := newTestHandler(t, exchanger, validator)
 
-	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier"})
+	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier", State: "abc"})
 	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
+	addStateCookie(req, h, "abc")
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -474,7 +501,7 @@ func TestCallbackWildcardSuccess(t *testing.T) {
 		PrivateKeyPEM:      pem,
 		AllowedGoogleIDs:   []string{"*"},
 	}
-	h, err := NewHandler(cfg)
+	h, err := NewHandler(cfg, nil)
 	require.NoError(t, err)
 	h.exchanger = exchanger
 	h.idValidator = validator
@@ -482,9 +509,10 @@ func TestCallbackWildcardSuccess(t *testing.T) {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
-	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier"})
+	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "test-verifier", State: "abc"})
 	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
+	addStateCookie(req, h, "abc")
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -498,4 +526,64 @@ func TestCallbackWildcardSuccess(t *testing.T) {
 	var tokenResp TokenResponse
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&tokenResp))
 	require.NotEmpty(t, tokenResp.Token)
+}
+
+// --- CSRF state validation tests ---
+
+func TestCallbackMissingStateCookie(t *testing.T) {
+	_, mux := newTestHandler(t, &mockExchanger{}, &mockValidator{})
+
+	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "v", State: "abc"})
+	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	// No oauth_state cookie added
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	resp := rec.Result()
+	defer func() { _ = resp.Body.Close() }()
+
+	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	var errResp ErrorResponse
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
+	assert.Contains(t, errResp.Error, "missing oauth_state cookie")
+}
+
+func TestCallbackMissingStateInBody(t *testing.T) {
+	h, mux := newTestHandler(t, &mockExchanger{}, &mockValidator{})
+
+	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "v", State: ""})
+	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	addStateCookie(req, h, "abc")
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	resp := rec.Result()
+	defer func() { _ = resp.Body.Close() }()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	var errResp ErrorResponse
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
+	assert.Contains(t, errResp.Error, "missing state parameter")
+}
+
+func TestCallbackMismatchedState(t *testing.T) {
+	h, mux := newTestHandler(t, &mockExchanger{}, &mockValidator{})
+
+	// State in body does not match the state the cookie was signed for.
+	body, _ := json.Marshal(CallbackRequest{Code: "goodcode", CodeVerifier: "v", State: "attacker-state"})
+	req := httptest.NewRequest(http.MethodPost, "/auth/v1/google/callback", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	addStateCookie(req, h, "legitimate-state")
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	resp := rec.Result()
+	defer func() { _ = resp.Body.Close() }()
+
+	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	var errResp ErrorResponse
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
+	assert.Contains(t, errResp.Error, "invalid state parameter")
 }

@@ -11,7 +11,11 @@ export class PdfViewerComponent {
 
   readonly blobUrl = input.required<string>();
 
-  readonly sanitizedUrl: () => SafeResourceUrl = computed(() =>
-    this.sanitizer.bypassSecurityTrustResourceUrl(this.blobUrl()),
-  );
+  readonly sanitizedUrl: () => SafeResourceUrl = computed(() => {
+    const url = this.blobUrl();
+    if (!url.startsWith('blob:')) {
+      throw new Error('Invalid blob URL: must start with "blob:"');
+    }
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  });
 }
