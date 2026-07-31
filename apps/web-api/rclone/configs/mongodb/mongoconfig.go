@@ -329,14 +329,14 @@ func (s *MongoStorage) processChangeStream(ctx context.Context, cs *mongo.Change
 			continue
 		}
 
-		log.Println("Received change event: ", event)
+		// log.Println("Received change event: ", event)
 
 		switch event.OperationType {
 		case "insert", "update", "replace":
-			log.Println("Mongo config section updated: ", event.OperationType, event.DocumentKey.ID)
+			// log.Println("Mongo config section updated: ", event.OperationType, event.DocumentKey.ID)
 			s.applyFullDocument(event.DocumentKey.ID, event.FullDocument)
 		case "delete":
-			log.Println("Mongo config section deleted: ", event.OperationType, event.DocumentKey.ID)
+			// log.Println("Mongo config section deleted: ", event.OperationType, event.DocumentKey.ID)
 			s.mu.Lock()
 			delete(s.data, event.DocumentKey.ID)
 			s.mu.Unlock()
@@ -370,7 +370,7 @@ func (s *MongoStorage) applyFullDocument(id string, doc bson.M) {
 		}
 		plaintext, err := s.decrypt(encrypted)
 		if err != nil {
-			log.Printf("change stream: decrypt %q.%q: %v", id, k, err)
+			// log.Printf("change stream: decrypt error: %q.%q: %v", id, k, err)
 			continue
 		}
 		section[k] = string(plaintext)
