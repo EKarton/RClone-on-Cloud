@@ -17,7 +17,7 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 )
 
-// Config represents telemetry configuration.
+// Represents telemetry configuration.
 type Config struct {
 	ServiceName    string
 	ServiceVersion string
@@ -25,7 +25,7 @@ type Config struct {
 	Headers        string // comma-separated pairs: key=value,key=value
 }
 
-// InitTelemetry initializes OTLP exporters for traces and metrics.
+// Initializes OTLP exporters for traces and metrics.
 // Returns a shutdown function.
 func InitTelemetry(ctx context.Context, cfg Config) func(context.Context) error {
 	if cfg.Endpoint == "" {
@@ -65,7 +65,7 @@ func InitTelemetry(ctx context.Context, cfg Config) func(context.Context) error 
 		log.Printf("failed to create resource: %v", err)
 	}
 
-	// -- Trace Provider --
+	// Trace Provider --
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(traceExporter),
 		sdktrace.WithResource(res),
@@ -73,7 +73,7 @@ func InitTelemetry(ctx context.Context, cfg Config) func(context.Context) error 
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 
-	// -- Meter Provider --
+	// Meter Provider --
 	mp := sdkmetric.NewMeterProvider(
 		sdkmetric.WithResource(res),
 		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter, sdkmetric.WithInterval(30*time.Second))),

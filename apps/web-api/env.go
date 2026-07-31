@@ -30,7 +30,7 @@ type Env struct {
 	OtelExporterHeaders  string
 }
 
-// LoadEnv reads and validates all required environment variables,
+// Reads and validates all required environment variables,
 // returning a populated Env or fataling on any missing/invalid value.
 func LoadEnv() Env {
 	_ = godotenv.Load()
@@ -94,7 +94,7 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-// String returns a redacted string representation of the Env.
+// Returns a redacted string representation of the Env.
 func (e Env) String() string {
 	return fmt.Sprintf("ListenAddr=%s MongoURI=*** GoogleRedirectURL=%s", e.ListenAddr, e.GoogleRedirectURL)
 }
