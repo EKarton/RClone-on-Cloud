@@ -1,5 +1,5 @@
-<div class="dropdown dropdown-end">
-  <div tabindex="0" role="button" class="btn btn-circle btn-ghost rounded-lg">
+<details class="dropdown dropdown-end">
+  <div role="button" class="btn btn-circle btn-ghost rounded-lg">
     <!-- Spinner ring -->
     @if (hasOngoingJobs$ | async) {
       <span
@@ -26,9 +26,8 @@
     </svg>
   </div>
 
-  <div
-    tabindex="0"
-    class="dropdown-content z-[1] menu mt-2 rounded-box border border-base-300 bg-base-300 p-2 shadow-lg"
+  <summary
+    class="dropdown-content menu mt-2 rounded-box border border-base-300 bg-base-300 p-2 shadow-lg"
   >
     <div class="flex flex-col gap-2" data-testid="job-details">
       @for (job of jobs$ | async; track job.key) {
@@ -130,5 +129,5 @@
         }
       }
     </div>
-  </div>
-</div>
+  </summary>
+</details>
