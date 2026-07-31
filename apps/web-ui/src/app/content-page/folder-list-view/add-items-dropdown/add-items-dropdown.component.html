@@ -1,9 +1,5 @@
-<div class="dropdown dropdown-end">
-  <div
-    tabindex="0"
-    role="button"
-    class="btn btn-ghost btn-circle hover:border hover:border-current"
-  >
+<details class="dropdown dropdown-end">
+  <summary role="button" class="btn btn-ghost btn-circle hover:border hover:border-current">
     <svg
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
@@ -14,11 +10,10 @@
     >
       <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
     </svg>
-  </div>
+  </summary>
 
   <ul
-    tabindex="0"
-    class="dropdown-content z-[1] menu mt-2 rounded-box border border-base-300 bg-base-300 p-2 shadow-lg"
+    class="dropdown-content menu mt-2 rounded-box border border-base-300 bg-base-300 p-2 shadow-lg"
   >
     <li>
       <button type="button" (click)="uploadNewFile()" class="whitespace-nowrap">
@@ -81,7 +76,7 @@
       </button>
     </li>
   </ul>
-</div>
+</details>
 
 <input #fileInput type="file" hidden (change)="onFileSelected($event)" />
 
