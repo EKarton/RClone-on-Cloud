@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-// NewMiddleware returns a middleware that adds CORS headers to responses.
+// Creates a middleware that adds CORS headers to responses.
 func NewMiddleware(allowedOrigins []string) func(http.Handler) http.Handler {
 	allowedOriginsMap := make(map[string]bool)
 	for _, origin := range allowedOrigins {

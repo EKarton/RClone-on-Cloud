@@ -14,7 +14,6 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy source code 
-# (.dockerignore handles excluding unnecessary files)
 COPY . .
 
 # Build the binary
@@ -24,7 +23,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -o rclone-cloud-web-api .
 
 # Final stage
-# Using 'scratch' for the absolute slimmest image
 FROM scratch
 
 WORKDIR /app
@@ -36,7 +34,6 @@ COPY --from=builder /app/rclone-cloud-web-api .
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Copy the non-root user details we created in the builder
-# (Wait, builder needs to create the user first - I'll update that too)
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
 

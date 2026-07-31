@@ -28,13 +28,12 @@ func TestRCloneAPIHandler(t *testing.T) {
 	_ = os.WriteFile(confPath, []byte("[testremote]\ntype = local\n"), 0600)
 	require.NoError(t, config.SetConfigPath(confPath))
 	configfile.Install()
+
 	// 2. Generate an RSA Keypair
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
-
 	pubBytes, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
 	require.NoError(t, err)
-
 	pemBlock := &pem.Block{
 		Type:  "PUBLIC KEY",
 		Bytes: pubBytes,
@@ -79,8 +78,6 @@ func TestRCloneAPIHandler(t *testing.T) {
 		signed, _ := token.SignedString(diffKey)
 		return signed
 	}
-
-	// --- Subtests --- //
 
 	t.Run("No Token", func(t *testing.T) {
 		req, _ := http.NewRequest("POST", ts.URL+"/api/v1/rclone/rc/noop", nil)
