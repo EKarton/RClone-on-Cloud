@@ -20,20 +20,20 @@ type contextKey string
 
 const ContextKeyClaims contextKey = "claims"
 
-// Claims are the JWT claims carried through the request context.
+// Defines and stores JWT claims carried through the request context.
 type Claims struct {
 	UserID string `json:"sub"`
 	Email  string `json:"email"`
 	jwtv5.RegisteredClaims
 }
 
-// GetClaims extracts claims from a request that passed through the bearer middleware.
+// Extracts claims from a request that passed through the bearer middleware.
 func GetClaims(r *http.Request) *Claims {
 	claims, _ := r.Context().Value(ContextKeyClaims).(*Claims)
 	return claims
 }
 
-// LoadPublicKey parses a PEM-encoded public key string (RSA or Ed25519).
+// Parses a PEM-encoded public key string (RSA or Ed25519).
 func LoadPublicKey(pemContent string) (any, error) {
 	if pemContent == "" {
 		return nil, fmt.Errorf("JWT_PUBLIC_KEY is not set")
@@ -51,7 +51,7 @@ func LoadPublicKey(pemContent string) (any, error) {
 	return pub, nil
 }
 
-// LoadPrivateKey parses a PEM-encoded private key string (RSA or Ed25519).
+// Parses a PEM-encoded private key string (RSA or Ed25519).
 func LoadPrivateKey(pemContent string) (any, error) {
 	if pemContent == "" {
 		return nil, fmt.Errorf("JWT_PRIVATE_KEY is not set")
@@ -75,7 +75,7 @@ func LoadPrivateKey(pemContent string) (any, error) {
 	return key, nil
 }
 
-// SignToken creates a signed JWT with the given user info.
+// Creates a signed JWT with the given user info.
 func SignToken(privateKey any, ttl time.Duration, userID, email string) (string, error) {
 	now := time.Now()
 	claims := Claims{
@@ -104,7 +104,7 @@ func SignToken(privateKey any, ttl time.Duration, userID, email string) (string,
 	return token.SignedString(privateKey)
 }
 
-// VerifyToken parses and validates a token string against the given public key.
+// Parses and validates a token string against the given public key.
 func VerifyToken(raw string, publicKey any) (*Claims, error) {
 	claims := &Claims{}
 	token, err := jwtv5.ParseWithClaims(raw, claims, func(t *jwtv5.Token) (any, error) {
@@ -161,7 +161,7 @@ func ensurePEMNewlines(pemStr string) string {
 	return header + "\n" + content + "\n" + footer
 }
 
-// GenerateRefreshToken generates a cryptographically secure random 32-byte token and returns its hex encoding.
+// Generates a cryptographically secure random 32-byte token and returns its hex encoding.
 func GenerateRefreshToken() (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {

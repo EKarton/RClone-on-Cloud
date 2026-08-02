@@ -22,9 +22,6 @@ import (
 	"google.golang.org/api/idtoken"
 )
 
-// --- Test helpers ---
-
-// testPrivateKey is a fresh key pair generated per test run.
 var testPrivateKey any
 
 func init() {
@@ -35,7 +32,6 @@ func init() {
 	}
 }
 
-// getPrivateKeyPEM returns the test private key as a PEM string.
 func getPrivateKeyPEM(t *testing.T) string {
 	t.Helper()
 
@@ -49,7 +45,7 @@ func getPrivateKeyPEM(t *testing.T) string {
 	return string(pem.EncodeToMemory(pemBlock))
 }
 
-// mockExchanger simulates the Google token exchange.
+// Simulates the Google token exchange.
 type mockExchanger struct {
 	token *oauth2.Token
 	err   error
@@ -60,7 +56,7 @@ func (m *mockExchanger) Exchange(_ context.Context, _ string, opts ...oauth2.Aut
 	return m.token, m.err
 }
 
-// mockValidator simulates Google ID token validation.
+// Simulates Google ID token validation.
 type mockValidator struct {
 	payload *idtoken.Payload
 	err     error
@@ -70,7 +66,7 @@ func (m *mockValidator) Validate(_ context.Context, _ string, _ string) (*idtoke
 	return m.payload, m.err
 }
 
-// newTestHandler creates a Handler with mocked Google dependencies using NewHandler.
+// Creates a Handler with mocked Google dependencies using NewHandler.
 func newTestHandler(t *testing.T, exchanger TokenExchanger, validator IDTokenValidator) (*Handler, *http.ServeMux) {
 	t.Helper()
 
@@ -101,7 +97,7 @@ func newTestHandler(t *testing.T, exchanger TokenExchanger, validator IDTokenVal
 	return h, mux
 }
 
-// addStateCookie computes the HMAC signature for the given state and adds
+// Computes the HMAC signature for the given state and adds
 // both the state parameter to the request body and the signed cookie.
 func addStateCookie(r *http.Request, h *Handler, state string) {
 	signed := h.signState(state)

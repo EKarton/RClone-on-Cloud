@@ -33,8 +33,7 @@ var (
 	tracer  = otel.Tracer("rclone-handler")
 )
 
-// allowedMethods is the set of rclone RC endpoints that this API exposes.
-// Any POST to a path not listed here will be rejected with HTTP 403.
+// Is the set of allowed RClone RC endpoints.
 var allowedMethods = map[string]struct{}{
 	"rc/noop":               {},
 	"config/listremotes":    {},
@@ -54,14 +53,14 @@ var allowedMethods = map[string]struct{}{
 	"job/stop":              {},
 }
 
-// fsParamKeys are the rc.Params keys that specify an rclone filesystem
+// The rc.Params keys that specify an rclone filesystem
 // (i.e. a remote reference such as "myremote:subpath").
 var fsParamKeys = []string{"fs", "srcFs", "dstFs"}
 
-// remoteParamKeys are the rc.Params keys that specify a path within a remote.
+// The rc.Params keys that specify a path within a remote.
 var remoteParamKeys = []string{"remote", "srcRemote", "dstRemote"}
 
-// validateFsParam checks that an fs value (e.g. "myremote:", "myremote:sub/path")
+// Checks that an fs value (e.g. "myremote:", "myremote:sub/path")
 // references a remote that is present in the rclone configuration.
 // Bare filesystem paths (no colon) and on-the-fly connection strings (empty name
 // before the colon, like ":local:/etc") are rejected.
@@ -87,7 +86,7 @@ func validateFsParam(value string) error {
 	return fmt.Errorf("invalid fs parameter %q: remote %q is not configured", value, remoteName)
 }
 
-// validateRemoteParam checks that a path within a remote does not contain
+// Checks that a path within a remote does not contain
 // path traversal sequences that could escape the remote's root.
 func validateRemoteParam(value string) error {
 	cleaned := filepath.ToSlash(value)
@@ -99,7 +98,7 @@ func validateRemoteParam(value string) error {
 	return nil
 }
 
-// validateRCParams validates all fs and remote parameters in the given rc.Params.
+// Validates all fs and remote parameters in the given rc.Params.
 func validateRCParams(in rc.Params) error {
 	for _, key := range fsParamKeys {
 		raw, ok := in[key]
@@ -133,12 +132,12 @@ func validateRCParams(in rc.Params) error {
 // RCHandler dispatches requests directly to rclone's rc/jobs system.
 type RCHandler struct{}
 
-// NewRCHandler creates a new direct RC handler.
+// Creates a new direct RC handler.
 func NewRCHandler() *RCHandler {
 	return &RCHandler{}
 }
 
-// ServeHTTP implements http.Handler.
+// Implements http.Handler.
 func (h *RCHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimLeft(r.URL.Path, "/")
 	log.Printf("[rclone] %s /%s", r.Method, path)

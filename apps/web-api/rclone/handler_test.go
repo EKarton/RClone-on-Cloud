@@ -44,7 +44,7 @@ remote = %s
 	configfile.Install()
 	store := config.Data()
 
-	// 3. Initialize rclone via the API handler constructor
+	// 3. Initialize rclone api
 	// Generate a valid public key PEM for the constructor
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
@@ -63,7 +63,7 @@ remote = %s
 	baseURL := ts.URL
 	client := ts.Client()
 
-	// postJSON is a helper to POST a JSON body to the given path and return the response.
+	// Sends a JSON body to the given path and returns the response.
 	postJSON := func(t *testing.T, path string, body string) *http.Response {
 		t.Helper()
 		resp, err := client.Post(baseURL+"/"+path, "application/json", bytes.NewReader([]byte(body)))
@@ -71,7 +71,7 @@ remote = %s
 		return resp
 	}
 
-	// decodeJSON is a helper to decode a JSON response body into a generic map.
+	// Decodes a JSON response body into a generic map.
 	decodeJSON := func(t *testing.T, resp *http.Response) map[string]interface{} {
 		t.Helper()
 		var result map[string]interface{}
@@ -79,8 +79,6 @@ remote = %s
 		require.NoError(t, err)
 		return result
 	}
-
-	// --- Individual tests for every allowed RC method ---
 
 	t.Run("rc/noop", func(t *testing.T) {
 		resp := postJSON(t, "rc/noop", `{"potato": "1"}`)
@@ -364,9 +362,6 @@ remote = %s
 		}
 	})
 
-	// --- Meta-test: ensure all allowedMethods are exercised above ---
-	// This iterates over the allowedMethods map so if a new method is added
-	// but no individual test is written, this will still catch it.
 	t.Run("All Allowed Methods Pass Allowlist", func(t *testing.T) {
 		for allowed := range allowedMethods {
 			t.Run(allowed, func(t *testing.T) {
@@ -377,8 +372,6 @@ remote = %s
 			})
 		}
 	})
-
-	// --- Path traversal rejection tests (C-1 and C-2 fixes) ---
 
 	t.Run("POST Path Traversal Rejection", func(t *testing.T) {
 		tests := []struct {

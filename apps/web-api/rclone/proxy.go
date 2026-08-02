@@ -15,13 +15,13 @@ import (
 	"github.com/rclone/rclone/fs/rc/jobs"
 )
 
-// RCloneAPIHandler owns the JWT-protected RClone API.
+// The RClone API handler
 type RCloneAPIHandler struct {
+	// The RSA public key used to verify JWT tokens.
 	publicKey any
 }
 
-// NewRCloneAPIHandler prepares the JWT-protected RClone API handler
-// and initializes the global RClone system state.
+// Creates a new RClone API handler.
 func NewRCloneAPIHandler(pubKeyPEM string, store config.Storage) (*RCloneAPIHandler, error) {
 	// Initialize global rclone state — match rclone rcd behavior
 	config.SetData(store)
@@ -38,7 +38,7 @@ func NewRCloneAPIHandler(pubKeyPEM string, store config.Storage) (*RCloneAPIHand
 	return &RCloneAPIHandler{publicKey: publicKey}, nil
 }
 
-// RegisterRoutes mounts the JWT-protected rclone API on the given mux.
+// Mounts the RClone API handler on the given mux.
 func (h *RCloneAPIHandler) RegisterRoutes(mux *http.ServeMux) {
 	handler := NewRCHandler()
 	mux.Handle("/api/v1/rclone/", bearerMiddleware(h.publicKey, http.StripPrefix("/api/v1/rclone", handler)))

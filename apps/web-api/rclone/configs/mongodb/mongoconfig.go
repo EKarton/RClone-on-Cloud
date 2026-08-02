@@ -19,7 +19,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-// MongoStorage implements rclone's config.Storage backed by MongoDB.
+// Defines rclone's config file (config.Storage) stored on MongoDB.
 // All config values are encrypted at rest with AES-256-GCM.
 type MongoStorage struct {
 	mu          sync.RWMutex
@@ -31,7 +31,7 @@ type MongoStorage struct {
 
 var _ config.Storage = (*MongoStorage)(nil)
 
-// New creates a MongoStorage. encKeyStr will be hashed with SHA-256 to derive a 32-byte key.
+// Creates a new MongoStorage. encKeyStr will be hashed with SHA-256 to derive a 32-byte key.
 func New(collection *mongo.Collection, encKeyStr string) (*MongoStorage, error) {
 	trimmedKey := strings.TrimSpace(encKeyStr)
 	if trimmedKey == "" {
@@ -44,8 +44,6 @@ func New(collection *mongo.Collection, encKeyStr string) (*MongoStorage, error) 
 		key:        hash[:],
 	}, nil
 }
-
-// --- Encryption helpers ---
 
 func (s *MongoStorage) encrypt(plaintext []byte) ([]byte, error) {
 	block, err := aes.NewCipher(s.key)
@@ -80,9 +78,7 @@ func (s *MongoStorage) decrypt(data []byte) ([]byte, error) {
 	return gcm.Open(nil, nonce, ciphertext, nil)
 }
 
-// --- config.Storage implementation ---
-
-// Load reads all documents from MongoDB, decrypts each field, and populates
+// Loads all documents from MongoDB, decrypts each field, and populates
 // the in-memory cache. Called once at startup.
 func (s *MongoStorage) Load() error {
 	s.mu.Lock()
@@ -191,7 +187,7 @@ func (s *MongoStorage) Save() error {
 	return nil
 }
 
-// Serialize produces a plaintext INI-style dump (used by rclone's dump commands).
+// Produces a plaintext INI-style dump (used by rclone's dump commands).
 func (s *MongoStorage) Serialize() (string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -217,8 +213,6 @@ func (s *MongoStorage) Serialize() (string, error) {
 	}
 	return b.String(), nil
 }
-
-// --- Section/key accessors (in-memory only, Save() flushes to MongoDB) ---
 
 func (s *MongoStorage) GetSectionList() []string {
 	s.mu.RLock()
@@ -293,10 +287,9 @@ func (s *MongoStorage) DeleteKey(section, key string) bool {
 	return ok
 }
 
-// StartWatching opens a MongoDB Change Stream on the collection and spawns a
+// Starts a MongoDB Change Stream on the collection and spawns a
 // background goroutine that propagates external changes (insert, update,
-// replace, delete) into the in-memory cache. Change Streams require the
-// MongoDB deployment to be a replica set or sharded cluster.
+// replace, delete) into the in-memory cache.
 func (s *MongoStorage) StartWatching(ctx context.Context) error {
 	opts := options.ChangeStream().SetFullDocument(options.UpdateLookup)
 	cs, err := s.collection.Watch(ctx, mongo.Pipeline{}, opts)
@@ -311,8 +304,7 @@ func (s *MongoStorage) StartWatching(ctx context.Context) error {
 	return nil
 }
 
-// StopWatching cancels the background Change Stream watcher. It is safe
-// to call even if StartWatching was never called.
+// Cancels the background Change Stream watcher.
 func (s *MongoStorage) StopWatching() {
 	if s.cancelWatch != nil {
 		s.cancelWatch()
@@ -320,8 +312,7 @@ func (s *MongoStorage) StopWatching() {
 	}
 }
 
-// processChangeStream loops on the Change Stream cursor and applies each
-// event to the in-memory cache.
+// Loops on the Change Stream cursor and applies each event to the in-memory cache.
 func (s *MongoStorage) processChangeStream(ctx context.Context, cs *mongo.ChangeStream) {
 	defer func() { _ = cs.Close(ctx) }()
 
@@ -338,14 +329,14 @@ func (s *MongoStorage) processChangeStream(ctx context.Context, cs *mongo.Change
 			continue
 		}
 
-		log.Println("Received change event: ", event)
+		// log.Println("Received change event: ", event)
 
 		switch event.OperationType {
 		case "insert", "update", "replace":
-			log.Println("Mongo config section updated: ", event.OperationType, event.DocumentKey.ID)
+			// log.Println("Mongo config section updated: ", event.OperationType, event.DocumentKey.ID)
 			s.applyFullDocument(event.DocumentKey.ID, event.FullDocument)
 		case "delete":
-			log.Println("Mongo config section deleted: ", event.OperationType, event.DocumentKey.ID)
+			// log.Println("Mongo config section deleted: ", event.OperationType, event.DocumentKey.ID)
 			s.mu.Lock()
 			delete(s.data, event.DocumentKey.ID)
 			s.mu.Unlock()
@@ -357,8 +348,7 @@ func (s *MongoStorage) processChangeStream(ctx context.Context, cs *mongo.Change
 	}
 }
 
-// applyFullDocument decrypts each field in the full BSON document and
-// replaces the corresponding section in the in-memory cache.
+// Decrypts each field in the full BSON document and replaces the corresponding section in the in-memory cache.
 func (s *MongoStorage) applyFullDocument(id string, doc bson.M) {
 	if id == "" || doc == nil {
 		return
@@ -380,7 +370,7 @@ func (s *MongoStorage) applyFullDocument(id string, doc bson.M) {
 		}
 		plaintext, err := s.decrypt(encrypted)
 		if err != nil {
-			log.Printf("change stream: decrypt %q.%q: %v", id, k, err)
+			// log.Printf("change stream: decrypt error: %q.%q: %v", id, k, err)
 			continue
 		}
 		section[k] = string(plaintext)

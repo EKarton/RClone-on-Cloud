@@ -1,5 +1,5 @@
-<div class="dropdown">
-  <div tabindex="0" role="button" class="btn btn-ghost btn-circle btn-xs">
+<details class="dropdown">
+  <summary role="button" class="btn btn-ghost btn-circle btn-xs">
     <svg
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
@@ -14,10 +14,9 @@
         d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
       />
     </svg>
-  </div>
+  </summary>
   <ul
-    tabindex="0"
-    class="dropdown-content z-[1] menu mt-2 rounded-box border border-base-300 bg-base-300 p-2 shadow-lg"
+    class="dropdown-content menu mt-2 rounded-box border border-base-300 bg-base-300 p-2 shadow-lg"
   >
     <li>
       <button data-testid="move-button" type="button" (click)="move()" class="whitespace-nowrap">
@@ -106,4 +105,4 @@
       </button>
     </li>
   </ul>
-</div>
+</details>

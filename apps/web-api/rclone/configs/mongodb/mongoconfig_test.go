@@ -15,7 +15,6 @@ import (
 	"github.com/ekarton/RClone-Cloud/apps/web-api/rclone/configs/mongodb"
 )
 
-// testKey is a fixed string key for tests only.
 var testKey = "test-secret-key"
 
 // Setup spins up a real MongoDB container and returns a MongoStorage, the Collection, and a cleanup func.
@@ -24,7 +23,6 @@ func setup(t *testing.T) (*mongodb.MongoStorage, *mongo.Collection, func()) {
 	ctx := context.Background()
 
 	// Start a real MongoDB container as a single-node replica set
-	// (required for Change Streams)
 	container, err := tcmongo.Run(ctx, "mongo:7", tcmongo.WithReplicaSet("rs"))
 	require.NoError(t, err, "failed to start MongoDB container")
 
