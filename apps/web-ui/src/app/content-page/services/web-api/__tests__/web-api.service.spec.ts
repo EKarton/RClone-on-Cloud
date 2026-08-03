@@ -117,7 +117,9 @@ describe('WebApiService', () => {
       expect(req.request.body).toEqual({
         fs: 'my-remote:',
         remote: 'my-path',
-        _config: { UseListR: true },
+        opt: {
+          recurse: false,
+        },
       });
 
       req.flush(mockRawResponse);
