@@ -68,6 +68,9 @@ export class WebApiService {
     const requestBody = {
       fs: `${remote}:`,
       remote: path,
+      opt: {
+        recurse: false,
+      },
     };
     return this.post<RawListFolderResponse>(url, requestBody).pipe(
       mapResultRxJs((res) => ({
